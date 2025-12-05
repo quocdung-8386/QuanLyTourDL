@@ -160,7 +160,6 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
     public void onViewClick(NhaCungCap ncc) {
         // Xử lý khi bấm Xem chi tiết
         Toast.makeText(getContext(), "Mở chi tiết nhà cung cấp: " + ncc.getTenNhaCungCap(), Toast.LENGTH_SHORT).show();
-        // TODO: Triển khai logic mở Fragment Chi tiết NhaCungCap tại đây
     }
 
     @Override
