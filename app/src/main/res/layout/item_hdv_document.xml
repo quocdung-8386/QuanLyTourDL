@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="12dp">
+
+    <ImageView
+        android:id="@+id/img_doc_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        app:tint="?attr/colorPrimary"
+        tools:src="@drawable/ic_document"
+        android:contentDescription="Icon giấy tờ" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_doc_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            tools:text="Thẻ Hướng dẫn viên" />
+
+        <TextView
+            android:id="@+id/text_doc_expiry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp"
+            tools:text="Hết hạn: 31/12/2025" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/text_doc_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:drawablePadding="4dp"
+        android:textSize="14sp"
+        tools:text="Còn hạn"
+        tools:textColor="#4CAF50"
+        tools:drawableStart="@drawable/ic_status_dot_green"/>
+
+</LinearLayout>

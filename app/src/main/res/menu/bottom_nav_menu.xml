@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_thongke"
+        android:icon="@drawable/ic_analytics"
+        android:title="Thống kê" />
+    <item
+        android:id="@+id/nav_kinhdoanh"
+        android:icon="@drawable/ic_business"
+        android:title="Kinh doanh" />
+    <item
+        android:id="@+id/nav_cskh"
+        android:icon="@drawable/ic_cskh"
+        android:title="CSKH" />
+    <item
+        android:id="@+id/nav_canhan"
+        android:icon="@drawable/ic_profile"
+        android:title="Cá nhân" />
+</menu>

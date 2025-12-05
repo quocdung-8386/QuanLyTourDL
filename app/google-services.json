@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "767438278534",
+    "project_id": "quanlytour-972ed",
+    "storage_bucket": "quanlytour-972ed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767438278534:android:76231720882ea64297a607",
+        "android_client_info": {
+          "package_name": "com.example.quanlytourdl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClWjFMaL1Zr7r61uo2ERk6sWKsXT21y0U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:elevation="0dp"
+        android:background="@android:color/white">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:paddingStart="4dp"
+            android:paddingEnd="16dp">
+
+            <ImageButton
+                android:id="@+id/btn_back_detail"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:contentDescription="Quay lại"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@android:color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="48dp"
+                android:text="Chi tiết Hướng dẫn viên"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingVertical="16dp"
+                android:background="@android:color/white"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/img_hdv_avatar"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginBottom="8dp"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+                    tools:src="@drawable/ic_hdv_placeholder" />
+                <TextView
+                android:id="@+id/text_hdv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vũ Hồng Quang"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/text_hdv_code"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mã HDV: 12345"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/text_hdv_contact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SĐT: 0987 654 321 | Email: vhquang@email.com"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giấy tờ &amp; Chứng chỉ"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:paddingHorizontal="16dp"
+                android:divider="@drawable/divider_default"
+                android:showDividers="middle">
+
+                <include layout="@layout/item_hdv_document"
+                    android:id="@+id/item_document_1"
+                    tools:visibility="visible"/>
+
+                <include layout="@layout/item_hdv_document"
+                    android:id="@+id/item_document_2"
+                    tools:visibility="visible"/>
+
+                <include layout="@layout/item_hdv_document"
+                    android:id="@+id/item_document_3"
+                    tools:visibility="visible"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lịch trống - Tháng 8/2024"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_update_ho_so"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cập nhật Hồ sơ"
+                    android:textColor="@android:color/white"
+                    app:backgroundTint="?attr/colorPrimary"
+                    android:layout_marginBottom="16dp"/>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <GridLayout
+                        android:id="@+id/grid_calendar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="7"
+                        android:rowCount="5"
+                        android:layout_marginBottom="8dp"
+                        app:layout_constraintTop_toTopOf="parent">
+                        <TextView
+                            tools:text="29"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center" />
+                        <TextView
+                            tools:text="30"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center" />
+                        <TextView
+                            tools:text="31"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center" />
+                        <TextView
+                            tools:text="1"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center" />
+                        <TextView
+                            tools:text="2"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center" />
+
+                        <TextView
+                            tools:text="3"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center"
+                            android:background="@drawable/bg_calendar_selected"
+                            android:textColor="@android:color/white"/>
+
+                        <TextView
+                            tools:text="4"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_columnWeight="1"
+                            android:gravity="center"
+                            android:background="@drawable/bg_calendar_selected"
+                            android:textColor="@android:color/white"/>
+
+                    </GridLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_gravity="center_horizontal"
+                        app:layout_constraintTop_toBottomOf="@id/grid_calendar"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:drawablePadding="4dp"
+                            android:text="Bận"
+                            android:drawableStart="@drawable/ic_busy_indicator"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="4dp"
+                            android:text="Trống"
+                            android:drawableStart="@drawable/ic_free_indicator"/>
+                    </LinearLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

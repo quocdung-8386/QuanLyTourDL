@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_rounded"> <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Xác nhận Phê duyệt Tour"
+    android:textColor="@android:color/black"
+    android:textSize="20sp"
+    android:textStyle="bold"
+    android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/text_confirmation_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        tools:text="Bạn có chắc chắn muốn duyệt bán tour 'Khám phá Vịnh Hạ Long 3N2Đ' không?" />
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/checkbox_send_notification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="Gửi thông báo phê duyệt cho người tạo"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="32dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hủy"
+            android:textColor="?attr/colorPrimary"
+            app:backgroundTint="#EDEDED"
+            app:cornerRadius="8dp"
+            android:layout_marginEnd="16dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Xác nhận"
+            android:textColor="@android:color/white"
+            app:backgroundTint="?attr/colorPrimary"
+            app:cornerRadius="8dp"/>
+    </LinearLayout>
+
+</LinearLayout>
