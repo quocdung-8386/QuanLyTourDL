@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7FA">
+
+    <!-- AppBar & Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:elevation="4dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="Chỉnh sửa Nhà cung cấp"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Icon Đóng (ID: icon_close) -->
+                <ImageView
+                    android:id="@+id/icon_close"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="16dp"
+                    android:src="@drawable/ic_close"
+                    android:contentDescription="Đóng"
+                    app:tint="@android:color/darker_gray" />
+
+            </RelativeLayout>
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Nội dung Scrollable (Form) -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="80dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Trường: Tên nhà cung cấp -->
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tên nhà cung cấp"
+                android:textColor="#333333" />
+
+            <EditText
+                android:id="@+id/edt_supplier_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_rounded_edittext_white"
+                android:hint="Nhập tên nhà cung cấp"
+                android:inputType="textPersonName"
+                android:padding="14dp"
+                android:textSize="16sp"
+                tools:text="Khách sạn Grand Saigon" />
+
+            <!-- Trường: Địa chỉ -->
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Địa chỉ"
+                android:textColor="#333333" />
+
+            <EditText
+                android:id="@+id/edt_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_rounded_edittext_white"
+                android:hint="Nhập địa chỉ"
+                android:inputType="textPostalAddress"
+                android:padding="14dp"
+                android:textSize="16sp"
+                tools:text="Số 8 Đồng Khởi, Quận 1, TP.HCM" />
+
+            <!-- Trường: Số điện thoại -->
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Số điện thoại"
+                android:textColor="#333333" />
+
+            <EditText
+                android:id="@+id/edt_phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_rounded_edittext_white"
+                android:hint="Nhập số điện thoại"
+                android:inputType="phone"
+                android:padding="14dp"
+                android:textSize="16sp"
+                tools:text="028 3915 5555" />
+
+            <!-- Trường: Email -->
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Email"
+                android:textColor="#333333" />
+
+            <EditText
+                android:id="@+id/edt_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_rounded_edittext_white"
+                android:hint="Nhập địa chỉ email"
+                android:inputType="textEmailAddress"
+                android:padding="14dp"
+                android:textSize="16sp"
+                tools:text="info@grandhotel.vn" />
+
+            <!-- Trường: Người liên hệ -->
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Người liên hệ"
+                android:textColor="#333333" />
+
+            <EditText
+                android:id="@+id/edt_contact_person"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_rounded_edittext_white"
+                android:hint="Nhập tên người liên hệ"
+                android:inputType="textPersonName"
+                android:padding="14dp"
+                android:textSize="16sp"
+                tools:text="Nông Quốc Dũng" />
+
+            <!-- Trường: Loại dịch vụ -->
+            <TextView
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Loại dịch vụ"
+                android:textColor="#333333" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_rounded_edittext_white">
+
+                <!-- ID: spinner_service_type -->
+                <Spinner
+                    android:id="@+id/spinner_service_type"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:popupBackground="@android:color/white"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Action Bar (Cố định ở dưới cùng) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@android:color/white"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:elevation="8dp">
+
+        <!-- Nút Hủy (ID: btn_cancel) -->
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Hủy"
+            android:textColor="#3B82F6"
+            android:backgroundTint="#E5E7EB"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Nút Lưu thay đổi (ID: btn_create_new) -->
+        <Button
+            android:id="@+id/btn_create_new"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Lưu thay đổi"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#3B82F6"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"
+            android:layout_marginStart="8dp"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

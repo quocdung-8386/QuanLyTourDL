@@ -46,8 +46,8 @@ public class LoginActivity extends AppCompatActivity {
         // Kiểm tra trạng thái đăng nhập tự động
         if (fbHelper.isUserLoggedIn()) {
             // TODO: Tự động chuyển đến màn hình chính nếu đã đăng nhập
-            // startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            // finish();
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
             // Hiện tại chỉ hiển thị Toast
             Toast.makeText(this, "Bạn đã đăng nhập trước đó.", Toast.LENGTH_SHORT).show();
         }
@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO: Chuyển sang màn hình Đăng ký (RegisterActivity)
                 Toast.makeText(LoginActivity.this, "Chuyển sang màn hình Đăng ký", Toast.LENGTH_SHORT).show();
-                // Ví dụ: startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+                startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
             }
         });
 
@@ -99,8 +99,8 @@ public class LoginActivity extends AppCompatActivity {
                 // TODO: Xử lý logic ghi nhớ (sử dụng SharedPreferences) nếu rememberMe = true
 
                 // Chuyển sang màn hình chính
-                // startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                // finish();
+              startActivity(new Intent(LoginActivity.this, MainActivity.class));
+              finish();
             }
 
             @Override

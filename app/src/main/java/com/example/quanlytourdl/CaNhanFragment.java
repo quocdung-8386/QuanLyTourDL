@@ -77,6 +77,8 @@ public class CaNhanFragment extends Fragment {
         });
 
         // Load dữ liệu ban đầu
+        //
+        //
         // loadUserProfile();
 
         return view;

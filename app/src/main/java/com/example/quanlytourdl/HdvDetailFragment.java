@@ -101,7 +101,6 @@ public class HdvDetailFragment extends Fragment {
         setupDocumentItem(itemDocument3, "Chứng nhận Sơ cứu", "Hết hạn: 01/03/2024", "Đã hết hạn", "#F44336");
     }
 
-    /
     private void setupDocumentItem(View itemView, String title, String expiry, String status, String statusColor) {
         TextView textTitle = itemView.findViewById(R.id.text_doc_title);
         TextView textExpiry = itemView.findViewById(R.id.text_doc_expiry);

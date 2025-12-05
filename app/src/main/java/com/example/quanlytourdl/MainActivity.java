@@ -8,13 +8,16 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+// Đảm bảo bạn đã tạo và import tất cả các Fragment này
 import com.example.quanlytourdl.R;
 import com.example.quanlytourdl.DashboardFragment;
+// THÊM CÁC IMPORT CỦA FRAGMENT CHƯA CÓ (CẦN TẠO CÁC FILE NÀY TRONG DỰ ÁN CỦA BẠN)
+import com.example.quanlytourdl.KinhDoanhFragment;
+import com.example.quanlytourdl.CSKHFragment;
+import com.example.quanlytourdl.CaNhanFragment;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-
-// Ghi chú: Tôi đã đổi package name từ com.example.quanlytourdl sang com.example.apponline
-// theo file build.gradle.kts bạn đã cung cấp gần đây nhất.
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,15 +41,18 @@ public class MainActivity extends AppCompatActivity {
                     loadFragment(new DashboardFragment());
                     return true;
                 } else if (itemId == R.id.nav_kinhdoanh) {
-                    // TODO: Tạo Fragment KinhDoanhFragment
+                    // SỬA LỖI: Thay thế Context sai bằng MainActivity.this và tải Fragment
+                    loadFragment(new KinhDoanhFragment());
                     Toast.makeText(MainActivity.this, "Kinh doanh", Toast.LENGTH_SHORT).show();
                     return true;
                 } else if (itemId == R.id.nav_cskh) {
-                    // TODO: Tạo Fragment CSKHFragment
+                    // SỬA LỖI: Thay thế Context sai bằng MainActivity.this và tải Fragment
+                    loadFragment(new CSKHFragment());
                     Toast.makeText(MainActivity.this, "Chăm sóc khách hàng", Toast.LENGTH_SHORT).show();
                     return true;
                 } else if (itemId == R.id.nav_canhan) {
-                    // TODO: Tạo Fragment CaNhanFragment
+                    // SỬA LỖI: Thay thế Context sai bằng MainActivity.this và tải Fragment
+                    loadFragment(new CaNhanFragment());
                     Toast.makeText(MainActivity.this, "Cá nhân", Toast.LENGTH_SHORT).show();
                     return true;
                 }
@@ -57,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
         // Tải Fragment Thống kê (Dashboard) khi khởi động lần đầu
         if (savedInstanceState == null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_thongke);
-            loadFragment(new DashboardFragment());
+            // Hàm loadFragment đã được gọi trong setOnItemSelectedListener,
+            // nhưng để đảm bảo, bạn vẫn có thể gọi lại ở đây hoặc loại bỏ dòng này.
+            // loadFragment(new DashboardFragment());
         }
     }
 
@@ -67,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        // frame_container là ID của FrameLayout trong activity_main.xml
+        // R.id.main_content_frame là ID của FrameLayout trong activity_main.xml (giả định)
         transaction.replace(R.id.main_content_frame, fragment);
         transaction.commit();
     }

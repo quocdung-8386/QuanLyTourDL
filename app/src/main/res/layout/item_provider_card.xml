@@ -86,7 +86,7 @@
                     android:layout_marginEnd="16dp"
                     android:contentDescription="Sửa"
                     android:src="@drawable/ic_edit"
-                    android:tint="#3B82F6" />
+                    app:tint="#3B82F6" />
 
                 <ImageView
                     android:id="@+id/icon_view"
@@ -95,7 +95,7 @@
                     android:layout_marginEnd="16dp"
                     android:contentDescription="Xem chi tiết"
                     android:src="@drawable/ic_eye"
-                    android:tint="#808080" />
+                    app:tint="#808080" />
 
                 <ImageView
                     android:id="@+id/icon_delete"
@@ -103,7 +103,7 @@
                     android:layout_height="20dp"
                     android:contentDescription="Xóa"
                     android:src="@drawable/ic_delete"
-                    android:tint="#EF4444" />
+                    app:tint="#EF4444" />
             </LinearLayout>
 
         </RelativeLayout>

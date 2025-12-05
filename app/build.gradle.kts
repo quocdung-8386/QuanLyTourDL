@@ -33,36 +33,31 @@ android {
 }
 
 dependencies {
-    // --- Thư viện AndroidX Core ---
     implementation(libs.appcompat)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
-    implementation ("androidx.recyclerview:recyclerview:1.3.2")
+    implementation ("androidx.recyclerview:recyclerview:1.4.0")
+    // Giữ nguyên: Cardview (1.0.0 là phiên bản cuối cùng)
     implementation ("androidx.cardview:cardview:1.0.0")
 
     // --- Thư viện bên thứ ba ---
     implementation ("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-    implementation("com.google.android.material:material:1.11.0") // Đã khắc phục lỗi thuộc tính
+    implementation("androidx.core:core-ktx:1.12.0")
+    // CẬP NHẬT: Material Components lên 1.12.0 (Tối ưu hóa cho Theme Material3)
+    implementation("com.google.android.material:material:1.12.0")
 
     // --- Quản lý Firebase (SỬ DỤNG BOM để giải quyết xung đột) ---
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
 
-    // Khai báo các thư viện Firebase MÀ KHÔNG GHI RÕ PHIÊN BẢN:
+    // Khai báo các thư viện Firebase MÀ KHÔNG GHI RÕ PHIÊN BẢN (Quản lý bởi BOM):
     implementation ("com.google.firebase:firebase-auth")
     implementation ("com.google.firebase:firebase-analytics")
-
-    // SỬA LỖI: Sử dụng BOM cho Realtime Database
     implementation ("com.google.firebase:firebase-database")
-
-    // TÙY CHỌN: Nếu bạn không dùng Firestore, nên xóa dòng này:
-    implementation ("com.google.firebase:firebase-firestore")
-
-    // TÙY CHỌN: Nếu không dùng Google Sign-In, có thể xóa dòng này:
+    implementation("com.google.firebase:firebase-firestore:24.11.1")
     implementation ("com.google.android.gms:play-services-auth:21.0.0")
 
-    // --- Test dependencies ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

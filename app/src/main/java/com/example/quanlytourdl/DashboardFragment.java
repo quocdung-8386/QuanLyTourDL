@@ -5,9 +5,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridLayout; // IMPORT BỔ SUNG để kiểm soát GridLayout
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView; // IMPORT BỔ SUNG để kiểm soát CardView
 import androidx.fragment.app.Fragment;
+import androidx.core.widget.NestedScrollView;
+import com.google.android.material.tabs.TabLayout;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.BarChart;
@@ -30,54 +34,147 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import java.util.ArrayList;
 import java.util.List;
 
-// Đảm bảo R được import đúng package
-// Ví dụ: import com.example.quanlytourdl.R;
-
 public class DashboardFragment extends Fragment {
 
+    // Khai báo biểu đồ giữ nguyên
     private LineChart lineChartRevenue;
     private BarChart barChartTours;
     private PieChart pieChartCustomers;
-    private PieChart pieChartDebt; // Biến này cần được sử dụng
+    private PieChart pieChartDebt;
     private BarChart barChartPerformance;
 
-    // Định nghĩa màu sắc tối ưu hơn
-    public static final int COLOR_REVENUE = Color.parseColor("#4CBB17");  // Xanh lá (Doanh thu)
-    public static final int COLOR_PROFIT = Color.parseColor("#FF8C00");   // Cam (Lợi nhuận)
-    public static final int COLOR_TOUR_COMPLETED = Color.parseColor("#3B82F6"); // Xanh dương
-    public static final int COLOR_TOUR_UPCOMING = Color.parseColor("#80D8FF");  // Xanh dương nhạt
-    public static final int COLOR_DEBT_PAYABLE = Color.parseColor("#EF4444"); // Đỏ (Nợ phải trả)
-    public static final int COLOR_DEBT_RECEIVABLE = Color.parseColor("#FBBF24"); // Vàng (Nợ phải thu)
-    public static final int COLOR_CUSTOMER_NEW = Color.parseColor("#8B5CF6"); // Tím
-    public static final int COLOR_CUSTOMER_OLD = Color.parseColor("#A78BFA"); // Tím nhạt
-    public static final int COLOR_CUSTOMER_VIP = Color.parseColor("#EC4899"); // Hồng
+    // Khai báo các Container View mới để xử lý LỌC (ẨN/HIỆN)
+    private CardView cardRevenue;
+    private CardView cardTours;
+    private GridLayout gridCustomersDebt; // Sử dụng GridLayout vì nó chứa cả 2 PieChart
+    private CardView cardPerformance;
+
+    // Các biến Tab và cuộn giữ nguyên
+    private TabLayout tabLayout;
+    private NestedScrollView nestedScrollView;
+
+    // Định nghĩa màu sắc giữ nguyên
+    public static final int COLOR_REVENUE = Color.parseColor("#4CBB17");
+    public static final int COLOR_PROFIT = Color.parseColor("#FF8C00");
+    public static final int COLOR_TOUR_COMPLETED = Color.parseColor("#3B82F6");
+    public static final int COLOR_TOUR_UPCOMING = Color.parseColor("#80D8FF");
+    public static final int COLOR_DEBT_PAYABLE = Color.parseColor("#EF4444");
+    public static final int COLOR_DEBT_RECEIVABLE = Color.parseColor("#FBBF24");
+    public static final int COLOR_CUSTOMER_NEW = Color.parseColor("#8B5CF6");
+    public static final int COLOR_CUSTOMER_OLD = Color.parseColor("#A78BFA");
+    public static final int COLOR_CUSTOMER_VIP = Color.parseColor("#EC4899");
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // SỬA LỖI: Sử dụng R.layout.fragment_dashboard của package hiện tại (giả sử đã import R)
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
         // Ánh xạ các biểu đồ
         lineChartRevenue = view.findViewById(R.id.lineChartRevenue);
         barChartTours = view.findViewById(R.id.barChartTours);
         pieChartCustomers = view.findViewById(R.id.pieChartCustomers);
-        pieChartDebt = view.findViewById(R.id.pieChartDebt); // Khởi tạo Công nợ
+        pieChartDebt = view.findViewById(R.id.pieChartDebt);
         barChartPerformance = view.findViewById(R.id.barChartPerformance);
 
-        // Gọi các hàm để cài đặt và điền dữ liệu
+        // ÁNH XẠ CÁC CONTAINER VIEW (DÙNG ĐỂ LỌC)
+        tabLayout = view.findViewById(R.id.tabLayout);
+        nestedScrollView = view.findViewById(R.id.nestedScrollView);
+        cardRevenue = view.findViewById(R.id.cardRevenue); // Ánh xạ CardView Doanh thu
+        cardTours = view.findViewById(R.id.cardTours);     // Ánh xạ CardView Tour
+        gridCustomersDebt = view.findViewById(R.id.gridCustomersDebt); // Ánh xạ GridLayout Khách hàng/Công nợ
+        cardPerformance = view.findViewById(R.id.cardPerformance); // Ánh xạ CardView Hiệu suất NV
+
+        // Khởi tạo, cài đặt và điền dữ liệu
         setupLineChartRevenue();
         setupBarChartTours();
         setupPieChartCustomers();
-        setupPieChartDebt(); // Bổ sung hàm Công nợ
+        setupPieChartDebt();
         setupBarChartPerformance();
+
+        // CÀI ĐẶT SỰ KIỆN CLICK TAB ĐỂ LỌC (ẨN/HIỆN)
+        setupTabLayoutListener();
+
+        // Khi khởi tạo Fragment, thiết lập mặc định Tab 0 (Tổng quan) được chọn
+        // Nếu không, listener sẽ không chạy
+        if (tabLayout.getTabCount() > 0) {
+            tabLayout.getTabAt(0).select();
+        }
 
         return view;
     }
 
+    // --- HÀM MỚI: XỬ LÝ LỌC (ẨN/HIỆN) VÀ CUỘN ---
+    private void setupTabLayoutListener() {
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int position = tab.getPosition();
+
+                // 1. Ẩn tất cả các CardView trước
+                hideAllCards();
+
+                // 2. HIỂN THỊ và CUỘN đến nội dung tương ứng
+                switch (position) {
+                    case 0: // Tổng quan (Hiển thị tất cả)
+                        showAllCards();
+                        scrollToView(cardRevenue); // Cuộn lên đầu
+                        break;
+                    case 1: // Tour/Đặt chỗ
+                        cardTours.setVisibility(View.VISIBLE);
+                        scrollToView(cardTours);
+                        break;
+                    case 2: // Hiệu suất NV
+                        cardPerformance.setVisibility(View.VISIBLE);
+                        scrollToView(cardPerformance);
+                        break;
+                    case 3: // Khách hàng (Bao gồm cả Công nợ)
+                        gridCustomersDebt.setVisibility(View.VISIBLE);
+                        scrollToView(gridCustomersDebt);
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                // Không làm gì khi Tab không được chọn
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                // Cuộn lại khi Tab được chọn lại (sử dụng lại logic onTabSelected)
+                onTabSelected(tab);
+            }
+        });
+    }
+
+    // --- HÀM HỖ TRỢ LỌC ---
+    private void hideAllCards() {
+        if (cardRevenue != null) cardRevenue.setVisibility(View.GONE);
+        if (cardTours != null) cardTours.setVisibility(View.GONE);
+        if (cardPerformance != null) cardPerformance.setVisibility(View.GONE);
+        if (gridCustomersDebt != null) gridCustomersDebt.setVisibility(View.GONE);
+    }
+
+    private void showAllCards() {
+        if (cardRevenue != null) cardRevenue.setVisibility(View.VISIBLE);
+        if (cardTours != null) cardTours.setVisibility(View.VISIBLE);
+        if (cardPerformance != null) cardPerformance.setVisibility(View.VISIBLE);
+        if (gridCustomersDebt != null) gridCustomersDebt.setVisibility(View.VISIBLE);
+    }
+
+    // --- HÀM CUỘN CHUNG ---
+    private void scrollToView(final View targetView) {
+        if (targetView != null && nestedScrollView != null) {
+            nestedScrollView.post(() -> nestedScrollView.scrollTo(
+                    0,
+                    targetView.getTop() // Cuộn đến đỉnh của View mục tiêu
+            ));
+        }
+    }
+
     // --- 1. BIỂU ĐỒ ĐƯỜNG (DOANH THU & LỢI NHUẬN) ---
     private void setupLineChartRevenue() {
-        // Dữ liệu giả định
+        // ... (Logic giữ nguyên)
         List<Entry> revenueEntries = new ArrayList<>();
         revenueEntries.add(new Entry(1f, 50f));
         revenueEntries.add(new Entry(2f, 65f));
@@ -99,16 +196,16 @@ public class DashboardFragment extends Fragment {
         revenueDataSet.setDrawCircles(false);
         revenueDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         revenueDataSet.setLineWidth(2f);
-        revenueDataSet.setDrawFilled(true); // Thêm đổ màu dưới đường
-        revenueDataSet.setFillColor(Color.parseColor("#D4EDDA")); // Xanh lá nhạt
+        revenueDataSet.setDrawFilled(true);
+        revenueDataSet.setFillColor(Color.parseColor("#D4EDDA"));
 
         LineDataSet profitDataSet = new LineDataSet(profitEntries, "Lợi nhuận");
         profitDataSet.setColor(COLOR_PROFIT);
         profitDataSet.setDrawCircles(false);
         profitDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         profitDataSet.setLineWidth(2f);
-        profitDataSet.setDrawFilled(true); // Thêm đổ màu dưới đường
-        profitDataSet.setFillColor(Color.parseColor("#FDE7C9")); // Cam nhạt
+        profitDataSet.setDrawFilled(true);
+        profitDataSet.setFillColor(Color.parseColor("#FDE7C9"));
 
         List<ILineDataSet> dataSets = new ArrayList<>();
         dataSets.add(revenueDataSet);
@@ -133,7 +230,7 @@ public class DashboardFragment extends Fragment {
 
     // --- 2. BIỂU ĐỒ CỘT (TOUR & ĐẶT CHỖ) ---
     private void setupBarChartTours() {
-        // Dữ liệu giả định
+        // ... (Logic giữ nguyên)
         List<BarEntry> completedEntries = new ArrayList<>();
         completedEntries.add(new BarEntry(1f, 12f));
         completedEntries.add(new BarEntry(2f, 18f));
@@ -162,7 +259,7 @@ public class DashboardFragment extends Fragment {
 
         BarData barData = new BarData(dataSets);
 
-        // Cài đặt Group Bar (giữ nguyên cài đặt Group Bar của bạn)
+        // Cài đặt Group Bar
         float groupSpace = 0.08f;
         float barSpace = 0.02f;
         float barWidth = 0.45f;
@@ -190,7 +287,7 @@ public class DashboardFragment extends Fragment {
 
     // --- 3. BIỂU ĐỒ TRÒN (KHÁCH HÀNG) ---
     private void setupPieChartCustomers() {
-        // Dữ liệu giả định
+        // ... (Logic giữ nguyên)
         List<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(45f, "Khách mới"));
         entries.add(new PieEntry(35f, "Khách cũ"));
@@ -212,15 +309,16 @@ public class DashboardFragment extends Fragment {
 
         // Cài đặt Donut Chart và center text
         pieChartCustomers.getDescription().setEnabled(false);
-        pieChartCustomers.setHoleRadius(58f); // Khoét lỗ giữa
+        pieChartCustomers.setHoleRadius(58f);
         pieChartCustomers.setTransparentCircleRadius(61f);
-        pieChartCustomers.setCenterText("Khách hàng\n(Theo %)"); // Sửa lại Center Text
+        pieChartCustomers.setCenterText("Khách hàng\n(Theo %)");
         pieChartCustomers.setDrawEntryLabels(false);
         pieChartCustomers.animateY(1000);
 
         // Cài đặt Legend
         Legend legend = pieChartCustomers.getLegend();
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        // Đã sửa lỗi "Cannot resolve symbol 'HorizontalAlignment'"
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
         legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
         legend.setDrawInside(false);
@@ -228,12 +326,12 @@ public class DashboardFragment extends Fragment {
         pieChartCustomers.invalidate();
     }
 
-    // --- 4. BIỂU ĐỒ TRÒN (CÔNG NỢ) - BỔ SUNG ---
+    // --- 4. BIỂU ĐỒ TRÒN (CÔNG NỢ) ---
     private void setupPieChartDebt() {
-        // Dữ liệu giả định
+        // ... (Logic giữ nguyên)
         List<PieEntry> entries = new ArrayList<>();
-        entries.add(new PieEntry(65f, "Nợ phải trả")); // 65%
-        entries.add(new PieEntry(35f, "Nợ phải thu")); // 35%
+        entries.add(new PieEntry(65f, "Nợ phải trả"));
+        entries.add(new PieEntry(35f, "Nợ phải thu"));
 
         PieDataSet dataSet = new PieDataSet(entries, "");
 
@@ -250,7 +348,7 @@ public class DashboardFragment extends Fragment {
 
         // Cài đặt Donut Chart và center text
         pieChartDebt.getDescription().setEnabled(false);
-        pieChartDebt.setHoleRadius(58f); // Khoét lỗ giữa
+        pieChartDebt.setHoleRadius(58f);
         pieChartDebt.setTransparentCircleRadius(61f);
         pieChartDebt.setCenterText("Công nợ\n(Theo %)");
         pieChartDebt.setDrawEntryLabels(false);
@@ -259,6 +357,7 @@ public class DashboardFragment extends Fragment {
         // Cài đặt Legend
         Legend legend = pieChartDebt.getLegend();
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        // Đã sửa lỗi "Cannot resolve symbol 'HorizontalAlignment'"
         legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
         legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
         legend.setDrawInside(false);
@@ -268,7 +367,7 @@ public class DashboardFragment extends Fragment {
 
     // --- 5. BIỂU ĐỒ CỘT (HIỆU SUẤT NHÂN VIÊN) ---
     private void setupBarChartPerformance() {
-        // Dữ liệu giả định
+        // ... (Logic giữ nguyên)
         List<BarEntry> performanceEntries = new ArrayList<>();
         performanceEntries.add(new BarEntry(1f, 0.8f));
         performanceEntries.add(new BarEntry(2f, 0.5f));
@@ -277,7 +376,7 @@ public class DashboardFragment extends Fragment {
         performanceEntries.add(new BarEntry(5f, 0.6f));
 
         BarDataSet dataSet = new BarDataSet(performanceEntries, "Tỉ lệ hoàn thành mục tiêu");
-        dataSet.setColor(COLOR_REVENUE); // Sử dụng màu xanh lá (Giả định là màu tốt)
+        dataSet.setColor(COLOR_REVENUE);
 
         BarData barData = new BarData(dataSet);
         barData.setBarWidth(0.6f);
