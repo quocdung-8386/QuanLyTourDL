@@ -58,7 +58,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Phần Chọn Nhà Cung Cấp -->
+            <!-- Thông tin cơ bản -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -67,100 +67,91 @@
                 android:textSize="18sp"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- Khung nhập và danh sách inline -->
-            <LinearLayout
+            <!-- 1. Nhà Cung Cấp (FIXED: Sử dụng AutoCompleteTextView cho Dropdown) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_supplier_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/rounded_corners_bg"> <!-- Thêm background để tạo viền cho dễ nhìn -->
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:hint="Nhà Cung Cấp (Bấm để chọn)">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <!-- Phải là AutoCompleteTextView nếu style là ExposedDropdownMenu -->
+                <AutoCompleteTextView
+                    android:id="@+id/edt_supplier_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:inputType="none"
+                    tools:text="Công ty Du lịch A"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <!-- Đã loại bỏ RecyclerView rv_ncc_inline_list và logic custom inline list -->
 
-                    <EditText
-                        android:id="@+id/edt_supplier_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Nhà Cung Cấp (Bấm để chọn)"
-                        android:drawableEnd="@drawable/ic_arrow_down"
-                        android:inputType="none"
-                        android:focusable="false"
-                        android:focusableInTouchMode="false"
-                        tools:text="Công ty Du lịch A"/>
-                </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- RecyclerView hiển thị danh sách NCC inline -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_ncc_inline_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:paddingHorizontal="4dp"
-                    android:layout_marginBottom="8dp"
-                    tools:visibility="visible"
-                    tools:layout_height="150dp"
-                    tools:listitem="@layout/item_provider_card"/>
-            </LinearLayout>
-
+            <!-- 2. Mã Hợp Đồng (FIXED: Sử dụng TextInputEditText) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:layout_marginBottom="12dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edt_contract_code"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Mã Hợp Đồng"
                     android:inputType="textCapCharacters"
+                    android:maxLines="1"
                     tools:text="HDDL-2024-001"/>
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- 3. Ngày Ký và Ngày Hết Hạn (FIXED: Sử dụng TextInputEditText) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="12dp">
 
+                <!-- Ngày Ký -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:endIconDrawable="@drawable/ic_calendar"
+                    app:endIconMode="custom">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edt_sign_date"
                         android:layout_width="match_parent"
+                        android_contentDescription="Chọn Ngày Ký"
                         android:layout_height="wrap_content"
                         android:hint="Ngày Ký"
                         android:inputType="none"
                         android:focusable="false"
-                        android:focusableInTouchMode="false"
-                        android:drawableEnd="@drawable/ic_calendar"
+                        android:clickable="true"
                         tools:text="01/01/2024"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Ngày Hết Hạn -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:endIconDrawable="@drawable/ic_calendar"
+                    app:endIconMode="custom">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edt_expiry_date"
                         android:layout_width="match_parent"
+                        android_contentDescription="Chọn Ngày Hết Hạn"
                         android:layout_height="wrap_content"
                         android:hint="Ngày Hết Hạn"
                         android:inputType="none"
                         android:focusable="false"
-                        android:focusableInTouchMode="false"
-                        android:drawableEnd="@drawable/ic_calendar"
+                        android:clickable="true"
                         tools:text="31/12/2024"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
@@ -175,13 +166,14 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"/>
 
+            <!-- 4. Nội Dung Dịch Vụ Chính (FIXED: Sử dụng TextInputEditText) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edt_contract_content"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -191,13 +183,14 @@
                     android:inputType="textMultiLine"/>
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- 5. Điều Khoản Thanh Toán (FIXED: Sử dụng TextInputEditText) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edt_payment_terms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -207,13 +200,14 @@
                     android:inputType="textMultiLine"/>
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- 6. Điều Khoản Dịch Vụ Khác (FIXED: Sử dụng TextInputEditText) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edt_service_terms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -233,7 +227,7 @@
         android:orientation="horizontal"
         android:layout_gravity="bottom"
         android:padding="16dp"
-        android:background="@drawable/bg_rounded_dropdown"
+        android:background="@color/white"
         android:elevation="8dp">
 
         <Button

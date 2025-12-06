@@ -1,92 +1,128 @@
 package com.example.quanlytourdl.model;
 
+import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
-import com.google.firebase.firestore.PropertyName;
-
-import java.util.Date;
 
 /**
- * Lớp Model đại diện cho một Hợp đồng (HopDong)
+ * Model class for HopDong (Contract).
+ * FIX: 'ngayKy' và 'ngayHetHan' đã chuyển sang String để khớp với dữ liệu trong Firestore.
+ * FIX: Đã thêm trường 'createdAt' để loại bỏ cảnh báo của Firestore.
+ * FIX: Đã thêm trường 'trangThai' để lưu trạng thái Hợp đồng (Đang hiệu lực, Sắp hết hạn, Đã hết hạn)
+ * được tính toán trên client.
  */
 public class HopDong {
-    @Exclude
-    private String maHopDong; // ID của document trong Firestore
-    private String maNhaCungCap;
-    private String tenNhaCungCap; // Tên hiển thị (để tránh phải query NCC)
-    private Date ngayKy;
-    private Date ngayHetHan;
-    private String trangThai; // Ví dụ: "Đang hiệu lực", "Sắp hết hạn", "Đã hết hạn"
 
-    public HopDong() {
-        // Cần có constructor rỗng cho Firestore
+    @DocumentId
+    private String documentId;
+
+    private String maHopDong; // Mã Hợp Đồng
+    private String tenNhaCungCap; // Tên Nhà Cung Cấp
+
+    // Chuyển từ Date sang String để khớp với dữ liệu đã lưu
+    private String ngayKy; // Ngày Ký
+    private String ngayHetHan; // Ngày Hết Hạn
+
+    private String noiDungDichVu; // Nội dung dịch vụ chính
+    private String dieuKhoanThanhToan; // Điều khoản thanh toán
+    private String dieuKhoanDichVuKhac; // Điều khoản dịch vụ khác
+
+    // Trường này KHÔNG được lưu trong Firestore, nó dùng để lưu trạng thái tính toán
+    // (ví dụ: "Đang hiệu lực", "Đã hết hạn") giữa Fragment và Adapter.
+    @Exclude
+    private String trangThai;
+
+    // Thêm trường createdAt để loại bỏ cảnh báo (có thể là String, Date hoặc Object)
+    private Object createdAt;
+
+    // Constructor rỗng bắt buộc cho Firestore
+    public HopDong() {}
+
+    // --- Getters ---
+
+    @Exclude
+    public String getDocumentId() {
+        return documentId;
     }
 
-    // Constructor đầy đủ (tùy chọn)
-    public HopDong(String maNhaCungCap, String tenNhaCungCap, Date ngayKy, Date ngayHetHan, String trangThai) {
-        this.maNhaCungCap = maNhaCungCap;
-        this.tenNhaCungCap = tenNhaCungCap;
-        this.ngayKy = ngayKy;
-        this.ngayHetHan = ngayHetHan;
-        this.trangThai = trangThai;
-    }
-
-    // Getters and Setters
-    @Exclude
     public String getMaHopDong() {
         return maHopDong;
     }
 
-    @Exclude
-    public void setMaHopDong(String maHopDong) {
-        this.maHopDong = maHopDong;
-    }
-
-    @PropertyName("maNhaCungCap")
-    public String getMaNhaCungCap() {
-        return maNhaCungCap;
-    }
-
-    @PropertyName("maNhaCungCap")
-    public void setMaNhaCungCap(String maNhaCungCap) {
-        this.maNhaCungCap = maNhaCungCap;
-    }
-
-    @PropertyName("tenNhaCungCap")
     public String getTenNhaCungCap() {
         return tenNhaCungCap;
     }
 
-    @PropertyName("tenNhaCungCap")
-    public void setTenNhaCungCap(String tenNhaCungCap) {
-        this.tenNhaCungCap = tenNhaCungCap;
-    }
-
-    @PropertyName("ngayKy")
-    public Date getNgayKy() {
+    public String getNgayKy() {
         return ngayKy;
     }
 
-    @PropertyName("ngayKy")
-    public void setNgayKy(Date ngayKy) {
-        this.ngayKy = ngayKy;
-    }
-
-    @PropertyName("ngayHetHan")
-    public Date getNgayHetHan() {
+    public String getNgayHetHan() {
         return ngayHetHan;
     }
 
-    @PropertyName("ngayHetHan")
-    public void setNgayHetHan(Date ngayHetHan) {
-        this.ngayHetHan = ngayHetHan;
+    public String getNoiDungDichVu() {
+        return noiDungDichVu;
     }
 
-    @PropertyName("trangThai")
+    public String getDieuKhoanThanhToan() {
+        return dieuKhoanThanhToan;
+    }
+
+    public String getDieuKhoanDichVuKhac() {
+        return dieuKhoanDichVuKhac;
+    }
+
+    public Object getCreatedAt() {
+        return createdAt;
+    }
+
+    // FIX: Getter trả về trạng thái tính toán (Bắt buộc cho Adapter)
+    @Exclude
     public String getTrangThai() {
         return trangThai;
     }
 
-    @PropertyName("trangThai")
+
+    // --- Setters ---
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    public void setMaHopDong(String maHopDong) {
+        this.maHopDong = maHopDong;
+    }
+
+    public void setTenNhaCungCap(String tenNhaCungCap) {
+        this.tenNhaCungCap = tenNhaCungCap;
+    }
+
+    public void setNgayKy(String ngayKy) {
+        this.ngayKy = ngayKy;
+    }
+
+    public void setNgayHetHan(String ngayHetHan) {
+        this.ngayHetHan = ngayHetHan;
+    }
+
+    public void setNoiDungDichVu(String noiDungDichVu) {
+        this.noiDungDichVu = noiDungDichVu;
+    }
+
+    public void setDieuKhoanThanhToan(String dieuKhoanThanhToan) {
+        this.dieuKhoanThanhToan = dieuKhoanThanhToan;
+    }
+
+    public void setDieuKhoanDichVuKhac(String dieuKhoanDichVuKhac) {
+        this.dieuKhoanDichVuKhac = dieuKhoanDichVuKhac;
+    }
+
+    public void setCreatedAt(Object createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    // FIX: Setter nhận trạng thái tính toán từ Fragment (Bắt buộc cho Fragment)
+    @Exclude
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
     }

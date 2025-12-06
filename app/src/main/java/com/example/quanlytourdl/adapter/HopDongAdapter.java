@@ -27,7 +27,7 @@ public class HopDongAdapter extends RecyclerView.Adapter<HopDongAdapter.HopDongV
     private final Context context;
     private final List<HopDong> hopDongList;
     private final OnItemActionListener listener;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    // Đã loại bỏ SimpleDateFormat vì dữ liệu ngày tháng được xử lý dưới dạng String.
 
     // Interface để xử lý các sự kiện click từ Fragment
     public interface OnItemActionListener {
@@ -59,26 +59,35 @@ public class HopDongAdapter extends RecyclerView.Adapter<HopDongAdapter.HopDongV
         // Giả sử MaHD là MaHD: [Mã NCC viết tắt]-[Năm ký]-[Số thứ tự]
         holder.tvMaHopDong.setText("Mã HĐ: " + hopDong.getMaHopDong());
 
-        String ngayKy = hopDong.getNgayKy() != null ? dateFormat.format(hopDong.getNgayKy()) : "N/A";
-        String ngayHetHan = hopDong.getNgayHetHan() != null ? dateFormat.format(hopDong.getNgayHetHan()) : "N/A";
+        // FIX: Giả định getNgayKy() và getNgayHetHan() trả về chuỗi String (dd/MM/yyyy).
+        // Hiển thị trực tiếp chuỗi, tránh lỗi format Date/String.
+        String ngayKy = hopDong.getNgayKy();
+        String ngayHetHan = hopDong.getNgayHetHan();
 
-        holder.tvNgayKy.setText("Ngày ký: " + ngayKy);
-        holder.tvNgayHetHan.setText("Hết hạn: " + ngayHetHan);
+        holder.tvNgayKy.setText("Ngày ký: " + (ngayKy != null ? ngayKy : "N/A"));
+        holder.tvNgayHetHan.setText("Hết hạn: " + (ngayHetHan != null ? ngayHetHan : "N/A"));
 
         // Thiết lập Trạng thái và màu sắc
+        // LƯU Ý: Trạng thái này đã được tính toán và CẬP NHẬT vào object 'hopDong'
+        // trong Fragment (QuanLyHopDongFragment) ở lần sửa cuối.
         String trangThai = hopDong.getTrangThai();
+
+        // Nếu trạng thái rỗng, gán mặc định (chỉ là dự phòng)
+        if (trangThai == null || trangThai.isEmpty()) {
+            trangThai = "Đang xử lý";
+        }
         holder.tvTrangThai.setText(trangThai);
 
         int badgeColor = ContextCompat.getColor(context, R.color.color_default_status);
         int badgeTextColor = Color.WHITE;
 
-        // Thiết lập màu sắc dựa trên trạng thái
+        // Thiết lập màu sắc dựa trên trạng thái (cần đảm bảo R.color.xxx tồn tại)
         if ("Đang hiệu lực".equals(trangThai)) {
-            badgeColor = ContextCompat.getColor(context, R.color.green_active); // Màu xanh lá
+            badgeColor = ContextCompat.getColor(context, R.color.green_active);
         } else if ("Sắp hết hạn".equals(trangThai)) {
-            badgeColor = ContextCompat.getColor(context, R.color.orange_warning); // Màu cam
+            badgeColor = ContextCompat.getColor(context, R.color.orange_warning);
         } else if ("Đã hết hạn".equals(trangThai) || "Đã chấm dứt".equals(trangThai)) {
-            badgeColor = ContextCompat.getColor(context, R.color.red_expired); // Màu đỏ/xám
+            badgeColor = ContextCompat.getColor(context, R.color.red_expired);
         }
 
         holder.tvTrangThai.setBackgroundColor(badgeColor);
