@@ -15,6 +15,8 @@ public class NhaCungCap implements Serializable {
     private String email;
     private String nguoiLienHe;
     private String loaiDichVu;
+    // THÊM: ID của hợp đồng đang hoạt động (active contract ID)
+    private String maHopDong;
     // Thêm trường này để dễ dàng quản lý nếu sau này muốn thêm bảo mật
     private String maNguoiDungTao;
 
@@ -22,18 +24,30 @@ public class NhaCungCap implements Serializable {
     public NhaCungCap() {
     }
 
-    // Constructor đầy đủ
-    public NhaCungCap(String tenNhaCungCap, String diaChi, String soDienThoai, String email, String nguoiLienHe, String loaiDichVu, String maNguoiDungTao) {
+    public NhaCungCap(String tenNhaCungCap, String diaChi, String soDienThoai, String email,
+                      String nguoiLienHe, String loaiDichVu, String maHopDong, String maNguoiDungTao) {
         this.tenNhaCungCap = tenNhaCungCap;
         this.diaChi = diaChi;
         this.soDienThoai = soDienThoai;
         this.email = email;
         this.nguoiLienHe = nguoiLienHe;
         this.loaiDichVu = loaiDichVu;
+        this.maHopDong = maHopDong; // Khởi tạo trường mới
         this.maNguoiDungTao = maNguoiDungTao;
     }
 
     // --- Getters and Setters ---
+
+    // Getter và Setter cho trường mới
+    public String getMaHopDong() {
+        return maHopDong;
+    }
+
+    public void setMaHopDong(String maHopDongActive) {
+        this.maHopDong = maHopDongActive;
+    }
+
+    // Các Getters/Setters cũ vẫn giữ nguyên...
 
     public String getMaNhaCungCap() {
         return maNhaCungCap;

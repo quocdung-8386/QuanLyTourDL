@@ -34,13 +34,14 @@ public class NhaCungCapAdapter extends RecyclerView.Adapter<NhaCungCapAdapter.Vi
         void onEditClick(NhaCungCap nhaCungCap);
         void onViewClick(NhaCungCap nhaCungCap);
         void onDeleteClick(NhaCungCap nhaCungCap); // THÊM HÀM XỬ LÝ XÓA
+
+        // PHƯƠNG THỨC MỚI (hoặc được khôi phục) cho việc CHẤM DỨT HỢP ĐỒNG (Chỉ khi CÓ hợp đồng active)
+        // Giả định Adapter gọi phương thức này nếu ncc.getMaHopDongActive() != null
+        void onTerminateContract(NhaCungCap ncc);
     }
 
     private final OnItemActionListener actionListener;
 
-    // ***************************************************************
-    // THAY ĐỔI 2: CẬP NHẬT CONSTRUCTOR ĐỂ NHẬN LISTENER
-    // ***************************************************************
     public NhaCungCapAdapter(Context context, List<NhaCungCap> nhaCungCapList, OnItemActionListener actionListener) {
         this.context = context;
         this.nhaCungCapList = nhaCungCapList;
@@ -100,9 +101,6 @@ public class NhaCungCapAdapter extends RecyclerView.Adapter<NhaCungCapAdapter.Vi
 
         // Nút Xóa
         holder.iconDelete.setOnClickListener(v -> {
-            // ***************************************************************
-            // THAY ĐỔI 3: GỌI CALLBACK DELETE THAY VÌ XÓA TRỰC TIẾP
-            // ***************************************************************
             if (actionListener != null) {
                 actionListener.onDeleteClick(ncc);
             } else {
@@ -116,14 +114,7 @@ public class NhaCungCapAdapter extends RecyclerView.Adapter<NhaCungCapAdapter.Vi
         return nhaCungCapList.size();
     }
 
-    // --- LOGIC XÓA FIRESTORE ---
-    // ***************************************************************
-    // THAY ĐỔI 4: XÓA HÀM deleteSupplierFromFirestore() KHỎI ADAPTER
-    // Hàm này đã được chuyển sang KinhDoanhFragment
-    // ***************************************************************
 
-
-    // --- VIEWHOLDER (Giữ nguyên) ---
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView textProviderName;

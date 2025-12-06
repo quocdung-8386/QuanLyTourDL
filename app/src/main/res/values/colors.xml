@@ -2,4 +2,17 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="border_color">#DDDDDD</color>
+    <color name="gray_bg">#E0E0E0</color>
+    <color name="primary_red">#E53935</color>
+    <color name="blue_primary">#007BFF</color> <!-- Màu xanh chính (VD: nút, icon) -->
+    <color name="grey_text">#6C757D</color>    <!-- Màu văn bản xám (cho các chi tiết nhỏ) -->
+    <color name="light_grey_bg">#F8F9FA</color> <!-- Màu nền xám nhạt (VD: ô tìm kiếm) -->
+
+    <!-- Màu Trạng thái (Status Colors) -->
+    <color name="green_active">#28A745</color>    <!-- Đang hiệu lực -->
+    <color name="orange_warning">#FFC107</color>   <!-- Sắp hết hạn/Cảnh báo -->
+    <color name="red_expired">#DC3545</color>      <!-- Đã hết hạn/Xóa -->
+    <color name="color_default_status">#6C757D</color>
+
 </resources>

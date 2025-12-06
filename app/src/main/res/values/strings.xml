@@ -2,4 +2,12 @@
     <string name="app_name">QuanLyTourDL</string>
     <string name="register_terms_text">Bằng việc đăng ký, bạn đã đồng ý với \u003Cb>Điều khoản dịch vụ\u003C/b> và \u003Cb>Chính sách bảo mật\u003C/b> của chúng tôi.</string>
     <string name="back_button">Nút quay lại</string>
+    <string-array name="termination_reasons">
+        <item>Chọn một lý do</item>
+        <item>Vi phạm cam kết chất lượng</item>
+        <item>Tái cấu trúc kinh doanh</item>
+        <item>Không đạt hiệu suất</item>
+        <item>Thỏa thuận chấm dứt</item>
+        <item>Khác</item>
+    </string-array>
 </resources>

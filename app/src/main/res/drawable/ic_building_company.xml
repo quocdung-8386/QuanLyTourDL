@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal"> <!-- Sử dụng tint mặc định, màu sẽ được ghi đè trong XML layout -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M19,21L5,21V3h14v18zM11,9H9V7h2v2zM15,9h-2V7h2v2zM11,13H9v-2h2v2zM15,13h-2v-2h2v2zM11,17H9v-2h2v2zM15,17h-2v-2h2v2z" />
+</vector>

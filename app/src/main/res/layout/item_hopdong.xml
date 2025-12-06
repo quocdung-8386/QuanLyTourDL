@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Icon Nhà Cung Cấp (Building/Car/Bed icon) -->
+        <ImageView
+            android:id="@+id/img_provider_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_icon_circle"
+            android:padding="12dp"
+            android:src="@drawable/ic_building_company"
+            app:tint="@color/blue_primary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Icon NCC" />
+
+        <!-- Tên Nhà Cung Cấp -->
+        <TextView
+            android:id="@+id/tv_supplier_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/tv_status_badge"
+            app:layout_constraintStart_toEndOf="@id/img_provider_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Công ty Du lịch Lửa Việt" />
+
+        <!-- Mã Hợp đồng -->
+        <TextView
+            android:id="@+id/tv_contract_id"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/grey_text"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@id/tv_supplier_name"
+            app:layout_constraintStart_toStartOf="@id/tv_supplier_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_supplier_name"
+            tools:text="Mã HD: LV-2023-001" />
+
+        <!-- Ngày ký và Hết hạn -->
+        <TextView
+            android:id="@+id/tv_contract_start_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/tv_supplier_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_contract_id"
+            tools:text="Ngày ký: 01/01/2023" />
+
+        <TextView
+            android:id="@+id/tv_contract_end_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/tv_supplier_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_contract_start_date"
+            tools:text="Hết hạn: 31/12/2024" />
+
+        <!-- Status Badge -->
+        <TextView
+            android:id="@+id/tv_status_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_status_badge"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Đang hiệu lực" />
+
+        <!-- Khu vực Actions (View, Edit, Delete) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_contract_end_date">
+
+            <!-- Nút Xem chi tiết -->
+            <ImageButton
+                android:id="@+id/btn_view_contract"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="Xem chi tiết"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_eye"
+                app:tint="@color/blue_primary" />
+
+            <!-- Nút Sửa -->
+            <ImageButton
+                android:id="@+id/btn_edit_contract"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Sửa hợp đồng"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_edit"
+                app:tint="@color/orange_warning" />
+
+            <!-- Nút Xóa/Chấm dứt -->
+            <ImageButton
+                android:id="@+id/btn_delete_contract"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Xóa/Chấm dứt hợp đồng"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_delete"
+                app:tint="@color/red_expired" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

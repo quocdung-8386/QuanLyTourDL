@@ -41,7 +41,15 @@ public class TaoNhaCungCapFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_tao_nha_cung_cap, container, false);
+        // Lấy ID layout thông qua tên chuỗi (giả định)
+        int layoutId = getResources().getIdentifier("fragment_tao_nha_cung_cap", "layout", requireContext().getPackageName());
+        if (layoutId == 0) {
+            Log.e(TAG, "Không tìm thấy layout ID 'fragment_tao_nha_cung_cap'.");
+            // Xử lý khi không tìm thấy layout, ví dụ: trả về View trống
+            return new View(requireContext());
+        }
+
+        View view = inflater.inflate(layoutId, container, false);
 
         // Khởi tạo Firestore và Auth
         db = FirebaseFirestore.getInstance();
@@ -63,14 +71,18 @@ public class TaoNhaCungCapFragment extends Fragment {
 
         // Xử lý sự kiện click
         btnTaoMoi.setOnClickListener(v -> taoNhaCungCap());
-        btnHuy.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        btnHuy.setOnClickListener(v -> {
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().popBackStack();
+            }
+        });
 
         return view;
     }
 
     private void setupSpinner() {
         // Danh sách dịch vụ (ví dụ)
-        String[] loaiDichVuArray = new String[]{"Khách sạn", "Vận chuyển", "Ăn uống", "Tham quan"};
+        String[] loaiDichVuArray = new String[]{"Khách sạn", "Vận chuyển", "Ăn uống", "Tham quan", "Khác"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, loaiDichVuArray);
         spLoaiDichVu.setAdapter(adapter);
@@ -90,13 +102,16 @@ public class TaoNhaCungCapFragment extends Fragment {
             return;
         }
 
-        // Lấy UID của người dùng đang đăng nhập (hoặc sử dụng một ID mặc định nếu chưa đăng nhập)
-        // Vì Rules đang mở (if true), nên việc không có UID cũng không bị lỗi Permission Denied.
+        // Lấy UID của người dùng đang đăng nhập
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String maNguoiDungTao = (currentUser != null) ? currentUser.getUid() : "anonymous_public";
 
-        // Tạo đối tượng NhaCungCap
-        NhaCungCap newSupplier = new NhaCungCap(ten, diaChi, sdt, email, nguoiLH, loaiDV, maNguoiDungTao);
+        // --- FIX LỖI CONSTRUCTOR ---
+        // maHopDongActive ban đầu là null vì chưa có hợp đồng
+        String maHopDongActive = null;
+
+        // Tạo đối tượng NhaCungCap với 8 tham số
+        NhaCungCap newSupplier = new NhaCungCap(ten, diaChi, sdt, email, nguoiLH, loaiDV, maHopDongActive, maNguoiDungTao);
 
         // Gọi hàm lưu vào Firestore
         saveNewSupplierToFirestore(newSupplier);
@@ -115,7 +130,9 @@ public class TaoNhaCungCapFragment extends Fragment {
                     Log.d(TAG, "Đã thêm Nhà Cung Cấp với ID: " + supplierId);
 
                     // Sau khi thêm thành công, có thể quay lại fragment trước đó
-                    getParentFragmentManager().popBackStack();
+                    if (getParentFragmentManager() != null) {
+                        getParentFragmentManager().popBackStack();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     // Dù rules đang mở, vẫn bắt lỗi để đề phòng các lỗi khác như lỗi mạng
