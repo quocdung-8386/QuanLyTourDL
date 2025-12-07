@@ -2,7 +2,6 @@ package com.example.quanlytourdl;
 
 import android.os.Bundle;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,16 +18,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class TaoNhaCungCapFragment extends Fragment {
 
     private static final String TAG = "TaoNhaCungCapFragment";
 
-    // THAY ĐỔI: Sử dụng FirebaseFirestore
     private FirebaseFirestore db;
     private CollectionReference nhaCungCapRef;
     private FirebaseAuth mAuth;
@@ -57,6 +51,7 @@ public class TaoNhaCungCapFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
 
         // Ánh xạ các thành phần UI
+        // Giả định R.id.* tương ứng với layout
         etTenNhaCungCap = view.findViewById(R.id.edt_supplier_name);
         etDiaChi = view.findViewById(R.id.edt_address);
         etSoDienThoai = view.findViewById(R.id.edt_phone);
@@ -106,12 +101,25 @@ public class TaoNhaCungCapFragment extends Fragment {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String maNguoiDungTao = (currentUser != null) ? currentUser.getUid() : "anonymous_public";
 
-        // --- FIX LỖI CONSTRUCTOR ---
-        // maHopDongActive ban đầu là null vì chưa có hợp đồng
-        String maHopDongActive = null;
+        // --- ĐIỀU CHỈNH ĐỂ KHỚP VỚI CONSTRUCTOR 10 THAM SỐ CỦA NhaCungCap ---
+        String maHopDongActive = null; // Ban đầu là null
+        String trangThaiHopDong = null; // Trường mới - Ban đầu là null
+        String maHopDongGanNhat = null; // Trường mới - Ban đầu là null
 
-        // Tạo đối tượng NhaCungCap với 8 tham số
-        NhaCungCap newSupplier = new NhaCungCap(ten, diaChi, sdt, email, nguoiLH, loaiDV, maHopDongActive, maNguoiDungTao);
+
+        // Tạo đối tượng NhaCungCap với 10 tham số
+        NhaCungCap newSupplier = new NhaCungCap(
+                ten,
+                diaChi,
+                sdt,
+                email,
+                nguoiLH,
+                loaiDV,
+                maHopDongActive,
+                maNguoiDungTao,
+                trangThaiHopDong, // Tham số mới
+                maHopDongGanNhat  // Tham số mới
+        );
 
         // Gọi hàm lưu vào Firestore
         saveNewSupplierToFirestore(newSupplier);
@@ -124,7 +132,9 @@ public class TaoNhaCungCapFragment extends Fragment {
                 .addOnSuccessListener(documentReference -> {
                     // Lấy ID tự động tạo của document vừa được thêm
                     String supplierId = documentReference.getId();
-                    newSupplier.setMaNhaCungCap(supplierId); // Cập nhật lại model nếu cần
+                    // Chúng ta có thể set ID này lại vào đối tượng, mặc dù Firestore không cần,
+                    // nhưng hữu ích nếu chúng ta muốn xử lý đối tượng này tiếp sau khi lưu.
+                    newSupplier.setMaNhaCungCap(supplierId);
 
                     Toast.makeText(getContext(), "Tạo nhà cung cấp THÀNH CÔNG! ID: " + supplierId, Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Đã thêm Nhà Cung Cấp với ID: " + supplierId);
@@ -135,7 +145,6 @@ public class TaoNhaCungCapFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Dù rules đang mở, vẫn bắt lỗi để đề phòng các lỗi khác như lỗi mạng
                     Toast.makeText(getContext(), "LỖI LƯU DỮ LIỆU: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     Log.e(TAG, "Lỗi lưu Nhà cung cấp vào Firestore: ", e);
                 });
