@@ -15,19 +15,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlytourdl.R;
 import com.example.quanlytourdl.model.HopDong;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Adapter hiển thị danh sách HopDong trong RecyclerView.
+ * Đã sửa lỗi thiếu phương thức getTenNhaCungCap và getNgayKy.
  */
 public class HopDongAdapter extends RecyclerView.Adapter<HopDongAdapter.HopDongViewHolder> {
 
     private final Context context;
     private final List<HopDong> hopDongList;
     private final OnItemActionListener listener;
-    // Đã loại bỏ SimpleDateFormat vì dữ liệu ngày tháng được xử lý dưới dạng String.
+
+    // Hằng số trạng thái (để đảm bảo khớp với Fragment)
+    private static final String TRANG_THAI_DANG_HIEU_LUC = "Đang hiệu lực";
+    private static final String TRANG_THAI_SAP_HET_HAN = "Sắp hết hạn";
+    private static final String TRANG_THAI_DA_HET_HAN = "Đã hết hạn";
+    private static final String TRANG_THAI_DA_CHAM_DUT = "Đã Chấm dứt"; // Chú ý chữ 'C' hoa
 
     // Interface để xử lý các sự kiện click từ Fragment
     public interface OnItemActionListener {
@@ -54,22 +58,20 @@ public class HopDongAdapter extends RecyclerView.Adapter<HopDongAdapter.HopDongV
     public void onBindViewHolder(@NonNull HopDongViewHolder holder, int position) {
         HopDong hopDong = hopDongList.get(position);
 
-        holder.tvTenNhaCungCap.setText(hopDong.getTenNhaCungCap());
+        // FIX 1: Thay thế getTenNhaCungCap() bằng getNhaCungCap()
+        holder.tvTenNhaCungCap.setText(hopDong.getNhaCungCap());
 
         // Giả sử MaHD là MaHD: [Mã NCC viết tắt]-[Năm ký]-[Số thứ tự]
         holder.tvMaHopDong.setText("Mã HĐ: " + hopDong.getMaHopDong());
 
-        // FIX: Giả định getNgayKy() và getNgayHetHan() trả về chuỗi String (dd/MM/yyyy).
-        // Hiển thị trực tiếp chuỗi, tránh lỗi format Date/String.
-        String ngayKy = hopDong.getNgayKy();
+        // FIX 2: Thay thế getNgayKy() bằng getNgayKyKet()
+        String ngayKy = hopDong.getNgayKyKet();
         String ngayHetHan = hopDong.getNgayHetHan();
 
         holder.tvNgayKy.setText("Ngày ký: " + (ngayKy != null ? ngayKy : "N/A"));
         holder.tvNgayHetHan.setText("Hết hạn: " + (ngayHetHan != null ? ngayHetHan : "N/A"));
 
         // Thiết lập Trạng thái và màu sắc
-        // LƯU Ý: Trạng thái này đã được tính toán và CẬP NHẬT vào object 'hopDong'
-        // trong Fragment (QuanLyHopDongFragment) ở lần sửa cuối.
         String trangThai = hopDong.getTrangThai();
 
         // Nếu trạng thái rỗng, gán mặc định (chỉ là dự phòng)
@@ -82,11 +84,13 @@ public class HopDongAdapter extends RecyclerView.Adapter<HopDongAdapter.HopDongV
         int badgeTextColor = Color.WHITE;
 
         // Thiết lập màu sắc dựa trên trạng thái (cần đảm bảo R.color.xxx tồn tại)
-        if ("Đang hiệu lực".equals(trangThai)) {
+        if (TRANG_THAI_DANG_HIEU_LUC.equals(trangThai)) {
             badgeColor = ContextCompat.getColor(context, R.color.green_active);
-        } else if ("Sắp hết hạn".equals(trangThai)) {
+        } else if (TRANG_THAI_SAP_HET_HAN.equals(trangThai)) {
             badgeColor = ContextCompat.getColor(context, R.color.orange_warning);
-        } else if ("Đã hết hạn".equals(trangThai) || "Đã chấm dứt".equals(trangThai)) {
+        }
+        // Đã hết hạn VÀ Đã Chấm dứt (sử dụng hằng số đã được chuẩn hóa)
+        else if (TRANG_THAI_DA_HET_HAN.equals(trangThai) || TRANG_THAI_DA_CHAM_DUT.equals(trangThai)) {
             badgeColor = ContextCompat.getColor(context, R.color.red_expired);
         }
 

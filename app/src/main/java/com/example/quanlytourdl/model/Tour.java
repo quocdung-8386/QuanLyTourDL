@@ -1,125 +1,113 @@
 package com.example.quanlytourdl.model;
 
 import java.util.Date;
+import java.util.List;
 
+/**
+ * Lớp Tour model, được cập nhật để tương thích với Firestore
+ * và bao gồm đầy đủ thông tin chi tiết, quản lý và phê duyệt.
+ */
 public class Tour {
+    // ------------------- THÔNG TIN CƠ BẢN VÀ GIÁ -------------------
     private String maTour;
     private String tenTour;
-    private String diemKhoiHanh;
-    private String diemDen;
-    private Date ngayKhoiHanh;
-    private int soLuongKhach;
+    private String diemKhoiHanh; // Địa điểm khởi hành
+    private String diemDen;      // Địa điểm kết thúc
+    private Date ngayKhoiHanh;   // Ngày khởi hành
     private long giaTour;
 
-    // CÁC TRƯỜNG DỮ LIỆU MỚI ĐƯỢC THÊM VÀO:
-    private String nguoiTao;
-    private Date ngayTao;
-    private String anhThumbnailUrl;
+    // ------------------- THÔNG TIN CHI TIẾT -------------------
+    private int soNgay;               // Số ngày của tour (ví dụ: 5)
+    private String diemDenChinh;      // Điểm đến nổi bật nhất/chính (dùng cho hiển thị card)
+    private int soLuongToiDa;         // Sức chứa tối đa của tour (Capacity)
+    private int soLuongKhach;         // Số lượng khách đã đặt (Booked Count) - Cần thiết cho việc tính toán còn chỗ
+    private String lichTrinhChiTiet;  // Mô tả lịch trình chi tiết (dạng text hoặc JSON string)
+    private String phuongTien;        // Phương tiện di chuyển (Ví dụ: Máy bay, Tàu hỏa)
+    private String tenNhaCungCap;     // Tên đơn vị cung cấp/tổ chức tour (đại lý)
 
-    // Constructor Hoàn Chỉnh (Chứa tất cả các trường cần thiết cho Adapter chi tiết)
-    public Tour(String maTour, String tenTour, String diemKhoiHanh, String diemDen, Date ngayKhoiHanh,
-                int soLuongKhach, long giaTour, String nguoiTao, Date ngayTao, String anhThumbnailUrl) {
+    // ------------------- TRƯỜNG QUẢN LÝ VÀ PHÊ DUYỆT -------------------
+    private String nguoiTao; // ID người tạo
+    private Date ngayTao;    // Ngày tạo tour
+    private String status;   // Trạng thái: CHO_PHE_DUYET, DANG_MO_BAN, DA_TU_CHOI
 
-        this.maTour = maTour;
-        this.tenTour = tenTour;
-        this.diemKhoiHanh = diemKhoiHanh;
-        this.diemDen = diemDen;
-        this.ngayKhoiHanh = ngayKhoiHanh;
-        this.soLuongKhach = soLuongKhach;
-        this.giaTour = giaTour;
+    // ------------------- TRƯỜNG MARKETING VÀ HÌNH ẢNH -------------------
+    private String seoDescription;
+    private boolean isFeatured; // Tour nổi bật (featured)
+    private List<String> imageUrls;
+    private String anhThumbnailUrl; // Giữ lại cho tiện (thường là imageUrls[0])
 
-        // Khởi tạo các trường mới
-        this.nguoiTao = nguoiTao;
-        this.ngayTao = ngayTao;
-        this.anhThumbnailUrl = anhThumbnailUrl;
+
+    // QUAN TRỌNG: Constructor rỗng (No-argument constructor) BẮT BUỘNG cho Firestore
+    public Tour() {
+        // Khởi tạo mặc định
     }
 
-    // Constructor đơn giản hơn (Tùy chọn)
-    public Tour(String maTour, String tenTour, String nguoiTao, Date ngayTao, String anhThumbnailUrl) {
-        this(maTour, tenTour, null, null, null, 0, 0, nguoiTao, ngayTao, anhThumbnailUrl);
-    }
 
-    // ------------------- GETTERS VÀ SETTERS CŨ -------------------
+    // ------------------- GETTERS VÀ SETTERS CƠ BẢN -------------------
 
-    public String getMaTour() {
-        return maTour;
-    }
+    public String getMaTour() { return maTour; }
+    public void setMaTour(String maTour) { this.maTour = maTour; }
 
-    public void setMaTour(String maTour) {
-        this.maTour = maTour;
-    }
+    public String getTenTour() { return tenTour; }
+    public void setTenTour(String tenTour) { this.tenTour = tenTour; }
 
-    public String getTenTour() {
-        return tenTour;
-    }
+    public String getDiemKhoiHanh() { return diemKhoiHanh; }
+    public void setDiemKhoiHanh(String diemKhoiHanh) { this.diemKhoiHanh = diemKhoiHanh; }
 
-    public void setTenTour(String tenTour) {
-        this.tenTour = tenTour;
-    }
+    public String getDiemDen() { return diemDen; }
+    public void setDiemDen(String diemDen) { this.diemDen = diemDen; }
 
-    public String getDiemKhoiHanh() {
-        return diemKhoiHanh;
-    }
+    public Date getNgayKhoiHanh() { return ngayKhoiHanh; }
+    public void setNgayKhoiHanh(Date ngayKhoiHanh) { this.ngayKhoiHanh = ngayKhoiHanh; }
 
-    public void setDiemKhoiHanh(String diemKhoiHanh) {
-        this.diemKhoiHanh = diemKhoiHanh;
-    }
+    public long getGiaTour() { return giaTour; }
+    public void setGiaTour(long giaTour) { this.giaTour = giaTour; }
 
-    public String getDiemDen() {
-        return diemDen;
-    }
 
-    public void setDiemDen(String diemDen) {
-        this.diemDen = diemDen;
-    }
+    // ------------------- GETTERS VÀ SETTERS CHI TIẾT -------------------
 
-    public Date getNgayKhoiHanh() {
-        return ngayKhoiHanh;
-    }
+    public int getSoNgay() { return soNgay; }
+    public void setSoNgay(int soNgay) { this.soNgay = soNgay; }
 
-    public void setNgayKhoiHanh(Date ngayKhoiHanh) {
-        this.ngayKhoiHanh = ngayKhoiHanh;
-    }
+    public String getDiemDenChinh() { return diemDenChinh; }
+    public void setDiemDenChinh(String diemDenChinh) { this.diemDenChinh = diemDenChinh; }
 
-    public int getSoLuongKhach() {
-        return soLuongKhach;
-    }
+    public int getSoLuongToiDa() { return soLuongToiDa; }
+    public void setSoLuongToiDa(int soLuongToiDa) { this.soLuongToiDa = soLuongToiDa; }
 
-    public void setSoLuongKhach(int soLuongKhach) {
-        this.soLuongKhach = soLuongKhach;
-    }
+    public int getSoLuongKhach() { return soLuongKhach; }
+    public void setSoLuongKhach(int soLuongKhach) { this.soLuongKhach = soLuongKhach; }
 
-    public long getGiaTour() {
-        return giaTour;
-    }
+    public String getLichTrinhChiTiet() { return lichTrinhChiTiet; }
+    public void setLichTrinhChiTiet(String lichTrinhChiTiet) { this.lichTrinhChiTiet = lichTrinhChiTiet; }
 
-    public void setGiaTour(long giaTour) {
-        this.giaTour = giaTour;
-    }
+    public String getPhuongTien() { return phuongTien; }
+    public void setPhuongTien(String phuongTien) { this.phuongTien = phuongTien; }
 
-    // ------------------- GETTERS VÀ SETTERS MỚI -------------------
+    public String getTenNhaCungCap() { return tenNhaCungCap; }
+    public void setTenNhaCungCap(String tenNhaCungCap) { this.tenNhaCungCap = tenNhaCungCap; }
 
-    public String getNguoiTao() {
-        return nguoiTao;
-    }
 
-    public void setNguoiTao(String nguoiTao) {
-        this.nguoiTao = nguoiTao;
-    }
+    // ------------------- GETTERS VÀ SETTERS QUẢN LÝ & MARKETING -------------------
 
-    public Date getNgayTao() {
-        return ngayTao;
-    }
+    public String getNguoiTao() { return nguoiTao; }
+    public void setNguoiTao(String nguoiTao) { this.nguoiTao = nguoiTao; }
 
-    public void setNgayTao(Date ngayTao) {
-        this.ngayTao = ngayTao;
-    }
+    public Date getNgayTao() { return ngayTao; }
+    public void setNgayTao(Date ngayTao) { this.ngayTao = ngayTao; }
 
-    public String getAnhThumbnailUrl() {
-        return anhThumbnailUrl;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public void setAnhThumbnailUrl(String anhThumbnailUrl) {
-        this.anhThumbnailUrl = anhThumbnailUrl;
-    }
+    public String getSeoDescription() { return seoDescription; }
+    public void setSeoDescription(String seoDescription) { this.seoDescription = seoDescription; }
+
+    public boolean isFeatured() { return isFeatured; }
+    public void setFeatured(boolean featured) { isFeatured = featured; }
+
+    public List<String> getImageUrls() { return imageUrls; }
+    public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
+
+    public String getAnhThumbnailUrl() { return anhThumbnailUrl; }
+    public void setAnhThumbnailUrl(String anhThumbnailUrl) { this.anhThumbnailUrl = anhThumbnailUrl; }
 }

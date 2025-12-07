@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Layout Quản Lý Tour: Đã sửa lỗi include menu và thêm Floating Action Button (FAB) -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,6 +7,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
+    <!-- AppBarLayout chứa Toolbar và TabLayout -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,20 +21,20 @@
             app:contentInsetStartWithNavigation="0dp"
             android:paddingEnd="8dp"
             app:contentInsetEnd="0dp"
-
             android:paddingStart="0dp"
             app:contentInsetStart="0dp"
+            app:navigationIcon="@drawable/ic_arrow_back">
 
-            app:navigationIcon="@drawable/ic_arrow_back"> <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Quản Lý Tour"
-            android:textColor="@android:color/black"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_gravity="start"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quản Lý Tour"
+                android:textColor="@android:color/black"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_gravity="start"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
 
             <ImageButton
                 android:id="@+id/btn_options_menu"
@@ -84,6 +86,7 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- RecyclerView hiển thị danh sách tour -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_tour_list"
         android:layout_width="match_parent"
@@ -95,13 +98,17 @@
         tools:listitem="@layout/item_tour_card"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-
-    <LinearLayout
-        android:id="@+id/bottom_navigation_container"
-        android:layout_width="match_parent"
+    <!-- NÚT FLOATING ACTION BUTTON (FAB): Dùng cho hành động tạo tour -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_tour"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom">
-        <include layout="@menu/bottom_nav_menu" />
-    </LinearLayout>
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Tạo Tour Mới"
+        app:srcCompat="@drawable/ic_add"
+        app:tint="@android:color/white"
+        app:backgroundTint="?attr/colorPrimary"
+        />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

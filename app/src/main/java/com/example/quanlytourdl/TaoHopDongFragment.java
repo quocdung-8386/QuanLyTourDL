@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class TaoHopDongFragment extends Fragment {
 
@@ -59,7 +60,7 @@ public class TaoHopDongFragment extends Fragment {
     // View components
     private ImageView iconBack;
     private AutoCompleteTextView edtSupplierName;
-    private EditText edtContractCode;
+    private EditText edtContractCode; // Giờ chỉ dùng để hiển thị (read-only)
     private EditText edtSignDate;
     private EditText edtExpiryDate;
     private EditText edtContractContent;
@@ -95,18 +96,9 @@ public class TaoHopDongFragment extends Fragment {
             @Nullable Bundle savedInstanceState
     ) {
         // Sử dụng một placeholder ID cho layout vì không có file R thực
-        // Trong dự án thực tế, bạn sẽ dùng R.layout.fragment_tao_hop_dong
         // Giả định rằng R.layout.fragment_tao_hop_dong có giá trị ID hợp lệ trong dự án của bạn
         int layoutId = LAYOUT_ID;
 
-        // Nếu bạn muốn giữ lại logic tìm ID động ban đầu (dù không được khuyến khích):
-        // int layoutId = getResources().getIdentifier("fragment_tao_hop_dong", "layout", requireContext().getPackageName());
-
-        // Log.d(TAG, "Layout ID: " + layoutId); // Debugging
-
-        // Thay vì kiểm tra layoutId == 0, ta giả định layout được tìm thấy
-        // hoặc sử dụng ID placeholder nếu không muốn phụ thuộc vào R.
-        // Để code sạch, ta sử dụng phương pháp inflate chuẩn và giả định layout ID tồn tại.
         View view = inflater.inflate(layoutId, container, false);
         initViews(view);
         return view;
@@ -118,7 +110,7 @@ public class TaoHopDongFragment extends Fragment {
 
         setupToolbar();
         setupDatePickers();
-        // Thiết lập dropdown NCC, tải dữ liệu và thêm listener kiểm tra
+        setupContractCodeField(); // Thiết lập trường Mã HĐ tự động
         setupSupplierDropdown();
         setupActionButtons();
     }
@@ -143,6 +135,38 @@ public class TaoHopDongFragment extends Fragment {
     private void setupToolbar() {
         // Xử lý sự kiện nhấn icon Quay lại
         iconBack.setOnClickListener(v -> closeFragment());
+    }
+
+    /**
+     * Tự động tạo và hiển thị Mã Hợp đồng, đồng thời vô hiệu hóa chỉnh sửa.
+     */
+    private void setupContractCodeField() {
+        // 1. Vô hiệu hóa chỉnh sửa
+        edtContractCode.setEnabled(false);
+        edtContractCode.setFocusable(false);
+        edtContractCode.setFocusableInTouchMode(false); // Đảm bảo không focus khi chạm
+
+        // 2. Tự động tạo mã và hiển thị
+        generateAndDisplayContractCode();
+    }
+
+    /**
+     * Tạo một mã Hợp đồng có cấu trúc HD-YYYY-XXXXXX
+     * NOTE: Trong môi trường production, ID này nên được tạo qua Cloud Function
+     * để đảm bảo tính tuần tự tuyệt đối.
+     */
+    private void generateAndDisplayContractCode() {
+        // Tiền tố
+        String prefix = "HD";
+        // Lấy năm hiện tại
+        String year = new SimpleDateFormat("yyyy", Locale.getDefault()).format(Calendar.getInstance().getTime());
+        // Suffix duy nhất (6 ký tự đầu của UUID)
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+
+        String contractCode = prefix + "-" + year + "-" + uniqueSuffix;
+
+        edtContractCode.setText(contractCode);
+        Log.d(TAG, "Mã HĐ tự động được tạo: " + contractCode);
     }
 
     /**
@@ -277,13 +301,12 @@ public class TaoHopDongFragment extends Fragment {
             return false;
         }
 
-        String contractCode = edtContractCode.getText().toString().trim();
+        // Mã HĐ (contractCode) không cần kiểm tra vì đã được tạo tự động
         String signDate = edtSignDate.getText().toString().trim();
         String expiryDate = edtExpiryDate.getText().toString().trim();
 
-        if (contractCode.isEmpty() || signDate.isEmpty() || expiryDate.isEmpty()) {
-            Toast.makeText(getContext(), "Vui lòng điền đủ Mã HĐ, Ngày ký và Ngày hết hạn.", Toast.LENGTH_LONG).show();
-            if (contractCode.isEmpty()) edtContractCode.setError("Không được để trống");
+        if (signDate.isEmpty() || expiryDate.isEmpty()) {
+            Toast.makeText(getContext(), "Vui lòng điền đủ Ngày ký và Ngày hết hạn.", Toast.LENGTH_LONG).show();
             if (signDate.isEmpty()) edtSignDate.setError("Không được để trống");
             if (expiryDate.isEmpty()) edtExpiryDate.setError("Không được để trống");
             return false;
@@ -301,7 +324,7 @@ public class TaoHopDongFragment extends Fragment {
             return;
         }
 
-        String contractCode = edtContractCode.getText().toString().trim();
+        String contractCode = edtContractCode.getText().toString().trim(); // Lấy mã đã được tạo tự động
         String signDate = edtSignDate.getText().toString().trim();
         String expiryDate = edtExpiryDate.getText().toString().trim();
         String contractContent = edtContractContent.getText().toString().trim();
@@ -310,7 +333,7 @@ public class TaoHopDongFragment extends Fragment {
 
         // Tạo Map dữ liệu cho Firestore
         Map<String, Object> contractData = new HashMap<>();
-        contractData.put("maHopDong", contractCode);
+        contractData.put("maHopDong", contractCode); // Mã HĐ tự động
         contractData.put("supplierId", selectedSupplierId); // ID NCC
         contractData.put("tenNhaCungCap", selectedSupplierName); // Tên NCC (để tiện cho việc hiển thị)
         contractData.put("ngayKy", signDate);

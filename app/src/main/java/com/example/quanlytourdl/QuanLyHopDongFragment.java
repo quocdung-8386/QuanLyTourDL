@@ -1,6 +1,8 @@
 package com.example.quanlytourdl;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,7 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import com.example.quanlytourdl.adapter.HopDongAdapter;
-import com.example.quanlytourdl.model.HopDong;
+import com.example.quanlytourdl.model.HopDong; // Import model HopDong
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,11 +42,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Fragment Quản lý Hợp đồng, hiển thị danh sách hợp đồng NCC.
- * FIX: Thêm logic tính toán trạng thái (Đang hiệu lực, Sắp hết hạn, Đã hết hạn) trên client.
  */
 public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.OnItemActionListener {
 
     private static final String TAG = "QuanLyHopDongFragment";
+    // Đảm bảo định dạng ngày tháng này khớp với dữ liệu trong Firestore
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     private static final long THIRTY_DAYS_IN_MILLIS = TimeUnit.DAYS.toMillis(30);
 
@@ -63,6 +65,17 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
     private Button btnFilterAll, btnFilterActive, btnFilterUpcoming, btnFilterExpired;
     private String currentFilter = "Tất cả"; // Biến lưu trạng thái lọc hiện tại
 
+    // Khai báo các hằng số trạng thái
+    private static final String TRANG_THAI_TAT_CA = "Tất cả";
+    private static final String TRANG_THAI_DANG_HIEU_LUC = "Đang hiệu lực";
+    private static final String TRANG_THAI_SAP_HET_HAN = "Sắp hết hạn";
+    private static final String TRANG_THAI_DA_HET_HAN = "Đã hết hạn";
+    private static final String TRANG_THAI_DA_CHAM_DUT = "Đã Chấm dứt"; // Trạng thái này lưu trong DB
+
+    // Hằng số trạng thái cho Hợp đồng có NCC đã bị xóa (được set từ KinhDoanhFragment)
+    private static final String TRANG_THAI_NCC_DA_XOA = "Nhà Cung Cấp Đã Xóa";
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,8 +88,14 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Sử dụng layout fragment_quanlyhopdong
-        View view = inflater.inflate(R.layout.fragment_quanlyhopdong, container, false);
+        // Sử dụng layout fragment_quanlyhopdong (Giả định ID tồn tại)
+        int layoutId = getResources().getIdentifier("fragment_quanlyhopdong", "layout", requireContext().getPackageName());
+        if (layoutId == 0) {
+            Log.e(TAG, "Không tìm thấy layout ID 'fragment_quanlyhopdong'.");
+            return null;
+        }
+
+        View view = inflater.inflate(layoutId, container, false);
 
         // Ánh xạ View và Thiết lập RecyclerView
         setupViews(view);
@@ -104,13 +123,18 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
 
         // Thanh tìm kiếm
         etSearch = view.findViewById(R.id.et_search);
-        etSearch.setOnEditorActionListener((v, actionId, event) -> {
-            // Xử lý tìm kiếm khi người dùng nhấn Enter/Search
-            String query = etSearch.getText().toString();
-            Toast.makeText(requireContext(), "Tìm kiếm: " + query, Toast.LENGTH_SHORT).show();
-            // Tạm thời, ta chỉ lọc theo trạng thái, logic tìm kiếm nâng cao sẽ thêm sau
-            // loadHopDongData(currentFilter, query);
-            return true;
+        // Thiết lập lắng nghe thay đổi nội dung tìm kiếm
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // TODO: Triển khai logic tìm kiếm/lọc trên client khi người dùng gõ
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
 
         // Nút Thêm mới Hợp đồng (FAB)
@@ -135,6 +159,7 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
         if (recyclerView != null) {
             recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
             hopDongList = new ArrayList<>();
+            // Truyền 'this' (Fragment) để xử lý các sự kiện click
             adapter = new HopDongAdapter(requireContext(), hopDongList, this);
             recyclerView.setAdapter(adapter);
         } else {
@@ -143,6 +168,7 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
     }
 
     private void setupFilterButtons(View view) {
+        // Giả định các ID nút lọc tồn tại
         btnFilterAll = view.findViewById(R.id.btn_filter_all);
         btnFilterActive = view.findViewById(R.id.btn_filter_active);
         btnFilterUpcoming = view.findViewById(R.id.btn_filter_upcoming);
@@ -155,8 +181,17 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
 
             Button clickedButton = (Button) v;
             // Đổi màu sắc cho nút được chọn (Giả định ID R.drawable.bg_filter_button_selected tồn tại)
-            clickedButton.setBackgroundResource(R.drawable.bg_filter_button_selected);
-            clickedButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+            int selectedBgId = getResources().getIdentifier("bg_filter_button_selected", "drawable", requireContext().getPackageName());
+            int whiteColorId = getResources().getIdentifier("white", "color", requireContext().getPackageName());
+
+
+            if (selectedBgId != 0) {
+                clickedButton.setBackgroundResource(selectedBgId);
+            }
+            if (whiteColorId != 0) {
+                clickedButton.setTextColor(ContextCompat.getColor(requireContext(), whiteColorId));
+            }
+
 
             currentFilter = clickedButton.getText().toString();
             loadHopDongData(currentFilter);
@@ -168,24 +203,42 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
         btnFilterExpired.setOnClickListener(filterClickListener);
 
         // Thiết lập trạng thái ban đầu cho nút "Tất cả"
-        btnFilterAll.setBackgroundResource(R.drawable.bg_filter_button_selected);
-        btnFilterAll.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+        int selectedBgId = getResources().getIdentifier("bg_filter_button_selected", "drawable", requireContext().getPackageName());
+        int whiteColorId = getResources().getIdentifier("white", "color", requireContext().getPackageName());
+
+        if (btnFilterAll != null && selectedBgId != 0) {
+            btnFilterAll.setBackgroundResource(selectedBgId);
+        }
+        if (btnFilterAll != null && whiteColorId != 0) {
+            btnFilterAll.setTextColor(ContextCompat.getColor(requireContext(), whiteColorId));
+        }
     }
 
     private void resetFilterButtonStyles() {
         // Giả định R.drawable.bg_filter_button và R.color.grey_text tồn tại
-        int defaultBg = R.drawable.bg_filter_button;
-        int defaultTextColor = ContextCompat.getColor(requireContext(), R.color.grey_text);
+        int defaultBg = getResources().getIdentifier("bg_filter_button", "drawable", requireContext().getPackageName());
+        int defaultTextColor = getResources().getIdentifier("grey_text", "color", requireContext().getPackageName());
 
-        btnFilterAll.setBackgroundResource(defaultBg);
-        btnFilterActive.setBackgroundResource(defaultBg);
-        btnFilterUpcoming.setBackgroundResource(defaultBg);
-        btnFilterExpired.setBackgroundResource(defaultBg);
+        if (defaultBg == 0 || defaultTextColor == 0) return;
 
-        btnFilterAll.setTextColor(defaultTextColor);
-        btnFilterActive.setTextColor(defaultTextColor);
-        btnFilterUpcoming.setTextColor(defaultTextColor);
-        btnFilterExpired.setTextColor(defaultTextColor);
+        int defaultColor = ContextCompat.getColor(requireContext(), defaultTextColor);
+
+        if (btnFilterAll != null) {
+            btnFilterAll.setBackgroundResource(defaultBg);
+            btnFilterAll.setTextColor(defaultColor);
+        }
+        if (btnFilterActive != null) {
+            btnFilterActive.setBackgroundResource(defaultBg);
+            btnFilterActive.setTextColor(defaultColor);
+        }
+        if (btnFilterUpcoming != null) {
+            btnFilterUpcoming.setBackgroundResource(defaultBg);
+            btnFilterUpcoming.setTextColor(defaultColor);
+        }
+        if (btnFilterExpired != null) {
+            btnFilterExpired.setBackgroundResource(defaultBg);
+            btnFilterExpired.setTextColor(defaultColor);
+        }
     }
 
     // --- HÀM TIỆN ÍCH XỬ LÝ NGÀY THÁNG VÀ TRẠNG THÁI ---
@@ -214,7 +267,7 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
      * @param hopDong Đối tượng HopDong.
      * @return Trạng thái: "Đang hiệu lực", "Sắp hết hạn", hoặc "Đã hết hạn".
      */
-    private String getContractStatus(HopDong hopDong) {
+    private String getCalculatedContractStatus(HopDong hopDong) {
         Date ngayHetHan = parseDate(hopDong.getNgayHetHan());
         Date currentDate = new Date();
 
@@ -228,13 +281,12 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
         Date today = cal.getTime();
 
         if (ngayHetHan == null) {
-            // Không có ngày hết hạn, giả định đang hiệu lực
-            return "Đang hiệu lực";
+            return TRANG_THAI_DANG_HIEU_LUC;
         }
 
         // 1. Đã hết hạn
         if (ngayHetHan.before(today)) {
-            return "Đã hết hạn";
+            return TRANG_THAI_DA_HET_HAN;
         }
 
         // 2. Sắp hết hạn (expires within 30 days)
@@ -243,11 +295,11 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
         long thirtyDaysFromNow = today.getTime() + THIRTY_DAYS_IN_MILLIS;
 
         if (expiryTime <= thirtyDaysFromNow) {
-            return "Sắp hết hạn";
+            return TRANG_THAI_SAP_HET_HAN;
         }
 
         // 3. Đang hiệu lực (expires later than 30 days from now)
-        return "Đang hiệu lực";
+        return TRANG_THAI_DANG_HIEU_LUC;
     }
 
     // --- HÀM TẢI DỮ LIỆU TỪ FIRESTORE (REAL-TIME) ---
@@ -257,7 +309,6 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
             listenerRegistration.remove();
         }
 
-        // Tải TẤT CẢ dữ liệu, vì việc lọc theo Date String trong Firestore không hiệu quả
         Query query = hopDongRef;
 
         // Bắt đầu lắng nghe real-time
@@ -277,20 +328,40 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
 
                     for (QueryDocumentSnapshot document : snapshots) {
                         try {
-                            // Chuyển đổi Document thành đối tượng HopDong (đã fix kiểu String cho ngày)
+                            // Chuyển đổi Document thành đối tượng HopDong
                             HopDong hd = document.toObject(HopDong.class);
-                            hd.setMaHopDong(document.getId());
 
-                            // TÍNH TOÁN TRẠNG THÁI TRÊN CLIENT
-                            String calculatedStatus = getContractStatus(hd);
+                            // Lưu ID Document Firestore (chuỗi ngẫu nhiên) vào một trường riêng
+                            hd.setDocumentId(document.getId());
 
-                            // ÁP DỤNG LỌC
+                            // --- KIỂM TRA VÀ BỎ QUA HỢP ĐỒNG CỦA NCC ĐÃ XÓA ---
+                            // Điều này loại bỏ các hợp đồng đã bị soft-delete (trước khi hard-delete được triển khai)
+                            if (TRANG_THAI_NCC_DA_XOA.equals(hd.getTrangThai())) {
+                                Log.d(TAG, "Bỏ qua Hợp Đồng ID " + hd.getDocumentId() + " vì NCC đã xóa.");
+                                continue; // Bỏ qua document này và không thêm vào list
+                            }
+
+
+                            String finalStatus;
+
+                            // 1. Ưu tiên trạng thái đã lưu trong DB (đặc biệt là Đã Chấm dứt)
+                            if (TRANG_THAI_DA_CHAM_DUT.equals(hd.getTrangThai())) {
+                                finalStatus = TRANG_THAI_DA_CHAM_DUT;
+                            } else {
+                                // 2. Nếu không phải Đã Chấm dứt, tính toán trạng thái dựa trên ngày hết hạn
+                                finalStatus = getCalculatedContractStatus(hd);
+                                // Gán lại trạng thái đã tính toán cho đối tượng để hiển thị đúng trên UI
+                                hd.setTrangThai(finalStatus);
+                            }
+
+
+                            // ÁP DỤNG LỌC HIỂN THỊ
                             boolean shouldAdd = false;
 
-                            if ("Tất cả".equals(filterStatus)) {
-                                // Nếu là "Tất cả", thêm tất cả hợp đồng
+                            if (TRANG_THAI_TAT_CA.equals(filterStatus)) {
+                                // Nếu là "Tất cả", thêm tất cả hợp đồng (trừ hợp đồng đã bị loại ở trên)
                                 shouldAdd = true;
-                            } else if (filterStatus.equals(calculatedStatus)) {
+                            } else if (filterStatus.equals(finalStatus)) {
                                 // Nếu filter khớp với trạng thái tính toán, thêm vào list
                                 shouldAdd = true;
                             }
@@ -301,7 +372,6 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
                             }
 
                         } catch (Exception ex) {
-                            // Lỗi này giờ chỉ xảy ra nếu có lỗi cấu trúc dữ liệu khác, không phải lỗi Date/String
                             Log.e(TAG, "Lỗi chuyển đổi dữ liệu document ID " + document.getId() + ": " + ex.getMessage());
                         }
                     }
@@ -325,22 +395,33 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
 
     @Override
     public void onViewClick(HopDong hopDong) {
+        // hopDong.getMaHopDong() lúc này sẽ là mã custom (HD-YYYY-XXXXXX)
         Toast.makeText(requireContext(), "Mở chi tiết Hợp đồng: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
-        // TODO: openViewContractFragment(hopDong.getMaHopDong());
+        // TODO: openViewContractFragment(hopDong.getDocumentId()); // Sử dụng Document ID cho thao tác DB
     }
 
     @Override
     public void onEditClick(HopDong hopDong) {
+        // hopDong.getMaHopDong() lúc này sẽ là mã custom (HD-YYYY-XXXXXX)
         Toast.makeText(requireContext(), "Mở màn hình Sửa Hợp đồng: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
-        // TODO: openEditContractFragment(hopDong.getMaHopDong());
+        // TODO: openEditContractFragment(hopDong.getDocumentId()); // Sử dụng Document ID cho thao tác DB
     }
 
     @Override
     public void onDeleteClick(HopDong hopDong) {
-        // Tương tự logic cũ: Chuyển sang màn hình Chấm dứt/Xóa
-        Toast.makeText(requireContext(), "Chuyển sang màn hình Chấm dứt Hợp đồng/Xóa: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
-        // Sử dụng TenNhaCungCap và MaHopDong (đã fix)
-        openTerminateContractFragment(hopDong.getTenNhaCungCap(), hopDong.getMaHopDong());
+        String supplierId = hopDong.getSupplierId();
+        // Lấy ID Document thực tế (đã lưu ở bước load data) để chấm dứt/xóa
+        String contractId = hopDong.getDocumentId();
+
+        if (supplierId == null || contractId == null) {
+            String supplierName = hopDong.getNhaCungCap() != null ? hopDong.getNhaCungCap() : "Không xác định";
+            Log.e(TAG, "Lỗi: supplierId hoặc contractId bị thiếu.");
+            Toast.makeText(requireContext(), "Lỗi dữ liệu: Không có đủ ID (NCC hoặc Hợp đồng) để chấm dứt.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Toast.makeText(requireContext(), "Chuyển sang màn hình Chấm dứt Hợp đồng. Mã HĐ: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
+        openTerminateContractFragment(supplierId, contractId);
     }
 
     // --- HÀM HỖ TRỢ CHUYỂN FRAGMENT ---
@@ -349,40 +430,55 @@ public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.On
      * Mở Fragment Tạo Hợp Đồng Mới.
      */
     private void openCreateContractFragment() {
-        // Giả định có Fragment TaoHopDongFragment
         Toast.makeText(requireContext(), "Mở màn hình Tạo Hợp đồng mới", Toast.LENGTH_SHORT).show();
         if (getParentFragmentManager() != null) {
-            TaoHopDongFragment createFragment = new TaoHopDongFragment();
+            // Giả định class TaoHopDongFragment tồn tại
+            Fragment createFragment = new TaoHopDongFragment();
+
             FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
             // Đảm bảo R.id.main_content_frame là ID Frame layout chứa Fragment chính
-            transaction.replace(R.id.main_content_frame, createFragment);
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
+            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
+            if (frameId != 0) {
+                transaction.replace(frameId, createFragment);
+                transaction.addToBackStack(null);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                transaction.commit();
+            } else {
+                Log.e(TAG, "Không tìm thấy ID 'main_content_frame'. Không thể chuyển Fragment.");
+            }
         }
     }
 
     /**
      * Mở Fragment Chấm Dứt Hợp Đồng và truyền ID Nhà cung cấp VÀ ID Hợp đồng.
+     * @param supplierDocumentId ID Document Firebase của Nhà Cung Cấp.
+     * @param contractId ID Document Firebase của Hợp Đồng (Document ID).
      */
-    private void openTerminateContractFragment(String supplierId, String contractId) {
+    private void openTerminateContractFragment(String supplierDocumentId, String contractId) {
         if (getParentFragmentManager() != null) {
             Bundle bundle = new Bundle();
-            // Sử dụng TenNhaCungCap thay vì ID Nhà cung cấp nếu đó là những gì bạn có
-            bundle.putString("supplier_name", supplierId);
+            // Key này phải khớp với key mà ChamDutHopDongFragment mong đợi
+            bundle.putString("supplier_id", supplierDocumentId);
             bundle.putString("contract_id", contractId);
 
+            // Giả định ChamDutHopDongFragment tồn tại
             ChamDutHopDongFragment terminateFragment = new ChamDutHopDongFragment();
             terminateFragment.setArguments(bundle);
 
             FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
             // Đảm bảo sử dụng ID Frame layout chứa Fragment
-            transaction.replace(R.id.main_content_frame, terminateFragment);
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
+            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
 
-            Log.d(TAG, "Chuyển sang màn hình Chấm dứt Hợp đồng. NCC: " + supplierId + ", Contract ID: " + contractId);
+            if (frameId != 0) {
+                transaction.replace(frameId, terminateFragment);
+                transaction.addToBackStack(null);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                transaction.commit();
+
+                Log.d(TAG, "Chuyển sang màn hình Chấm dứt Hợp đồng. NCC ID: " + supplierDocumentId + ", Contract ID (Document ID): " + contractId);
+            } else {
+                Log.e(TAG, "Không tìm thấy ID 'main_content_frame'. Không thể chuyển Fragment.");
+            }
         }
     }
 }

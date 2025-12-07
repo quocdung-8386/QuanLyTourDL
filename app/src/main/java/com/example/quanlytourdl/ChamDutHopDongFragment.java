@@ -1,5 +1,6 @@
 package com.example.quanlytourdl;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,14 +18,20 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FieldValue; // Quan trọng: Dùng để xóa trường trong document
+import com.google.firebase.firestore.DocumentReference;
+
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.HashMap;
 import java.util.Map;
 
-// Giả định bạn có một đối tượng HopDong (Hợp đồng) được truyền vào,
-// hoặc chỉ truyền ID nhà cung cấp
+/**
+ * Fragment xử lý việc Chấm dứt Hợp đồng, cập nhật trạng thái Hợp đồng và dọn dẹp
+ * liên kết Hợp đồng trong hồ sơ Nhà Cung Cấp.
+ */
 public class ChamDutHopDongFragment extends Fragment {
 
     private static final String TAG = "ChamDutHopDongFragment";
@@ -37,6 +44,8 @@ public class ChamDutHopDongFragment extends Fragment {
     private EditText etNgayChamDut, etGhiChu;
     private Button btnXacNhan, btnHuy;
 
+    private final SimpleDateFormat sdfDisplay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +54,11 @@ public class ChamDutHopDongFragment extends Fragment {
         // Lấy dữ liệu ID Hợp đồng hoặc ID Nhà cung cấp từ Bundle
         if (getArguments() != null) {
             supplierId = getArguments().getString("supplier_id");
-            contractId = getArguments().getString("contract_id"); // Giả định ID hợp đồng được truyền
+            contractId = getArguments().getString("contract_id");
+            // contractId có thể là rỗng ("") nếu NCC không có HĐ active
+            if (contractId != null && contractId.isEmpty()) {
+                contractId = null;
+            }
         }
     }
 
@@ -78,6 +91,9 @@ public class ChamDutHopDongFragment extends Fragment {
         // Thiết lập dữ liệu ban đầu
         setupInitialData();
 
+        // Thiết lập sự kiện DatePicker
+        etNgayChamDut.setOnClickListener(v -> showDatePickerDialog());
+
         // Thiết lập sự kiện click
         btnXacNhan.setOnClickListener(v -> confirmTermination());
         btnHuy.setOnClickListener(v -> getParentFragmentManager().popBackStack());
@@ -86,7 +102,26 @@ public class ChamDutHopDongFragment extends Fragment {
     }
 
     /**
-     * Thiết lập các dữ liệu ban đầu cho Fragment (tên NCC, danh sách lý do, ngày hiện tại)
+     * Hiển thị DatePickerDialog khi click vào etNgayChamDut.
+     */
+    private void showDatePickerDialog() {
+        final Calendar c = Calendar.getInstance();
+        int year = c.get(Calendar.YEAR);
+        int month = c.get(Calendar.MONTH);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
+                (view, year1, monthOfYear, dayOfMonth) -> {
+                    // Thiết lập ngày đã chọn vào EditText
+                    Calendar selectedDate = Calendar.getInstance();
+                    selectedDate.set(year1, monthOfYear, dayOfMonth);
+                    etNgayChamDut.setText(sdfDisplay.format(selectedDate.getTime()));
+                }, year, month, day);
+        datePickerDialog.show();
+    }
+
+    /**
+     * Thiết lập các dữ liệu ban đầu và kiểm tra điều kiện chấm dứt.
      */
     private void setupInitialData() {
         // 1. Điền tên Nhà Cung Cấp (Giả định tải tên dựa trên supplierId)
@@ -106,10 +141,18 @@ public class ChamDutHopDongFragment extends Fragment {
         spLyDoChamDut.setAdapter(adapter);
 
         // 3. Thiết lập Ngày chấm dứt hiệu lực (Mặc định là ngày hiện tại)
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        etNgayChamDut.setText(sdf.format(new Date()));
+        etNgayChamDut.setText(sdfDisplay.format(new Date()));
 
-        // TODO: Thêm logic mở DatePicker khi click vào etNgayChamDut
+        // 4. FIX: Kiểm tra Hợp đồng hoạt động
+        if (contractId == null) {
+            tvNhaCungCap.append(" (KHÔNG CÓ HỢP ĐỒNG ACTIVE)");
+            Toast.makeText(requireContext(), "Nhà cung cấp này hiện không có hợp đồng hoạt động (active) để chấm dứt.", Toast.LENGTH_LONG).show();
+            // Vô hiệu hóa form
+            btnXacNhan.setEnabled(false);
+            spLyDoChamDut.setEnabled(false);
+            etNgayChamDut.setEnabled(false);
+            etGhiChu.setEnabled(false);
+        }
     }
 
     /**
@@ -127,6 +170,10 @@ public class ChamDutHopDongFragment extends Fragment {
                         }
                     } else {
                         tvNhaCungCap.setText("Nhà cung cấp không tồn tại");
+                    }
+                    // Gọi lại setupInitialData để đảm bảo trạng thái NCC được load xong
+                    if (contractId == null) {
+                        tvNhaCungCap.append(" (KHÔNG CÓ HỢP ĐỒNG ACTIVE)");
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -158,26 +205,68 @@ public class ChamDutHopDongFragment extends Fragment {
             return;
         }
 
-        // 1. Chuẩn bị dữ liệu cập nhật
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("trangThai", "Chấm dứt"); // Cập nhật trạng thái hợp đồng
-        updates.put("lyDoChamDut", lyDo);
-        updates.put("ngayChamDut", ngayChamDut);
-        updates.put("ghiChuChamDut", ghiChu);
-        updates.put("ngayCapNhat", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        // 1. Chuẩn bị dữ liệu cập nhật cho HopDong
+        Map<String, Object> contractUpdates = new HashMap<>();
+        contractUpdates.put("trangThai", "Đã Chấm dứt"); // Cập nhật trạng thái hợp đồng
+        contractUpdates.put("lyDoChamDut", lyDo);
+        // Lưu ngày chấm dứt dưới dạng chuẩn YYYY-MM-DD để dễ dàng sắp xếp và truy vấn
+        try {
+            Date termDate = sdfDisplay.parse(ngayChamDut);
+            SimpleDateFormat sdfStorage = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            contractUpdates.put("ngayChamDut", sdfStorage.format(termDate));
+        } catch (Exception e) {
+            contractUpdates.put("ngayChamDut", ngayChamDut);
+        }
+
+        contractUpdates.put("ghiChuChamDut", ghiChu);
+        contractUpdates.put("ngayCapNhat", FieldValue.serverTimestamp()); // Sử dụng timestamp server
+
+        // Bắt đầu batch write hoặc giao dịch nếu muốn đảm bảo 2 bước cập nhật
+        // Ở đây, ta dùng 2 lệnh update tuần tự đơn giản.
 
         // 2. Thực hiện cập nhật trên collection "HopDong"
         db.collection("HopDong").document(contractId)
-                .update(updates)
+                .update(contractUpdates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Chấm dứt hợp đồng thành công! Đã cập nhật trạng thái.", Toast.LENGTH_LONG).show();
-                    Log.d(TAG, "Hợp đồng " + contractId + " đã được chấm dứt.");
-                    // Quay lại màn hình trước
+                    // 3. FIX: Cập nhật thành công Hợp đồng -> Dọn dẹp liên kết trong Nhà Cung Cấp
+                    clearSupplierContractId();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi (1/2) khi chấm dứt hợp đồng: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.w(TAG, "Lỗi cập nhật trạng thái hợp đồng", e);
+                });
+    }
+
+    /**
+     * Xóa liên kết Hợp đồng (maHopDong) khỏi document Nhà Cung Cấp.
+     */
+    private void clearSupplierContractId() {
+        if (supplierId == null) {
+            Log.e(TAG, "Không tìm thấy supplierId, không thể dọn dẹp Nhà Cung Cấp.");
+            Toast.makeText(getContext(), "Cảnh báo: Hợp đồng đã chấm dứt, nhưng hồ sơ NCC chưa được dọn dẹp.", Toast.LENGTH_LONG).show();
+            // Quay lại màn hình trước dù có lỗi dọn dẹp
+            getParentFragmentManager().popBackStack();
+            return;
+        }
+
+        DocumentReference supplierRef = db.collection("NhaCungCap").document(supplierId);
+
+        // Tạo Map để xóa trường maHopDong khỏi NhaCungCap document
+        Map<String, Object> supplierUpdates = new HashMap<>();
+        supplierUpdates.put("maHopDong", FieldValue.delete());
+
+        supplierRef.update(supplierUpdates)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Chấm dứt hợp đồng thành công! Đã cập nhật trạng thái và hồ sơ NCC.", Toast.LENGTH_LONG).show();
+                    Log.d(TAG, "Hợp đồng " + contractId + " đã được chấm dứt. Đã xóa maHopDong khỏi NCC " + supplierId);
+                    // Hoàn tất và Quay lại màn hình trước
                     getParentFragmentManager().popBackStack();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Lỗi khi chấm dứt hợp đồng: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    Log.w(TAG, "Lỗi cập nhật trạng thái hợp đồng", e);
+                    Toast.makeText(getContext(), "Lỗi (2/2) dọn dẹp hồ sơ NCC: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.w(TAG, "Lỗi dọn dẹp maHopDong trong NCC " + supplierId, e);
+                    // Quay lại dù có lỗi dọn dẹp
+                    getParentFragmentManager().popBackStack();
                 });
     }
 }

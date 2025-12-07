@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Tiêu đề và Mô tả ngắn -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thông tin chung Tour"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vui lòng điền đầy đủ các thông tin cơ bản để bắt đầu thiết lập tour."
+            android:textColor="#666666"
+            android:textSize="14sp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Trường Tên Tour -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_ten_tour"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:hintEnabled="true"
+            android:hint="Tên Tour *">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_ten_tour"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:singleLine="true"
+                android:textSize="16sp"
+                android:imeOptions="actionNext"
+                tools:text="VD: Khám phá Hà Giang mùa lúa chín 3N2Đ" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Trường Mã Tour (Đã loại bỏ icon Refresh) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_ma_tour"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="Mã Tour">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:text="TỰ ĐỘNG TẠO"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Trường Loại Tour (Dropdown) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_loai_tour"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="Loại Tour *">
+
+            <AutoCompleteTextView
+                android:id="@+id/actv_loai_tour"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:text="Chọn loại tour"
+                android:textSize="16sp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Ngày bắt đầu và Ngày kết thúc -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_ngay_bat_dau"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:hint="Ngày bắt đầu *"
+                app:startIconDrawable="@drawable/ic_calendar">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_ngay_bat_dau"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:inputType="none"
+                    tools:text="dd/mm/yyyy" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_ngay_ket_thuc"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:hint="Ngày kết thúc *"
+                app:startIconDrawable="@drawable/ic_calendar">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_ngay_ket_thuc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:inputType="none"
+                    tools:text="dd/mm/yyyy" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Thời lượng dự kiến -->
+        <TextView
+            android:id="@+id/tv_thoi_luong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:drawablePadding="4dp"
+            android:text="Thời lượng dự kiến: 0 ngày 0 đêm"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:paddingStart="4dp"
+            app:drawableStartCompat="@drawable/ic_time"
+            app:drawableTint="#888888" />
+
+        <!-- Trường Mô tả chi tiết -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_mo_ta"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Mô tả chi tiết"
+            app:counterEnabled="true"
+            app:counterMaxLength="2000">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_mo_ta"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:textSize="16sp"
+                android:lines="4" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

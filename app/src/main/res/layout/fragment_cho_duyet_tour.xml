@@ -93,10 +93,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Lọc"
-                    android:textColor="@color/white"
+                    android:textColor="@android:color/white"
                     app:chipBackgroundColor="?attr/colorPrimary"
                     app:chipIcon="@drawable/ic_filter"
-                    app:chipIconTint="@color/white"
+                    app:chipIconTint="@android:color/white"
                     android:layout_marginEnd="8dp"/>
 
                 <com.google.android.material.chip.Chip
@@ -122,16 +122,6 @@
                     android:checkable="true"
                     android:layout_marginEnd="8dp"/>
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_international"
-                    style="@style/Widget.MaterialComponents.Chip.Action"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tour nước ngoài"
-                    app:chipBackgroundColor="@color/chip_background_selector"
-                    app:chipStrokeColor="@color/chip_stroke_selector"
-                    android:checkable="true"/>
-
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
@@ -147,13 +137,5 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_tour_cho_phe_duyet"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-    <LinearLayout
-        android:id="@+id/bottom_navigation_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom">
-        <include layout="@menu/bottom_nav_menu" />
-    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

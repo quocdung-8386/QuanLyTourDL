@@ -10,15 +10,27 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.button.MaterialButton;
 
+// Cần đảm bảo file này tồn tại trong project của bạn
+import com.example.quanlytourdl.TaoTourDetailFullFragment;
+
 public class TaoTourFragment extends Fragment {
+
+    // Thay thế bằng ID FrameLayout/FragmentContainerView thực tế của bạn
+    private static final int CONTAINER_ID = R.id.main_content_frame; // Giả định ID này tồn tại
 
     private MaterialButton btnStartCreateTour;
     private View cardEditTour, cardAssignGuide;
 
     private ImageButton btnBack, btnMenuDrawer;
+
+    // --- Placeholder Fragment Names cho các Fragment khác (sử dụng reflection) ---
+    private static final String FRAGMENT_ASSIGN_GUIDE = "com.example.quanlytourdl.GanHuongDanVienFragment";
+    private static final String FRAGMENT_TOUR_MANAGER = "com.example.quanlytourdl.QuanLyTourFragment";
+
 
     public TaoTourFragment() {
     }
@@ -36,37 +48,91 @@ public class TaoTourFragment extends Fragment {
         btnMenuDrawer = view.findViewById(R.id.btn_menu_drawer_tour);
 
 
-
+        // Nút BACK: Quay lại Fragment trước đó trong Back Stack
         btnBack.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Quay lại màn hình trước", Toast.LENGTH_SHORT).show();
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                // Sử dụng getParentFragmentManager để quản lý Back Stack
+                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                    getParentFragmentManager().popBackStack();
+                    Toast.makeText(getContext(), "Quay lại màn hình trước", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Trường hợp không còn gì trong back stack, có thể đóng activity
+                    getActivity().finish();
+                }
             }
         });
 
         // 🍔 Nút MENU 3 GẠCH
         btnMenuDrawer.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Mở Navigation Drawer hoặc Menu Tùy chọn", Toast.LENGTH_SHORT).show();
-            // Xử lý logic mở Navigation Drawer hoặc hiển thị Overflow Menu
+            // TODO: Xử lý logic mở Navigation Drawer hoặc hiển thị Overflow Menu
         });
 
 
-        // Nút Bắt đầu tạo Tour
+        // 1. Nút Bắt đầu tạo Tour -> CHUYỂN ĐẾN TaoTourDetailFullFragment (Fragment đa bước)
         btnStartCreateTour.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Bắt đầu quá trình tạo Tour mới theo các bước", Toast.LENGTH_SHORT).show();
-            // THƯỜNG: Chuyển sang Fragment/Activity đầu tiên trong quy trình tạo Tour (ví dụ: màn hình nhập thông tin cơ bản)
+            Toast.makeText(getContext(), "Chuyển đến màn hình nhập chi tiết Tour đa bước", Toast.LENGTH_SHORT).show();
+            // *** SỬA ĐỔI TẠI ĐÂY ***
+            navigateToFragment(TaoTourDetailFullFragment.newInstance());
         });
 
-        // Card Chỉnh sửa Tour
+        // 2. Card Chỉnh sửa Tour -> Chuyển đến Fragment Quản Lý/Danh Sách Tour
         cardEditTour.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Mở danh sách Tour để chỉnh sửa", Toast.LENGTH_SHORT).show();
+            navigateToFragmentByClassName(FRAGMENT_TOUR_MANAGER); // Giữ nguyên cách gọi String
         });
 
-        // Card Gán hướng dẫn viên
+        // 3. Card Gán hướng dẫn viên -> Chuyển đến Fragment Gán HDV
         cardAssignGuide.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Mở màn hình Gán hướng dẫn viên cho Tour", Toast.LENGTH_SHORT).show();
+            navigateToFragmentByClassName(FRAGMENT_ASSIGN_GUIDE); // Giữ nguyên cách gọi String
         });
 
         return view;
+    }
+
+    /**
+     * Hàm tiện ích để chuyển đổi giữa các Fragment bằng đối tượng Fragment.
+     * Đây là phương pháp an toàn và được khuyến nghị.
+     * @param targetFragment Đối tượng Fragment đích.
+     */
+    private void navigateToFragment(Fragment targetFragment) {
+        if (getParentFragmentManager() != null) {
+            getParentFragmentManager().beginTransaction()
+                    .replace(CONTAINER_ID, targetFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
+    /**
+     * Hàm tiện ích gốc để chuyển đổi bằng tên lớp (dùng cho các Fragments placeholder).
+     * @param fragmentClassName Tên đầy đủ của Fragment đích.
+     */
+    private void navigateToFragmentByClassName(String fragmentClassName) {
+        if (getParentFragmentManager() != null) {
+            FragmentManager fm = getParentFragmentManager();
+            Fragment targetFragment;
+
+            try {
+                // Khởi tạo Fragment đích thông qua reflection
+                Class<?> fragmentClass = Class.forName(fragmentClassName);
+                targetFragment = (Fragment) fragmentClass.newInstance();
+            } catch (ClassNotFoundException e) {
+                Toast.makeText(getContext(), "Lỗi: Fragment " + fragmentClassName + " chưa được định nghĩa.", Toast.LENGTH_LONG).show();
+                e.printStackTrace();
+                return;
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Lỗi khởi tạo Fragment: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                e.printStackTrace();
+                return;
+            }
+
+            // Thực hiện giao dịch Fragment
+            fm.beginTransaction()
+                    .replace(CONTAINER_ID, targetFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }

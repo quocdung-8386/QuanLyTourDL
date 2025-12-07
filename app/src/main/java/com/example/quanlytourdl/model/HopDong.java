@@ -1,129 +1,154 @@
 package com.example.quanlytourdl.model;
 
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.PropertyName;
 
 /**
- * Model class for HopDong (Contract).
- * FIX: 'ngayKy' và 'ngayHetHan' đã chuyển sang String để khớp với dữ liệu trong Firestore.
- * FIX: Đã thêm trường 'createdAt' để loại bỏ cảnh báo của Firestore.
- * FIX: Đã thêm trường 'trangThai' để lưu trạng thái Hợp đồng (Đang hiệu lực, Sắp hết hạn, Đã hết hạn)
- * được tính toán trên client.
+ * Model class đại diện cho Hợp Đồng.
+ * Đã điều chỉnh để lưu trữ:
+ * 1. Mã Hợp đồng Tự tạo (maHopDong) - Được ánh xạ từ field trong Firestore.
+ * 2. ID Document Firebase (documentId) - Được @Exclude vì nó là ID, không phải field.
  */
 public class HopDong {
 
-    @DocumentId
+    // 1. Mã Hợp đồng tự tạo (Ví dụ: HD-2025-A1B2C3).
+    // Trường này được ánh xạ tự động từ field "maHopDong" trong Firestore.
+    private String maHopDong;
+
+    // 2. ID Document Firebase (Chuỗi ngẫu nhiên). Dùng cho các thao tác DB như Delete/Update.
+    // Dùng @Exclude vì đây là ID của document, không phải là một field bên trong document.
     private String documentId;
 
-    private String maHopDong; // Mã Hợp Đồng
-    private String tenNhaCungCap; // Tên Nhà Cung Cấp
+    // --- CÁC TRƯỜNG CẦN ÁNH XẠ TỪ FIRESTORE ---
 
-    // Chuyển từ Date sang String để khớp với dữ liệu đã lưu
-    private String ngayKy; // Ngày Ký
-    private String ngayHetHan; // Ngày Hết Hạn
+    // FIRESTORE KEY: "tenNhaCungCap" -> JAVA FIELD: nhaCungCap
+    private String nhaCungCap;
 
-    private String noiDungDichVu; // Nội dung dịch vụ chính
-    private String dieuKhoanThanhToan; // Điều khoản thanh toán
-    private String dieuKhoanDichVuKhac; // Điều khoản dịch vụ khác
+    // FIRESTORE KEY: "ngayKy" -> JAVA FIELD: ngayKyKet
+    private String ngayKyKet;
 
-    // Trường này KHÔNG được lưu trong Firestore, nó dùng để lưu trạng thái tính toán
-    // (ví dụ: "Đang hiệu lực", "Đã hết hạn") giữa Fragment và Adapter.
-    @Exclude
+    private String ngayHetHan;
     private String trangThai;
+    private String noiDung;
+    private String dieuKhoanThanhToan;
+    private String ngayCapNhat;
+    private String supplierId;
+    private String ghiChuChamDut;
+    private String lyDoChamDut;
 
-    // Thêm trường createdAt để loại bỏ cảnh báo (có thể là String, Date hoặc Object)
-    private Object createdAt;
 
-    // Constructor rỗng bắt buộc cho Firestore
-    public HopDong() {}
+    // Constructor rỗng bắt buộc cho Firestore's toObject()
+    public HopDong() { }
 
-    // --- Getters ---
+    // ---------------------------------------------------------------------
+    // Getters và Setters
+    // ---------------------------------------------------------------------
 
-    @Exclude
-    public String getDocumentId() {
-        return documentId;
-    }
-
+    // 1. Getters/Setters cho MÃ HỢP ĐỒNG TỰ TẠO (Field trong Firestore)
+    // Bỏ @Exclude ở đây.
     public String getMaHopDong() {
         return maHopDong;
-    }
-
-    public String getTenNhaCungCap() {
-        return tenNhaCungCap;
-    }
-
-    public String getNgayKy() {
-        return ngayKy;
-    }
-
-    public String getNgayHetHan() {
-        return ngayHetHan;
-    }
-
-    public String getNoiDungDichVu() {
-        return noiDungDichVu;
-    }
-
-    public String getDieuKhoanThanhToan() {
-        return dieuKhoanThanhToan;
-    }
-
-    public String getDieuKhoanDichVuKhac() {
-        return dieuKhoanDichVuKhac;
-    }
-
-    public Object getCreatedAt() {
-        return createdAt;
-    }
-
-    // FIX: Getter trả về trạng thái tính toán (Bắt buộc cho Adapter)
-    @Exclude
-    public String getTrangThai() {
-        return trangThai;
-    }
-
-
-    // --- Setters ---
-
-    public void setDocumentId(String documentId) {
-        this.documentId = documentId;
     }
 
     public void setMaHopDong(String maHopDong) {
         this.maHopDong = maHopDong;
     }
 
-    public void setTenNhaCungCap(String tenNhaCungCap) {
-        this.tenNhaCungCap = tenNhaCungCap;
+    // 2. Getters/Setters cho ID DOCUMENT FIRESTORE (ID dùng để thao tác DB)
+    // Thêm @Exclude cho Document ID để nó không bị ghi vào Firestore
+    @Exclude
+    public String getDocumentId() {
+        return documentId;
     }
 
-    public void setNgayKy(String ngayKy) {
-        this.ngayKy = ngayKy;
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+
+    // Ánh xạ Firestore key "tenNhaCungCap" vào trường nhaCungCap
+    @PropertyName("tenNhaCungCap")
+    public String getNhaCungCap() {
+        return nhaCungCap;
+    }
+
+    @PropertyName("tenNhaCungCap")
+    public void setNhaCungCap(String nhaCungCap) {
+        this.nhaCungCap = nhaCungCap;
+    }
+
+    // Ánh xạ Firestore key "ngayKy" vào trường ngayKyKet
+    @PropertyName("ngayKy")
+    public String getNgayKyKet() {
+        return ngayKyKet;
+    }
+
+    @PropertyName("ngayKy")
+    public void setNgayKyKet(String ngayKyKet) {
+        this.ngayKyKet = ngayKyKet;
+    }
+
+    public String getNgayHetHan() {
+        return ngayHetHan;
     }
 
     public void setNgayHetHan(String ngayHetHan) {
         this.ngayHetHan = ngayHetHan;
     }
 
-    public void setNoiDungDichVu(String noiDungDichVu) {
-        this.noiDungDichVu = noiDungDichVu;
+    public String getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(String trangThai) {
+        this.trangThai = trangThai;
+    }
+
+    public String getNoiDung() {
+        return noiDung;
+    }
+
+    public void setNoiDung(String noiDung) {
+        this.noiDung = noiDung;
+    }
+
+    public String getDieuKhoanThanhToan() {
+        return dieuKhoanThanhToan;
     }
 
     public void setDieuKhoanThanhToan(String dieuKhoanThanhToan) {
         this.dieuKhoanThanhToan = dieuKhoanThanhToan;
     }
 
-    public void setDieuKhoanDichVuKhac(String dieuKhoanDichVuKhac) {
-        this.dieuKhoanDichVuKhac = dieuKhoanDichVuKhac;
+    public String getNgayCapNhat() {
+        return ngayCapNhat;
     }
 
-    public void setCreatedAt(Object createdAt) {
-        this.createdAt = createdAt;
+    public void setNgayCapNhat(String ngayCapNhat) {
+        this.ngayCapNhat = ngayCapNhat;
     }
 
-    // FIX: Setter nhận trạng thái tính toán từ Fragment (Bắt buộc cho Fragment)
-    @Exclude
-    public void setTrangThai(String trangThai) {
-        this.trangThai = trangThai;
+    public String getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(String supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    public String getGhiChuChamDut() {
+        return ghiChuChamDut;
+    }
+
+    public void setGhiChuChamDut(String ghiChuChamDut) {
+        this.ghiChuChamDut = ghiChuChamDut;
+    }
+
+    public String getLyDoChamDut() {
+        return lyDoChamDut;
+    }
+
+    public void setLyDoChamDut(String lyDoChamDut) {
+        this.lyDoChamDut = lyDoChamDut;
     }
 }

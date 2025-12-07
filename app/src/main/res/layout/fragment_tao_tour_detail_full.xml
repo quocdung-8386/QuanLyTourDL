@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- 1. Toolbar (Top) -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_tao_tour_detail"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:title="Tạo Tour mới"
+        app:titleTextColor="@android:color/black">
+
+        <TextView
+            android:id="@+id/btn_luu_nhap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:text="Lưu nháp"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- 2. Step Indicator (TabLayout) - Cập nhật 4 bước mới -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_tour_steps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_tao_tour_detail"
+        app:tabIndicatorColor="?attr/colorPrimary"
+        app:tabIndicatorHeight="3dp"
+        app:tabMode="fixed"
+        app:tabPaddingStart="4dp"
+        app:tabPaddingEnd="4dp"
+        app:tabGravity="fill"
+        app:tabSelectedTextColor="?attr/colorPrimary"
+        app:tabTextColor="#999999">
+
+        <!-- Bước 1: Thông tin -->
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. Thông tin" />
+
+        <!-- Bước 2: Lịch trình -->
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2. Lịch trình" />
+
+        <!-- Bước 3: Chi phí (Mới) -->
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3. Chi phí" />
+
+        <!-- Bước 4: Hình ảnh & Xuất bản (Mới, thay thế Dịch vụ) -->
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4. Hình ảnh &amp; XB" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- 3. ViewPager2 (Container cho Fragment từng bước) -->
+    <!-- Đây là nơi sẽ tải Fragment chứa các trường nhập liệu của bạn (ví dụ: fragment_thong_tin_co_ban.xml) -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager_tour_steps"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tab_layout_tour_steps"
+        app:layout_constraintBottom_toTopOf="@id/bottom_action_bar"/>
+
+    <!-- 4. Bottom Action Bar (Cố định dưới cùng) -->
+    <LinearLayout
+        android:id="@+id/bottom_action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_prev_step"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="Quay lại"
+            android:textAllCaps="false"
+            app:cornerRadius="8dp"
+            app:strokeColor="#DDDDDD"
+            android:textColor="#666666"
+            android:visibility="invisible"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_next_step"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Tiếp tục"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp"
+            app:icon="@drawable/ic_arrow_right_24"
+            app:iconGravity="end"
+            app:iconTint="@android:color/white"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

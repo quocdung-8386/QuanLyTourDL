@@ -4,8 +4,6 @@ import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
 public class NhaCungCap implements Serializable {
-    // Sử dụng @Exclude để Firebase không lưu trường ID này bên trong document
-    // và chúng ta sẽ lấy ID từ key của document
     @Exclude
     private String maNhaCungCap;
 
@@ -15,30 +13,62 @@ public class NhaCungCap implements Serializable {
     private String email;
     private String nguoiLienHe;
     private String loaiDichVu;
-    // THÊM: ID của hợp đồng đang hoạt động (active contract ID)
+    // ID của hợp đồng đang hoạt động (active contract ID)
     private String maHopDong;
     // Thêm trường này để dễ dàng quản lý nếu sau này muốn thêm bảo mật
     private String maNguoiDungTao;
+
+    // 🌟 THÊM MỚI: Trạng thái hợp đồng (để fix cảnh báo Firestore)
+    private String trangThaiHopDong;
+
+    // 🌟 THÊM MỚI: Mã hợp đồng gần nhất (để fix cảnh báo Firestore)
+    private String maHopDongGanNhat;
+
 
     // Constructor mặc định (bắt buộc cho Firebase Firestore/Realtime Database)
     public NhaCungCap() {
     }
 
     public NhaCungCap(String tenNhaCungCap, String diaChi, String soDienThoai, String email,
-                      String nguoiLienHe, String loaiDichVu, String maHopDong, String maNguoiDungTao) {
+                      String nguoiLienHe, String loaiDichVu, String maHopDong, String maNguoiDungTao,
+                      String trangThaiHopDong, String maHopDongGanNhat) {
         this.tenNhaCungCap = tenNhaCungCap;
         this.diaChi = diaChi;
         this.soDienThoai = soDienThoai;
         this.email = email;
         this.nguoiLienHe = nguoiLienHe;
         this.loaiDichVu = loaiDichVu;
-        this.maHopDong = maHopDong; // Khởi tạo trường mới
+        this.maHopDong = maHopDong;
         this.maNguoiDungTao = maNguoiDungTao;
+        this.trangThaiHopDong = trangThaiHopDong; // Khởi tạo trường mới
+        this.maHopDongGanNhat = maHopDongGanNhat; // Khởi tạo trường mới
+    }
+
+    public NhaCungCap(String ten, String diaChi, String sdt, String email, String nguoiLH, String loaiDV, String maHopDongActive, String maNguoiDungTao) {
     }
 
     // --- Getters and Setters ---
 
-    // Getter và Setter cho trường mới
+    // Getter và Setter cho trường mới trangThaiHopDong (FIX)
+    public String getTrangThaiHopDong() {
+        return trangThaiHopDong;
+    }
+
+    public void setTrangThaiHopDong(String trangThaiHopDong) {
+        this.trangThaiHopDong = trangThaiHopDong;
+    }
+
+    // Getter và Setter cho trường mới maHopDongGanNhat (FIX)
+    public String getMaHopDongGanNhat() {
+        return maHopDongGanNhat;
+    }
+
+    public void setMaHopDongGanNhat(String maHopDongGanNhat) {
+        this.maHopDongGanNhat = maHopDongGanNhat;
+    }
+
+    // Các Getters/Setters cũ vẫn giữ nguyên...
+
     public String getMaHopDong() {
         return maHopDong;
     }
@@ -46,8 +76,6 @@ public class NhaCungCap implements Serializable {
     public void setMaHopDong(String maHopDongActive) {
         this.maHopDong = maHopDongActive;
     }
-
-    // Các Getters/Setters cũ vẫn giữ nguyên...
 
     public String getMaNhaCungCap() {
         return maNhaCungCap;

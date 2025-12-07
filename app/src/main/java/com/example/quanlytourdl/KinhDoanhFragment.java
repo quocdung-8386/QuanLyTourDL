@@ -1,12 +1,15 @@
 package com.example.quanlytourdl;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,11 +21,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 // Imports Firebase Firestore
+import com.example.quanlytourdl.R;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+// IMPORT BATCH WRITE
+import com.google.firebase.firestore.WriteBatch;
 
 import com.example.quanlytourdl.adapter.NhaCungCapAdapter;
 import com.example.quanlytourdl.model.NhaCungCap;
@@ -30,11 +36,15 @@ import com.example.quanlytourdl.model.NhaCungCap;
 // Imports cho các Fragment chuyển hướng
 import com.example.quanlytourdl.TaoNhaCungCapFragment;
 import com.example.quanlytourdl.SuaNhaCungCapFragment;
-import com.example.quanlytourdl.ChamDutHopDongFragment;
-import com.example.quanlytourdl.QuanLyHopDongFragment; // Đã thêm import cho Fragment Quản lý Hợp đồng
+import com.example.quanlytourdl.QuanLyTourFragment;
+import com.example.quanlytourdl.QuanLyHopDongFragment;
+
+// Giả định class này đã tồn tại và có constructor mặc định
+import com.example.quanlytourdl.ChoPheDuyetTourFragment;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnItemActionListener {
 
@@ -46,7 +56,17 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
 
     private FirebaseFirestore db;
     private CollectionReference nhaCungCapRef;
+    private CollectionReference hopDongRef;
     private ListenerRegistration listenerRegistration;
+
+    // Hằng số cho ID Menu tùy chọn mới
+    private static final int MENU_ID_SUPPLIER = 101;
+    private static final int MENU_ID_TOUR_MANAGEMENT = 102;
+    private static final int MENU_ID_TOUR_APPROVAL = 103;
+    private static final int MENU_ID_CUSTOMER_LIST = 104;
+    private static final int MENU_ID_CUSTOMER_REPORT = 105;
+    private static final int MENU_ID_PAYMENT_RECORD = 106;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,6 +74,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
         // KHỞI TẠO FIRESTORE
         db = FirebaseFirestore.getInstance();
         nhaCungCapRef = db.collection("NhaCungCap");
+        hopDongRef = db.collection("HopDong");
     }
 
     @Nullable
@@ -71,9 +92,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
         // 1. Xử lý Menu Dấu 3 Gạch
         ImageButton btnMenuDrawer = view.findViewById(R.id.btn_menu_drawer);
         if (btnMenuDrawer != null) {
-            btnMenuDrawer.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "Mở Menu chính (Navigation Drawer)", Toast.LENGTH_SHORT).show();
-            });
+            btnMenuDrawer.setOnClickListener(this::showDrawerMenu); // Gọi phương thức hiển thị menu
         }
 
         // 2. Xử lý FAB để chuyển sang Fragment tạo Nhà cung cấp mới
@@ -95,6 +114,146 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
 
         return view;
     }
+
+    /**
+     * Hiển thị một PopupMenu tùy chọn và xử lý chuyển Fragment khi click.
+     */
+    private void showDrawerMenu(View anchorView) {
+        if (getContext() == null) return;
+
+        PopupMenu popup = new PopupMenu(getContext(), anchorView);
+
+        // Thêm các mục menu tùy chọn sử dụng Hằng số ID
+        popup.getMenu().add(1, MENU_ID_SUPPLIER, 1, "Nhà Cung Cấp");
+        popup.getMenu().add(1, MENU_ID_TOUR_MANAGEMENT, 2, "Quản Lý Tour");
+        popup.getMenu().add(1, MENU_ID_TOUR_APPROVAL, 3, "Phê duyệt/Duyệt bán Tour");
+        popup.getMenu().add(1, MENU_ID_CUSTOMER_LIST, 4, "Danh Sách Khách Hàng");
+        popup.getMenu().add(1, MENU_ID_CUSTOMER_REPORT, 5, "Báo cáo Danh sách KH");
+        popup.getMenu().add(1, MENU_ID_PAYMENT_RECORD, 6, "Ghi Nhận Thanh Toán");
+
+        // Thiết lập sự kiện click cho các mục menu
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case MENU_ID_SUPPLIER:
+                        // Đã ở màn hình này, chỉ cần đóng menu hoặc refresh
+                        Toast.makeText(getContext(), "Đang ở màn hình Quản lý Nhà Cung Cấp", Toast.LENGTH_SHORT).show();
+                        return true;
+                    case MENU_ID_TOUR_MANAGEMENT:
+                        openQuanLyTourFragment();
+                        return true;
+                    case MENU_ID_TOUR_APPROVAL:
+                        // Đã cập nhật để gọi ChoPheDuyetTourFragment thực tế
+                        openChoPheDuyetTourFragment();
+                        return true;
+                    case MENU_ID_CUSTOMER_LIST:
+                        openDanhSachKhachHangFragment();
+                        return true;
+                    case MENU_ID_CUSTOMER_REPORT:
+                        openBaoCaoKhachHangFragment();
+                        return true;
+                    case MENU_ID_PAYMENT_RECORD:
+                        openGhiNhanThanhToanFragment();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+
+        popup.show();
+    }
+
+
+    // --- HÀM HỖ TRỢ CHUYỂN FRAGMENT TỪ MENU DRAWER ---
+
+    private void performFragmentTransaction(Fragment targetFragment, String logMessage) {
+        if (getParentFragmentManager() != null) {
+            FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
+
+            if (frameId != 0) {
+                transaction.replace(frameId, targetFragment);
+                transaction.addToBackStack(null);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                transaction.commit();
+                Log.d(TAG, logMessage);
+            } else {
+                // Thử với ID R.id.main_content_frame nếu không tìm thấy ID động
+                try {
+                    transaction.replace(R.id.main_content_frame, targetFragment);
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    transaction.commit();
+                    Log.d(TAG, logMessage + " (Sử dụng R.id.main_content_frame)");
+                } catch (Exception e) {
+                    Log.e(TAG, "Lỗi chuyển Fragment, không tìm thấy ID main_content_frame trong cả hai cách.", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Mở Fragment Quản Lý Tour.
+     */
+    private void openQuanLyTourFragment() {
+        performFragmentTransaction(new QuanLyTourFragment(), "Chuyển sang màn hình Quản Lý Tour.");
+    }
+
+    /**
+     * Mở Fragment Cho Phê Duyệt Tour (ĐÃ TRIỂN KHAI).
+     * Giả định class ChoPheDuyetTourFragment tồn tại và có constructor mặc định.
+     */
+    private void openChoPheDuyetTourFragment() {
+        performFragmentTransaction(new ChoPheDuyetTourFragment(), "Chuyển sang màn hình Phê duyệt/Duyệt bán Tour.");
+    }
+
+    /**
+     * Mở Fragment Danh Sách Khách Hàng (Placeholder).
+     */
+    private void openDanhSachKhachHangFragment() {
+        performFragmentTransaction(new PlaceholderFragment("Danh Sách Khách Hàng"), "Chuyển sang màn hình Danh Sách Khách Hàng.");
+    }
+
+    /**
+     * Mở Fragment Báo cáo Danh sách KH (Placeholder).
+     */
+    private void openBaoCaoKhachHangFragment() {
+        performFragmentTransaction(new PlaceholderFragment("Báo cáo Danh sách KH"), "Chuyển sang màn hình Báo cáo Danh sách KH.");
+    }
+
+    /**
+     * Mở Fragment Ghi Nhận Thanh Toán (Placeholder).
+     */
+    private void openGhiNhanThanhToanFragment() {
+        performFragmentTransaction(new PlaceholderFragment("Ghi Nhận Thanh Toán"), "Chuyển sang màn hình Ghi Nhận Thanh Toán.");
+    }
+
+
+    // --- CLASS GIẢ ĐỊNH CHO MỤC ĐÍCH NAVIGATE (CHỈ DÙNG CHO CÁC MÀN HÌNH CHƯA TRIỂN KHAI) ---
+    /**
+     * Class Fragment giả định để hiển thị tên màn hình được chuyển đến.
+     */
+    public static class PlaceholderFragment extends Fragment {
+        private String title;
+
+        public PlaceholderFragment(String title) {
+            this.title = title;
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            TextView textView = new TextView(getContext());
+            textView.setText("Màn hình: " + title + " (Chưa triển khai)");
+            textView.setTextSize(24);
+            textView.setGravity(android.view.Gravity.CENTER);
+            return textView;
+        }
+    }
+    // -----------------------------------------------------------------
+
 
     // --- HÀM BỔ SUNG: CÀI ĐẶT RECYCLERVIEW ---
     private void setupRecyclerView(View view) {
@@ -154,119 +313,143 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
 
     @Override
     public void onEditClick(NhaCungCap ncc) {
-        // Xử lý khi bấm Sửa: Mở Fragment Sửa
         openEditSupplierFragment(ncc.getMaNhaCungCap());
     }
 
     @Override
     public void onViewClick(NhaCungCap ncc) {
-        // Xử lý khi bấm Xem chi tiết
         Toast.makeText(requireContext(), "Mở chi tiết nhà cung cấp: " + ncc.getTenNhaCungCap(), Toast.LENGTH_SHORT).show();
-        // TODO: Mở Fragment xem chi tiết NCC
     }
 
-    /**
-     * Phương thức xử lý khi người dùng nhấn XÓA/HÀNH ĐỘNG.
-     * Theo yêu cầu mới: Luôn luôn chuyển hướng sang ChamDutHopDongFragment, không cần kiểm tra Hợp đồng Active.
-     */
     @Override
     public void onDeleteClick(NhaCungCap ncc) {
-        // Lấy ID hợp đồng active (có thể là null hoặc rỗng)
-        String contractIdToTerminate = ncc.getMaHopDong();
-
-        // Gán là chuỗi rỗng nếu null để đảm bảo Bundle không bị lỗi và Fragment đích có thể xử lý logic kiểm tra
-        if (contractIdToTerminate == null) {
-            contractIdToTerminate = "";
-        }
-
-        // Chuyển hướng ngay lập tức đến màn hình Chấm dứt Hợp đồng
-        openTerminateContractFragment(ncc.getMaNhaCungCap(), contractIdToTerminate);
-
-        Toast.makeText(requireContext(), "Đang chuyển đến màn hình Chấm dứt Hợp đồng/Xóa Nhà Cung Cấp...", Toast.LENGTH_SHORT).show();
+        showDeleteConfirmationDialog(ncc);
     }
 
     @Override
     public void onTerminateContract(NhaCungCap ncc) {
-        // Phương thức này có thể được sử dụng trong Adapter, nhưng hiện tại không có logic
+        // Không sử dụng trong luồng này
+        Toast.makeText(requireContext(), "Chức năng chấm dứt hợp đồng chưa được triển khai.", Toast.LENGTH_SHORT).show();
     }
 
-    // --- HÀM HỖ TRỢ CHUYỂN FRAGMENT ---
+    // --- HÀM HỖ TRỢ XÓA (CASCADING DELETE/XÓA CỨNG) ---
 
-    /**
-     * Mở Fragment Quản lý Hợp Đồng.
-     */
+    private void showDeleteConfirmationDialog(NhaCungCap ncc) {
+        if (getContext() == null) return;
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa Nhà Cung Cấp " + ncc.getTenNhaCungCap() + "?\nCẢ các Hợp Đồng liên quan CŨNG sẽ bị XÓA VĨNH VIỄN khỏi cơ sở dữ liệu.")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    deleteNhaCungCap(ncc);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void deleteNhaCungCap(NhaCungCap ncc) {
+        final String supplierId = ncc.getMaNhaCungCap();
+        final WriteBatch batch = db.batch();
+
+        hopDongRef.whereEqualTo("supplierId", supplierId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        batch.delete(document.getReference());
+                    }
+
+                    batch.delete(nhaCungCapRef.document(supplierId));
+
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "Đã xóa NCC và XÓA HĐ liên quan: " + supplierId);
+                                Toast.makeText(requireContext(), "Đã xóa vĩnh viễn Nhà Cung Cấp và tất cả Hợp Đồng liên quan: " + ncc.getTenNhaCungCap(), Toast.LENGTH_LONG).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.w(TAG, "Lỗi khi Commit Batch Xóa NCC " + supplierId, e);
+                                Toast.makeText(requireContext(), "Lỗi xóa NCC (Batch): " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Lỗi khi truy vấn Hợp Đồng để xóa NCC " + supplierId, e);
+                    Toast.makeText(requireContext(), "Lỗi truy vấn Hợp Đồng: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    // --- HÀM HỖ TRỢ CHUYỂN FRAGMENT (NCC và Hợp Đồng) ---
+
     private void openQuanLyHopDongFragment() {
         if (getParentFragmentManager() != null) {
             QuanLyHopDongFragment contractFragment = new QuanLyHopDongFragment();
-
             FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            // Đảm bảo R.id.main_content_frame là ID Frame layout chứa Fragment chính
-            transaction.replace(R.id.main_content_frame, contractFragment);
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
-
-            Log.d(TAG, "Chuyển sang màn hình Quản lý Hợp đồng NCC");
+            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
+            if (frameId != 0) {
+                transaction.replace(frameId, contractFragment);
+                transaction.addToBackStack(null);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                transaction.commit();
+                Log.d(TAG, "Chuyển sang màn hình Quản lý Hợp đồng NCC");
+            } else {
+                try {
+                    transaction.replace(R.id.main_content_frame, contractFragment);
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    transaction.commit();
+                } catch (Exception e) {
+                    Log.e(TAG, "Lỗi chuyển Fragment, không tìm thấy ID main_content_frame.", e);
+                }
+            }
         }
     }
 
-    /**
-     * Mở Fragment Sửa NhaCungCap và truyền ID của nhà cung cấp cần sửa.
-     */
     private void openEditSupplierFragment(String supplierId) {
         if (getParentFragmentManager() != null) {
             Bundle bundle = new Bundle();
             bundle.putString("supplier_id", supplierId);
-
             SuaNhaCungCapFragment editFragment = new SuaNhaCungCapFragment();
             editFragment.setArguments(bundle);
-
             FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            transaction.replace(R.id.main_content_frame, editFragment);
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
-
-            Log.d(TAG, "Chuyển sang màn hình Sửa Nhà Cung Cấp: " + supplierId);
+            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
+            if (frameId != 0) {
+                transaction.replace(frameId, editFragment);
+                transaction.addToBackStack(null);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                transaction.commit();
+                Log.d(TAG, "Chuyển sang màn hình Sửa Nhà Cung Cấp: " + supplierId);
+            } else {
+                try {
+                    transaction.replace(R.id.main_content_frame, editFragment);
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    transaction.commit();
+                } catch (Exception e) {
+                    Log.e(TAG, "Lỗi chuyển Fragment, không tìm thấy ID main_content_frame.", e);
+                }
+            }
         }
     }
 
-    /**
-     * Mở Fragment Chấm Dứt Hợp Đồng và truyền ID Nhà cung cấp VÀ ID Hợp đồng.
-     */
-    private void openTerminateContractFragment(String supplierId, String contractId) {
-        if (getParentFragmentManager() != null) {
-            Bundle bundle = new Bundle();
-            bundle.putString("supplier_id", supplierId);
-            bundle.putString("contract_id", contractId);
-
-            ChamDutHopDongFragment terminateFragment = new ChamDutHopDongFragment();
-            terminateFragment.setArguments(bundle);
-
-            FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            transaction.replace(R.id.main_content_frame, terminateFragment);
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
-
-            Log.d(TAG, "Chuyển sang màn hình Chấm dứt Hợp đồng. NCC ID: " + supplierId + ", Contract ID: " + contractId);
-        }
-    }
-
-    /**
-     * Hàm xử lý chuyển sang Fragment Tạo Nhà Cung Cấp Mới.
-     */
     private void openCreateSupplierFragment() {
         if (getParentFragmentManager() != null) {
             TaoNhaCungCapFragment createFragment = new TaoNhaCungCapFragment();
-
             FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            transaction.add(R.id.main_content_frame, createFragment);
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
-
-            Log.d(TAG, "Chuyển sang màn hình Thêm Nhà Cung Cấp");
+            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
+            if (frameId != 0) {
+                transaction.add(frameId, createFragment);
+                transaction.addToBackStack(null);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                transaction.commit();
+                Log.d(TAG, "Chuyển sang màn hình Thêm Nhà Cung Cấp");
+            } else {
+                try {
+                    transaction.add(R.id.main_content_frame, createFragment);
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    transaction.commit();
+                } catch (Exception e) {
+                    Log.e(TAG, "Lỗi chuyển Fragment, không tìm thấy ID main_content_frame.", e);
+                }
+            }
         }
     }
 
@@ -274,29 +457,41 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
      * Cập nhật nội dung cho các Quick Actions (Hành động nhanh) và thiết lập listener.
      */
     private void setupQuickActions(View view) {
-        // Giả định các ID và resource tồn tại
         View actionContract = view.findViewById(R.id.action_contract);
         View actionPerformance = view.findViewById(R.id.action_performance);
         View actionFilter = view.findViewById(R.id.action_filter);
 
-        if (actionContract != null) {
-            // [Image of icon for document management]
-            ((ImageView) actionContract.findViewById(R.id.action_icon)).setImageResource(R.drawable.ic_document);
-            ((TextView) actionContract.findViewById(R.id.action_title)).setText("Quản lý hợp đồng");
+        int icDocumentId = getResources().getIdentifier("ic_document", "drawable", requireContext().getPackageName());
+        int icAssessmentId = getResources().getIdentifier("ic_assessment", "drawable", requireContext().getPackageName());
+        int icFilterId = getResources().getIdentifier("ic_filter", "drawable", requireContext().getPackageName());
 
-            // THIẾT LẬP SỰ KIỆN CLICK MỚI ĐỂ MỞ QUẢN LÝ HỢP ĐỒNG
+        if (actionContract != null) {
+            if (icDocumentId != 0) {
+                ImageView icon = actionContract.findViewById(R.id.action_icon);
+                if (icon != null) icon.setImageResource(icDocumentId);
+            }
+            TextView title = actionContract.findViewById(R.id.action_title);
+            if (title != null) title.setText("Quản lý hợp đồng");
             actionContract.setOnClickListener(v -> openQuanLyHopDongFragment());
         }
+
         if (actionPerformance != null) {
-            // [Image of icon for performance assessment]
-            ((ImageView) actionPerformance.findViewById(R.id.action_icon)).setImageResource(R.drawable.ic_assessment);
-            ((TextView) actionPerformance.findViewById(R.id.action_title)).setText("Đánh giá hiệu suất");
+            if (icAssessmentId != 0) {
+                ImageView icon = actionPerformance.findViewById(R.id.action_icon);
+                if (icon != null) icon.setImageResource(icAssessmentId);
+            }
+            TextView title = actionPerformance.findViewById(R.id.action_title);
+            if (title != null) title.setText("Đánh giá hiệu suất");
             actionPerformance.setOnClickListener(v -> Toast.makeText(requireContext(), "Tới Đánh giá hiệu suất", Toast.LENGTH_SHORT).show());
         }
+
         if (actionFilter != null) {
-            // [Image of icon for filtering data]
-            ((ImageView) actionFilter.findViewById(R.id.action_icon)).setImageResource(R.drawable.ic_filter);
-            ((TextView) actionFilter.findViewById(R.id.action_title)).setText("Bộ lọc");
+            if (icFilterId != 0) {
+                ImageView icon = actionFilter.findViewById(R.id.action_icon);
+                if (icon != null) icon.setImageResource(icFilterId);
+            }
+            TextView title = actionFilter.findViewById(R.id.action_title);
+            if (title != null) title.setText("Bộ lọc");
             actionFilter.setOnClickListener(v -> Toast.makeText(requireContext(), "Mở Bộ lọc", Toast.LENGTH_SHORT).show());
         }
     }
