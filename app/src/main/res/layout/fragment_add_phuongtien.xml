@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F9FAFB"
+    tools:context=".fragment.AddPhuongTienFragment">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@android:color/white"
+        android:elevation="2dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/content_description_back"
+            android:src="@drawable/ic_arrow_back"
+            android:tint="#374151"
+            android:layout_marginStart="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thêm Phương tiện mới"
+            android:textColor="#374151"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"/>
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintBottom_toTopOf="@id/bottom_action_bar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 1. Loại phương tiện (Dropdown) -->
+            <TextView
+                style="@style/FormLabelStyle"
+                android:text="Loại phương tiện"
+                android:layout_marginBottom="4dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_vehicle_type"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                android:layout_marginBottom="16dp"
+                app:boxBackgroundMode="none"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                android:background="@drawable/bg_input_rounded">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropdown_vehicle_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Chọn loại xe"
+                    android:drawableStart="@drawable/ic_car_side_24"
+                    android:drawablePadding="8dp"
+                    android:inputType="none"
+                    android:padding="14dp"
+                    tools:text="Xe 4 chỗ" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 2. Hãng xe (Input) -->
+            <TextView
+                style="@style/FormLabelStyle"
+                android:text="Hãng xe"
+                android:layout_marginBottom="4dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_brand"
+                style="@style/TextInputLayoutStyle"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Nhập hãng xe (VD: Toyota)"
+                    android:inputType="text"
+                    android:background="@drawable/bg_input_rounded"
+                    android:padding="14dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 3. Biển số xe (Input with suffix) -->
+            <TextView
+                style="@style/FormLabelStyle"
+                android:text="Biển số xe"
+                android:layout_marginBottom="4dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_license_plate"
+                style="@style/TextInputLayoutStyle"
+                android:layout_marginBottom="16dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="29A-123.45"
+                        android:inputType="textCapCharacters"
+                        android:background="@drawable/bg_input_rounded"
+                        android:padding="14dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|end"
+                        android:layout_marginEnd="8dp"
+                        android:text="VN"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="#9CA3AF"
+                        android:paddingStart="6dp"
+                        android:paddingEnd="6dp"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="2dp"
+                        android:background="@drawable/bg_chip_gray" />
+                </FrameLayout>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 4. Số chỗ & Năm SX (Side by side) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <!-- Số chỗ (Input with icon) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="8dp">
+                    <TextView
+                        style="@style/FormLabelStyle"
+                        android:text="Số chỗ"
+                        android:layout_marginBottom="4dp"/>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/input_seat_count"
+                        style="@style/TextInputLayoutStyle">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="4"
+                            android:inputType="number"
+                            android:drawableStart="@drawable/ic_chair_24"
+                            android:drawablePadding="8dp"
+                            android:background="@drawable/bg_input_rounded"
+                            android:padding="14dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+
+                <!-- Năm SX (Input with icon) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="8dp">
+                    <TextView
+                        style="@style/FormLabelStyle"
+                        android:text="Năm SX"
+                        android:layout_marginBottom="4dp"/>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/input_production_year"
+                        style="@style/TextInputLayoutStyle"
+                        app:endIconDrawable="@drawable/ic_calendar"
+                        app:endIconMode="custom">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="2023"
+                            android:inputType="number"
+                            android:background="@drawable/bg_input_rounded"
+                            android:padding="14dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <!-- 5. Tình trạng bảo dưỡng (Dropdown) -->
+            <TextView
+                style="@style/FormLabelStyle"
+                android:text="Tình trạng bảo dưỡng"
+                android:layout_marginBottom="4dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_maintenance_status"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                android:layout_marginBottom="24dp"
+                app:boxBackgroundMode="none"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                android:background="@drawable/bg_input_rounded">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropdown_maintenance_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Hoạt động tốt"
+                    android:inputType="none"
+                    android:padding="14dp"
+                    tools:text="Hoạt động tốt" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 6. Giấy tờ xe (Upload Area) -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    style="@style/FormLabelStyle"
+                    android:text="Giấy tờ xe"/>
+                <TextView
+                    android:id="@+id/tv_view_sample"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Xem mẫu"
+                    android:textColor="#2563EB"
+                    android:textSize="14sp"
+                    android:layout_alignParentEnd="true"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"/>
+            </RelativeLayout>
+
+
+            <!-- Khu vực Upload -->
+            <LinearLayout
+                android:id="@+id/layout_upload_documents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_upload_dashed"
+                android:padding="24dp"
+                android:layout_marginBottom="16dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_upload"
+                    android:tint="#2563EB"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tải ảnh hoặc tải tài liệu"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PNG, JPG, PDF (MAX 10MB)"
+                    android:textSize="12sp"
+                    android:textColor="#6B7280"
+                    android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Footer / Action Bar (Fixed at bottom) -->
+    <LinearLayout
+        android:id="@+id/bottom_action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Nút Hủy -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Hủy"
+            android:textColor="#4B5563"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#E5E7EB"
+            app:cornerRadius="12dp"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Nút Thêm mới -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_new"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Thêm mới"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#2563EB"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_plus_24"
+            app:iconTint="@android:color/white"
+            app:iconGravity="textStart"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

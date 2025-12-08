@@ -1,13 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Style for a section title (Equivalent to SectionTitleStyle in context) -->
+    <style name="SectionTitleStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#333333</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+
+    <!-- Style for a standard full-width text input (Equivalent to TextInputLayoutStyle in context) -->
+    <style name="TextInputLayoutStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:background">@drawable/bg_rounded_border</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#1F2937</item>
+    </style>
+
+    <!-- Style for an input intended for a half-width container (Inherits base properties) -->
+    <style name="TextInputLayoutStyle.HalfWidth" parent="TextInputLayoutStyle">
+        <!-- This style inherits all base properties.
+             Sử dụng wrap_content và marginEnd cho mục đích thẩm mỹ.
+             Độ rộng thực tế (layout_width="0dp" và layout_weight="1") phải được áp dụng trong file layout XML. -->
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_marginEnd">8dp</item>
+    </style>
+
+    <!-- Style for a dashed background upload area (Equivalent to bg_upload_dashed in context) -->
+    <style name="UploadDashedBackground">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">150dp</item>
+        <item name="android:background">@drawable/bg_dashed_upload_area</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">24dp</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+
+    <!-- TourFeatureChip (Existing style) -->
+    <style name="TourFeatureChip">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <!-- NOTE: @drawable/bg_feature_chip and @color/colorTextSecondary must be defined elsewhere -->
+        <item name="android:background">@drawable/bg_feature_chip</item>
+        <item name="android:textColor">@color/colorTextSecondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <!-- Shape Appearance for 50% rounded corners (full circle/pill shape) -->
     <style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+
+    <!-- Text style for TabLayout tabs -->
     <style name="TabLayoutTextStyle" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
     </style>
+
+    <!-- Layout container style for a single step in a multi-step flow -->
     <style name="TourCreationStep">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -17,16 +81,42 @@
         <item name="android:padding">8dp</item>
     </style>
 
+    <!-- Icon style within the TourCreationStep -->
     <style name="TourStepIcon">
         <item name="android:layout_width">24dp</item>
         <item name="android:layout_height">24dp</item>
         <item name="android:layout_marginEnd">12dp</item>
-        <item name="android:tint">#4285F4</item> </style>
+        <item name="android:tint">#4285F4</item>
+    </style>
 
+    <!-- Text style within the TourCreationStep -->
     <style name="TourStepText">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@android:color/black</item>
         <item name="android:textSize">16sp</item>
+    </style>
+    <style name="FormLabelStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#4B5563</item> <!-- Dark Gray/Slate -->
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Base style for the TextInputLayout, removing the default stroke/box effect -->
+    <style name="TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <!-- Remove standard Material box outline, relying on custom drawable for background -->
+        <item name="boxStrokeWidth">0dp</item>
+        <item name="boxStrokeWidthFocused">0dp</item>
+        <item name="hintEnabled">false</item>
+        <item name="boxBackgroundMode">none</item>
+    </style>
+
+    <!-- Style for half-width inputs (if used elsewhere, included for completeness) -->
+    <style name="TextInputLayoutStyle.HalfWidth" parent="TextInputLayoutStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
     </style>
 </resources>

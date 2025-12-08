@@ -8,11 +8,15 @@
     <color name="blue_primary">#007BFF</color> <!-- Màu xanh chính (VD: nút, icon) -->
     <color name="grey_text">#6C757D</color>    <!-- Màu văn bản xám (cho các chi tiết nhỏ) -->
     <color name="light_grey_bg">#F8F9FA</color> <!-- Màu nền xám nhạt (VD: ô tìm kiếm) -->
-
+    <color name="colorPrimary">#6200EE</color>
+    <!-- Màu nhẹ hơn của màu chính, dùng cho các đường kẻ hoặc nền nhạt -->
+    <color name="colorPrimaryLight">#E1BEE7</color>
     <!-- Màu Trạng thái (Status Colors) -->
     <color name="green_active">#28A745</color>    <!-- Đang hiệu lực -->
     <color name="orange_warning">#FFC107</color>   <!-- Sắp hết hạn/Cảnh báo -->
     <color name="red_expired">#DC3545</color>      <!-- Đã hết hạn/Xóa -->
     <color name="color_default_status">#6C757D</color>
-
+    <color name="colorTextSecondary">#757575</color>
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorBackgroundLight">#F3F4F6</color>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.quanlytourdl.model;
 
+import com.google.firebase.firestore.DocumentId; // <--- THÊM IMPORT NÀY
 import java.util.Date;
 import java.util.List;
 
@@ -9,35 +10,36 @@ import java.util.List;
  */
 public class Tour {
     // ------------------- THÔNG TIN CƠ BẢN VÀ GIÁ -------------------
+    @DocumentId // <--- THÊM ANNOTATION NÀY để map Document ID vào maTour
     private String maTour;
     private String tenTour;
-    private String diemKhoiHanh; // Địa điểm khởi hành
-    private String diemDen;      // Địa điểm kết thúc
-    private Date ngayKhoiHanh;   // Ngày khởi hành
+    private String diemKhoiHanh;
+    private String diemDen;
+    private Date ngayKhoiHanh;
     private long giaTour;
 
     // ------------------- THÔNG TIN CHI TIẾT -------------------
-    private int soNgay;               // Số ngày của tour (ví dụ: 5)
-    private String diemDenChinh;      // Điểm đến nổi bật nhất/chính (dùng cho hiển thị card)
-    private int soLuongToiDa;         // Sức chứa tối đa của tour (Capacity)
-    private int soLuongKhach;         // Số lượng khách đã đặt (Booked Count) - Cần thiết cho việc tính toán còn chỗ
-    private String lichTrinhChiTiet;  // Mô tả lịch trình chi tiết (dạng text hoặc JSON string)
-    private String phuongTien;        // Phương tiện di chuyển (Ví dụ: Máy bay, Tàu hỏa)
-    private String tenNhaCungCap;     // Tên đơn vị cung cấp/tổ chức tour (đại lý)
+    private int soNgay;
+    private String diemDenChinh;
+    private int soLuongToiDa;
+    private int soLuongKhach;
+    private String lichTrinhChiTiet;
+    private String phuongTien;
+    private String tenNhaCungCap;
 
     // ------------------- TRƯỜNG QUẢN LÝ VÀ PHÊ DUYỆT -------------------
-    private String nguoiTao; // ID người tạo
-    private Date ngayTao;    // Ngày tạo tour
-    private String status;   // Trạng thái: CHO_PHE_DUYET, DANG_MO_BAN, DA_TU_CHOI
+    private String nguoiTao;
+    private Date ngayTao;
+    private String status;
 
     // ------------------- TRƯỜNG MARKETING VÀ HÌNH ẢNH -------------------
     private String seoDescription;
-    private boolean isFeatured; // Tour nổi bật (featured)
+    private boolean isFeatured;
     private List<String> imageUrls;
-    private String anhThumbnailUrl; // Giữ lại cho tiện (thường là imageUrls[0])
+    private String anhThumbnailUrl;
 
 
-    // QUAN TRỌNG: Constructor rỗng (No-argument constructor) BẮT BUỘNG cho Firestore
+    // QUAN TRỌNG: Constructor rỗng (No-argument constructor) BẮT BUỘC cho Firestore
     public Tour() {
         // Khởi tạo mặc định
     }

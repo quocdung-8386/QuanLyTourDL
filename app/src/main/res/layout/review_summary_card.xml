@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đánh giá từ khách hàng"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:baselineAligned="false">
+
+            <!-- Cột 1: Điểm tổng quát -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tv_average_rating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    tools:text="4.8" />
+
+                <RatingBar
+                    android:id="@+id/rating_bar_summary"
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:rating="4.8"
+                    android:stepSize="0.1"
+                    android:isIndicator="true"
+                    android:progressTint="#FFC107" />
+
+                <TextView
+                    android:id="@+id/tv_review_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/colorTextSecondary"
+                    tools:text="68 đánh giá" />
+            </LinearLayout>
+
+            <!-- Cột 2: Thanh tiến trình đánh giá -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
+
+                <!-- 5 sao -->
+                <include layout="@layout/rating_progress_bar" android:id="@+id/progress_5_star" tools:visibility="visible"/>
+                <!-- 4 sao -->
+                <include layout="@layout/rating_progress_bar" android:id="@+id/progress_4_star" tools:visibility="visible"/>
+                <!-- 3 sao -->
+                <include layout="@layout/rating_progress_bar" android:id="@+id/progress_3_star" tools:visibility="visible"/>
+                <!-- 2 sao -->
+                <include layout="@layout/rating_progress_bar" android:id="@+id/progress_2_star" tools:visibility="visible"/>
+                <!-- 1 sao -->
+                <include layout="@layout/rating_progress_bar" android:id="@+id/progress_1_star" tools:visibility="visible"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

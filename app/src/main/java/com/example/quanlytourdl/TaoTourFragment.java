@@ -14,8 +14,10 @@ import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.button.MaterialButton;
 
-// Cần đảm bảo file này tồn tại trong project của bạn
+// Import các Fragment cần thiết
 import com.example.quanlytourdl.TaoTourDetailFullFragment;
+// Giả định TourAssignmentListFragment tồn tại
+import com.example.quanlytourdl.TourAssignmentListFragment;
 
 public class TaoTourFragment extends Fragment {
 
@@ -27,9 +29,12 @@ public class TaoTourFragment extends Fragment {
 
     private ImageButton btnBack, btnMenuDrawer;
 
-    // --- Placeholder Fragment Names cho các Fragment khác (sử dụng reflection) ---
-    private static final String FRAGMENT_ASSIGN_GUIDE = "com.example.quanlytourdl.GanHuongDanVienFragment";
+    // --- Placeholder Fragment Names cho các Fragment khác ---
+    // Đã thay thế FRAGMENT_ASSIGN_GUIDE bằng tên class mới (nếu dùng reflection)
     private static final String FRAGMENT_TOUR_MANAGER = "com.example.quanlytourdl.QuanLyTourFragment";
+
+    // Tên class mới cho Fragment gán HDV/Phương tiện
+    private static final String FRAGMENT_ASSIGNMENT_LIST = "com.example.quanlytourdl.TourAssignmentListFragment";
 
 
     public TaoTourFragment() {
@@ -72,20 +77,19 @@ public class TaoTourFragment extends Fragment {
         // 1. Nút Bắt đầu tạo Tour -> CHUYỂN ĐẾN TaoTourDetailFullFragment (Fragment đa bước)
         btnStartCreateTour.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Chuyển đến màn hình nhập chi tiết Tour đa bước", Toast.LENGTH_SHORT).show();
-            // *** SỬA ĐỔI TẠI ĐÂY ***
-            navigateToFragment(TaoTourDetailFullFragment.newInstance());
+            navigateToFragment(new TaoTourDetailFullFragment()); // Sử dụng constructor mặc định
         });
 
         // 2. Card Chỉnh sửa Tour -> Chuyển đến Fragment Quản Lý/Danh Sách Tour
         cardEditTour.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Mở danh sách Tour để chỉnh sửa", Toast.LENGTH_SHORT).show();
-            navigateToFragmentByClassName(FRAGMENT_TOUR_MANAGER); // Giữ nguyên cách gọi String
+            navigateToFragmentByClassName(FRAGMENT_TOUR_MANAGER);
         });
 
-        // 3. Card Gán hướng dẫn viên -> Chuyển đến Fragment Gán HDV
+        // 3. Card Gán hướng dẫn viên và phương tiện -> Chuyển đến TourAssignmentListFragment
         cardAssignGuide.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Mở màn hình Gán hướng dẫn viên cho Tour", Toast.LENGTH_SHORT).show();
-            navigateToFragmentByClassName(FRAGMENT_ASSIGN_GUIDE); // Giữ nguyên cách gọi String
+            Toast.makeText(getContext(), "Mở màn hình Gán hướng dẫn viên và phương tiện cho Tour", Toast.LENGTH_SHORT).show();
+            navigateToFragmentByClassName(FRAGMENT_ASSIGNMENT_LIST); // Gọi Fragment mới
         });
 
         return view;
@@ -117,6 +121,7 @@ public class TaoTourFragment extends Fragment {
             try {
                 // Khởi tạo Fragment đích thông qua reflection
                 Class<?> fragmentClass = Class.forName(fragmentClassName);
+                // Giả định có constructor không tham số
                 targetFragment = (Fragment) fragmentClass.newInstance();
             } catch (ClassNotFoundException e) {
                 Toast.makeText(getContext(), "Lỗi: Fragment " + fragmentClassName + " chưa được định nghĩa.", Toast.LENGTH_LONG).show();

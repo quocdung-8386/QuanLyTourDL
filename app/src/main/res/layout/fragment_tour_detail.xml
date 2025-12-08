@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- AppBarLayout for the collapsing toolbar effect -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="?attr/colorPrimary"
+            android:fitsSystemWindows="true">
+
+            <!-- Tour Image Header -->
+            <ImageView
+                android:id="@+id/img_tour_header"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:fitsSystemWindows="true"
+                app:layout_collapseMode="parallax"
+                android:src="@drawable/tour_placeholder_danang"
+                android:contentDescription="Hình ảnh tour" />
+
+            <!-- Toolbar with back button and menu -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content (Scrollable) -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Tour Info Section (Name, Duration, Location) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tv_tour_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tv_tour_rating"
+                    tools:text="Hà Nội - Vịnh Hạ Long" />
+
+                <TextView
+                    android:id="@+id/tv_tour_subtitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_tour_title"
+                    app:layout_constraintEnd_toStartOf="@id/tv_tour_rating"
+                    tools:text="3 Ngày 2 Đêm" />
+
+                <TextView
+                    android:id="@+id/tv_tour_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_tour_subtitle"
+                    android:drawableStart="@drawable/ic_location_small"
+                    android:drawablePadding="4dp"
+                    tools:text="Quảng Ninh, Việt Nam" />
+
+                <!-- Rating badge (top right) -->
+                <TextView
+                    android:id="@+id/tv_tour_rating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:background="@drawable/bg_rating_badge"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="4.8" />
+
+                <!-- Tour Feature Icons/Chips (Trailers, Rooms, 360View, etc.) -->
+                <!-- Use a horizontal RecyclerView or simple horizontal LinearLayout for chips if you need many -->
+                <LinearLayout
+                    android:id="@+id/tour_features_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_tour_location">
+
+                    <!-- Example Chip 1: Video -->
+                    <TextView style="@style/TourFeatureChip" tools:text="Video" />
+                    <!-- Example Chip 2: Room -->
+                    <TextView style="@style/TourFeatureChip" tools:text="Phòng nghỉ" />
+                    <!-- Example Chip 3: 360 View -->
+                    <TextView style="@style/TourFeatureChip" tools:text="360 View" />
+                    <!-- Example Chip 4: Service -->
+                    <TextView style="@style/TourFeatureChip" tools:text="Ẩm thực" />
+
+                </LinearLayout>
+
+                <!-- Key Metrics (Mã Tour, Thời gian, Giá) -->
+                <LinearLayout
+                    android:id="@+id/key_metrics_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    app:layout_constraintTop_toBottomOf="@id/tour_features_container">
+
+                    <!-- Metric 1: Mã Tour -->
+                    <include layout="@layout/tour_metric_item" android:id="@+id/metric_ma_tour" />
+                    <!-- Metric 2: Thời gian -->
+                    <include layout="@layout/tour_metric_item" android:id="@+id/metric_thoi_gian" />
+                    <!-- Metric 3: Giá (Giả định layout này có trong dự án của bạn) -->
+                    <include layout="@layout/tour_metric_item" android:id="@+id/metric_gia" />
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- TabLayout for Switching Sections (Lịch trình, Dịch vụ, Đánh giá) -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                app:tabMode="scrollable"
+                app:tabGravity="fill"
+                app:tabIndicatorColor="@color/colorPrimary"
+                app:tabSelectedTextColor="@color/colorPrimary"
+                app:tabTextColor="@android:color/darker_gray" />
+
+            <!-- ViewPager2/FrameLayout to display content for selected tab -->
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="500dp"
+                android:paddingBottom="100dp"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                <!-- Fragment/Content của tab (Lịch trình, Dịch vụ...) sẽ được load vào đây -->
+            </FrameLayout>
+
+            <!-- Content sections (e.g., Lịch trình - This should ideally be handled inside the FrameLayout above) -->
+            <!-- Tôi giả lập một phần nội dung Lịch trình để minh họa cấu trúc -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Lịch trình"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:paddingBottom="8dp"/>
+
+                <!-- Timeline structure (using a custom view or simple vertical layout) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <!-- Day 1 Item -->
+                    <include layout="@layout/tour_timeline_item" />
+                    <!-- Day 2 Item -->
+                    <include layout="@layout/tour_timeline_item" />
+                </LinearLayout>
+
+            </LinearLayout>
+            <!-- End of content sections mock -->
+
+
+            <!-- Review Summary (Đánh giá từ khách hàng) -->
+            <include layout="@layout/review_summary_card" />
+
+            <!-- Personel/Vehicle Section (Giả định layout này có trong dự án của bạn) -->
+            <include layout="@layout/personnel_vehicle_card" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Action Bar (Fixed at the bottom) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:layout_gravity="bottom">
+
+        <Button
+            android:id="@+id/btn_view_statistics"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Xem Thống Kê"
+            android:drawableStart="@drawable/ic_analytics" />
+
+        <Button
+            android:id="@+id/btn_edit_tour"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:text="Chỉnh sửa Tour"
+            android:backgroundTint="@color/colorPrimary"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/ic_edit" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

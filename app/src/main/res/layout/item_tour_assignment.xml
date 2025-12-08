@@ -60,7 +60,7 @@
                 android:textSize="14sp"
                 android:textColor="@color/black"
                 tools:text="Số khách: 30/35" />
-
+            <!-- Đã loại bỏ ProgressBar và Empty State TextView (progress_loading_assignment, text_empty_state_assignment) vì chúng thuộc về layout Fragment chính, không phải item list. -->
             <TextView
                 android:id="@+id/text_assignment_status"
                 android:layout_width="wrap_content"

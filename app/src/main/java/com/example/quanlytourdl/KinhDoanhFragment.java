@@ -41,6 +41,8 @@ import com.example.quanlytourdl.QuanLyHopDongFragment;
 
 // Giả định class này đã tồn tại và có constructor mặc định
 import com.example.quanlytourdl.ChoPheDuyetTourFragment;
+// IMPORTS THIẾU CHO CHUYỂN HƯỚNG MỚI
+import com.example.quanlytourdl.QuanLyHdvPhuongTienFragment; // Màn hình Phân công Tour/Quản lý HDV & Phương tiện
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +66,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
     private static final int MENU_ID_TOUR_MANAGEMENT = 102;
     private static final int MENU_ID_TOUR_APPROVAL = 103;
     private static final int MENU_ID_CUSTOMER_LIST = 104;
-    private static final int MENU_ID_CUSTOMER_REPORT = 105;
+    private static final int MENU_ID_GUIDE_VEHICLE_MANAGEMENT = 105; // Đổi tên hằng số cho rõ ràng hơn
     private static final int MENU_ID_PAYMENT_RECORD = 106;
 
 
@@ -128,8 +130,9 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
         popup.getMenu().add(1, MENU_ID_TOUR_MANAGEMENT, 2, "Quản Lý Tour");
         popup.getMenu().add(1, MENU_ID_TOUR_APPROVAL, 3, "Phê duyệt/Duyệt bán Tour");
         popup.getMenu().add(1, MENU_ID_CUSTOMER_LIST, 4, "Danh Sách Khách Hàng");
-        popup.getMenu().add(1, MENU_ID_CUSTOMER_REPORT, 5, "Báo cáo Danh sách KH");
-        popup.getMenu().add(1, MENU_ID_PAYMENT_RECORD, 6, "Ghi Nhận Thanh Toán");
+        // SỬ DỤNG HẰNG SỐ ĐÃ ĐỔI TÊN
+        popup.getMenu().add(1, MENU_ID_GUIDE_VEHICLE_MANAGEMENT, 5, "Quản Lý HDV & Phương tiện");
+        popup.getMenu().add(1, MENU_ID_PAYMENT_RECORD, 6, "Đơn Hàng");
 
         // Thiết lập sự kiện click cho các mục menu
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -144,14 +147,15 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
                         openQuanLyTourFragment();
                         return true;
                     case MENU_ID_TOUR_APPROVAL:
-                        // Đã cập nhật để gọi ChoPheDuyetTourFragment thực tế
+                        // Chuyển sang màn hình Phê duyệt Tour
                         openChoPheDuyetTourFragment();
                         return true;
                     case MENU_ID_CUSTOMER_LIST:
                         openDanhSachKhachHangFragment();
                         return true;
-                    case MENU_ID_CUSTOMER_REPORT:
-                        openBaoCaoKhachHangFragment();
+                    case MENU_ID_GUIDE_VEHICLE_MANAGEMENT: // Sử dụng HẰNG SỐ mới
+                        // Chuyển sang màn hình Gán HDV và Phương tiện (TourAssignListFragment)
+                        openQuanLyHdvPhuongTienFragment();
                         return true;
                     case MENU_ID_PAYMENT_RECORD:
                         openGhiNhanThanhToanFragment();
@@ -217,17 +221,19 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
     }
 
     /**
-     * Mở Fragment Báo cáo Danh sách KH (Placeholder).
-     */
-    private void openBaoCaoKhachHangFragment() {
-        performFragmentTransaction(new PlaceholderFragment("Báo cáo Danh sách KH"), "Chuyển sang màn hình Báo cáo Danh sách KH.");
-    }
-
-    /**
      * Mở Fragment Ghi Nhận Thanh Toán (Placeholder).
      */
     private void openGhiNhanThanhToanFragment() {
-        performFragmentTransaction(new PlaceholderFragment("Ghi Nhận Thanh Toán"), "Chuyển sang màn hình Ghi Nhận Thanh Toán.");
+        performFragmentTransaction(new PlaceholderFragment("Ghi Nhận Thanh Toán (Đơn Hàng)"), "Chuyển sang màn hình Ghi Nhận Thanh Toán.");
+    }
+
+    /**
+     * Mở Fragment TourAssignListFragment (Quản lý HDV & Phương tiện).
+     * Triển khai phương thức bị thiếu.
+     */
+    private void openQuanLyHdvPhuongTienFragment() {
+        // Sử dụng TourAssignListFragment để quản lý gán HDV và phương tiện
+        performFragmentTransaction(new QuanLyHdvPhuongTienFragment(), "Chuyển sang màn hình Quản lý HDV & Phương tiện (Phân công Tour).");
     }
 
 
