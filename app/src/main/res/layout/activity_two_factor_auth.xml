@@ -15,10 +15,13 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:id="@+id/btn_back_2fa"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_back_arrow"
-            app:tint="#000000" />
+            app:tint="#000000"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:layout_width="match_parent"
@@ -27,7 +30,8 @@
             android:text="Xác thực 2 yếu tố"
             android:textColor="#000000"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginEnd="24dp"/>
     </LinearLayout>
 
     <ScrollView
@@ -80,6 +84,7 @@
                     </LinearLayout>
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_master_2fa"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:checked="true" />
@@ -116,13 +121,16 @@
                         android:textColor="#757575" />
 
                     <LinearLayout
+                        android:id="@+id/layout_option_app"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:background="@drawable/bg_border_green_rounded"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="16dp">
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <ImageView
                             android:layout_width="24dp"
@@ -140,20 +148,25 @@
                             android:textStyle="bold" />
 
                         <ImageView
+                            android:id="@+id/icon_check_app"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_check_circle"
-                            app:tint="#009688" />
+                            app:tint="#009688"
+                            android:visibility="visible"/>
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layout_option_sms"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/bg_border_gray_rounded"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="16dp">
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <ImageView
                             android:layout_width="24dp"
@@ -169,6 +182,14 @@
                             android:text="Tin nhắn SMS"
                             android:textColor="#000000"
                             android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/icon_check_sms"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_check_circle"
+                            app:tint="#009688"
+                            android:visibility="invisible"/>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -200,7 +221,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:lineSpacingExtra="4dp"
-                        android:text="Sau khi bật, bạn sẽ được yêu cầu cung cấp mã xác thực từ phương thức đã chọn mỗi khi đăng nhập. Điều này giúp đảm bảo chỉ bạn mới có thể truy cập vào tài khoản của mình..."
+                        android:text="Sau khi bật, bạn sẽ được yêu cầu cung cấp mã xác thực từ phương thức đã chọn mỗi khi đăng nhập..."
                         android:textColor="#616161" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -218,20 +239,5 @@
 
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@android:color/white"
-        android:gravity="center"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="[Bottom Navigation Bar Area]" />
-
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
