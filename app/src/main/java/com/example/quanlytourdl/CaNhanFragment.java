@@ -20,6 +20,7 @@ public class CaNhanFragment extends Fragment {
     // Khai báo các thành phần UI
     private EditText editFullName, editPhone, editEmail;
     private MaterialButton btnSaveChanges;
+    private MaterialButton btnLogout; // 1. Khai báo thêm nút Đăng xuất
     private ImageView iconEditProfile;
     private View cardChangePassword, cardTwoFactorAuth;
     private SwitchMaterial switchTwoFactorAuth;
@@ -33,7 +34,7 @@ public class CaNhanFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_ca_nhan, container, false);
 
-        // 1. Ánh xạ các thành phần UI
+        // 2. Ánh xạ các thành phần UI
         editFullName = view.findViewById(R.id.edit_full_name);
         editPhone = view.findViewById(R.id.edit_phone);
         editEmail = view.findViewById(R.id.edit_email);
@@ -43,11 +44,17 @@ public class CaNhanFragment extends Fragment {
         cardTwoFactorAuth = view.findViewById(R.id.card_2fa);
         switchTwoFactorAuth = view.findViewById(R.id.switch_2fa);
 
-        // 2. Xử lý sự kiện
+        // Ánh xạ nút Đăng xuất
+        btnLogout = view.findViewById(R.id.btn_logout);
+
+        // 3. Xử lý sự kiện
+
+        // Sự kiện Đổi ảnh đại diện
         iconEditProfile.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Mở thư viện/camera để chọn ảnh", Toast.LENGTH_SHORT).show();
         });
 
+        // Sự kiện Lưu thông tin
         btnSaveChanges.setOnClickListener(v -> {
             saveProfileChanges();
         });
@@ -65,7 +72,21 @@ public class CaNhanFragment extends Fragment {
         });
 
         switchTwoFactorAuth.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Xử lý nhanh trạng thái bật/tắt 2FA nếu cần hiển thị ngay tại màn hình này
+            // Xử lý nhanh trạng thái bật/tắt 2FA tại chỗ
+        });
+
+        // --- SỰ KIỆN ĐĂNG XUẤT (CODE MỚI) ---
+        btnLogout.setOnClickListener(v -> {
+            // Thông báo
+            Toast.makeText(getContext(), "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
+
+            // Chuyển về màn hình Đăng nhập (LoginActivity)
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+
+            // Xóa toàn bộ lịch sử Activity cũ (để user không bấm Back quay lại được)
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
         });
 
         return view;

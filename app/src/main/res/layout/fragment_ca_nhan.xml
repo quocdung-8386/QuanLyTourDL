@@ -53,39 +53,37 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingTop="24dp"
-            android:paddingBottom="16dp">
+            android:paddingBottom="40dp"> <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="32dp">
 
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="32dp">
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/image_profile"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/profile_placeholder"
+                app:civ_border_width="2dp"
+                app:civ_border_color="#F0F0F0"
+                android:contentDescription="Ảnh đại diện"
+                tools:ignore="MissingClass" />
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/image_profile"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:src="@drawable/profile_placeholder"
-                    app:civ_border_width="2dp"
-                    app:civ_border_color="#F0F0F0"
-                    android:contentDescription="Ảnh đại diện"
-                    tools:ignore="MissingClass" />
+            <ImageView
+                android:id="@+id/icon_edit_profile"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignEnd="@id/image_profile"
+                android:layout_alignBottom="@id/image_profile"
+                android:layout_marginBottom="0dp"
+                android:layout_marginEnd="-4dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_edit"
+                android:background="@drawable/bg_circular_blue"
+                app:tint="@android:color/white"
+                android:contentDescription="Chỉnh sửa ảnh" />
 
-                <ImageView
-                    android:id="@+id/icon_edit_profile"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_alignEnd="@id/image_profile"
-                    android:layout_alignBottom="@id/image_profile"
-                    android:layout_marginBottom="0dp"
-                    android:layout_marginEnd="-4dp"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_edit"
-                    android:background="@drawable/bg_circular_blue"
-                    app:tint="@android:color/white"
-                    android:contentDescription="Chỉnh sửa ảnh" />
-
-            </RelativeLayout>
+        </RelativeLayout>
 
             <TextView
                 android:id="@+id/text_user_name"
@@ -277,6 +275,20 @@
                         android:checked="true"/>
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_logout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="24dp"
+                android:text="Đăng xuất"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                app:backgroundTint="#FFEBEE"
+                app:cornerRadius="8dp"
+                app:elevation="0dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
