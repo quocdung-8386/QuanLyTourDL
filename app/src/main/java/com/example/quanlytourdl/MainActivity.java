@@ -5,16 +5,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-// Đảm bảo bạn đã tạo và import tất cả các Fragment này
-import com.example.quanlytourdl.R;
+// Import các Fragment
 import com.example.quanlytourdl.DashboardFragment;
-// THÊM CÁC IMPORT CỦA FRAGMENT CHƯA CÓ (CẦN TẠO CÁC FILE NÀY TRONG DỰ ÁN CỦA BẠN)
 import com.example.quanlytourdl.KinhDoanhFragment;
 import com.example.quanlytourdl.CSKHFragment;
 import com.example.quanlytourdl.CaNhanFragment;
+
+// Import Firebase Helper và Model (QUAN TRỌNG)
+import com.example.quanlytourdl.firebase.FBHelper;
+import com.example.quanlytourdl.model.UserModel;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
@@ -22,11 +25,15 @@ import com.google.android.material.navigation.NavigationBarView;
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
+    private FBHelper fbHelper; // 1. Khai báo Helper
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 2. Khởi tạo FBHelper
+        fbHelper = new FBHelper(this);
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
@@ -34,48 +41,77 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
                 int itemId = item.getItemId();
 
+                // Dùng if-else if thay vì switch-case
                 if (itemId == R.id.nav_thongke) {
                     loadFragment(new DashboardFragment());
                     return true;
                 } else if (itemId == R.id.nav_kinhdoanh) {
-                    // SỬA LỖI: Thay thế Context sai bằng MainActivity.this và tải Fragment
                     loadFragment(new KinhDoanhFragment());
-                    Toast.makeText(MainActivity.this, "Kinh doanh", Toast.LENGTH_SHORT).show();
                     return true;
                 } else if (itemId == R.id.nav_cskh) {
-                    // SỬA LỖI: Thay thế Context sai bằng MainActivity.this và tải Fragment
                     loadFragment(new CSKHFragment());
-                    Toast.makeText(MainActivity.this, "Chăm sóc khách hàng", Toast.LENGTH_SHORT).show();
                     return true;
                 } else if (itemId == R.id.nav_canhan) {
-                    // SỬA LỖI: Thay thế Context sai bằng MainActivity.this và tải Fragment
                     loadFragment(new CaNhanFragment());
-                    Toast.makeText(MainActivity.this, "Cá nhân", Toast.LENGTH_SHORT).show();
                     return true;
                 }
                 return false;
             }
         });
 
-        // Tải Fragment Thống kê (Dashboard) khi khởi động lần đầu
+        // 3. Tải Fragment mặc định khi mở App
         if (savedInstanceState == null) {
-            bottomNavigationView.setSelectedItemId(R.id.nav_thongke);
-            // Hàm loadFragment đã được gọi trong setOnItemSelectedListener,
-            // nhưng để đảm bảo, bạn vẫn có thể gọi lại ở đây hoặc loại bỏ dòng này.
-            // loadFragment(new DashboardFragment());
+            // LƯU Ý QUAN TRỌNG: Mặc định ta load tab "Kinh doanh" trước.
+            // Vì tab này ai cũng có quyền xem. Nếu load "Thống kê" ngay lập tức,
+            // nhân viên sẽ nhìn thấy màn hình thống kê trước khi code kịp ẩn đi.
+            bottomNavigationView.setSelectedItemId(R.id.nav_kinhdoanh);
         }
+
+        // 4. Gọi hàm kiểm tra quyền để Ẩn/Hiện menu Thống kê
+        checkUserRoleAndSetupMenu();
     }
 
-    /**
-     * Hàm thay thế Fragment trong FrameLayout
-     * @param fragment Fragment cần hiển thị
-     */
+    // Hàm xử lý phân quyền
+    private void checkUserRoleAndSetupMenu() {
+        Menu menu = bottomNavigationView.getMenu();
+        // Lấy item Thống kê ra
+        MenuItem itemThongKe = menu.findItem(R.id.nav_thongke);
+
+        // Bước 1: Mặc định ẩn nút Thống kê đi để bảo mật
+        itemThongKe.setVisible(false);
+
+        // Bước 2: Hỏi Firebase xem người này là ai
+        fbHelper.getCurrentUserData(new FBHelper.DataListener() {
+            @Override
+            public void onDataReceived(UserModel user) {
+                if (user != null) {
+                    String role = user.getRole();
+
+                    // Bước 3: Nếu đúng là "Quản lý" thì mới cho hiện lại
+                    if ("Quản lý".equals(role)) {
+                        itemThongKe.setVisible(true);
+                        // (Tùy chọn) Nếu là quản lý, có thể tự động chuyển sang tab Thống kê luôn
+                        // bottomNavigationView.setSelectedItemId(R.id.nav_thongke);
+                        Toast.makeText(MainActivity.this, "Xin chào Quản lý: " + user.getFullName(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Nếu là Nhân viên -> Giữ nguyên trạng thái ẩn
+                        itemThongKe.setVisible(false);
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // Lỗi mạng hoặc chưa đăng nhập -> Ẩn chức năng cao cấp
+                itemThongKe.setVisible(false);
+            }
+        });
+    }
+
     private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        // R.id.main_content_frame là ID của FrameLayout trong activity_main.xml (giả định)
         transaction.replace(R.id.main_content_frame, fragment);
         transaction.commit();
     }

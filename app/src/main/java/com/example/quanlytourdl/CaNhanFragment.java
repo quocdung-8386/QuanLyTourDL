@@ -7,101 +7,112 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.example.quanlytourdl.firebase.FBHelper;
+import com.example.quanlytourdl.model.UserModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class CaNhanFragment extends Fragment {
 
-    // Khai báo các thành phần UI
     private EditText editFullName, editPhone, editEmail;
-    private MaterialButton btnSaveChanges;
-    private MaterialButton btnLogout; // 1. Khai báo thêm nút Đăng xuất
+    private TextView textUserName, textUserRole;
+    private MaterialButton btnSaveChanges, btnLogout;
     private ImageView iconEditProfile;
-    private View cardChangePassword, cardTwoFactorAuth;
-    private SwitchMaterial switchTwoFactorAuth;
+    private FBHelper fbHelper;
 
-    public CaNhanFragment() {
-        // Constructor rỗng bắt buộc
-    }
+    public CaNhanFragment() { }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_ca_nhan, container, false);
 
-        // 2. Ánh xạ các thành phần UI
+        fbHelper = new FBHelper(getContext());
+
+        // Ánh xạ
         editFullName = view.findViewById(R.id.edit_full_name);
         editPhone = view.findViewById(R.id.edit_phone);
         editEmail = view.findViewById(R.id.edit_email);
+        textUserName = view.findViewById(R.id.text_user_name);
+        textUserRole = view.findViewById(R.id.text_user_role);
+
         btnSaveChanges = view.findViewById(R.id.btn_save_changes);
-        iconEditProfile = view.findViewById(R.id.icon_edit_profile);
-        cardChangePassword = view.findViewById(R.id.card_change_password);
-        cardTwoFactorAuth = view.findViewById(R.id.card_2fa);
-        switchTwoFactorAuth = view.findViewById(R.id.switch_2fa);
-
-        // Ánh xạ nút Đăng xuất
         btnLogout = view.findViewById(R.id.btn_logout);
+        iconEditProfile = view.findViewById(R.id.icon_edit_profile);
 
-        // 3. Xử lý sự kiện
+        // --- LOAD DỮ LIỆU TỪ FIRESTORE ---
+        loadUserProfile();
 
-        // Sự kiện Đổi ảnh đại diện
-        iconEditProfile.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Mở thư viện/camera để chọn ảnh", Toast.LENGTH_SHORT).show();
-        });
+        // Nút Lưu thay đổi
+        btnSaveChanges.setOnClickListener(v -> saveProfileChanges());
 
-        // Sự kiện Lưu thông tin
-        btnSaveChanges.setOnClickListener(v -> {
-            saveProfileChanges();
-        });
-
-        // Chuyển sang màn hình Đổi Mật Khẩu
-        cardChangePassword.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), ChangePasswordActivity.class);
-            startActivity(intent);
-        });
-
-        // Chuyển sang màn hình Xác thực 2 yếu tố
-        cardTwoFactorAuth.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), TwoFactorAuthActivity.class);
-            startActivity(intent);
-        });
-
-        switchTwoFactorAuth.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Xử lý nhanh trạng thái bật/tắt 2FA tại chỗ
-        });
-
-        // --- SỰ KIỆN ĐĂNG XUẤT (CODE MỚI) ---
+        // Nút Đăng xuất
         btnLogout.setOnClickListener(v -> {
-            // Thông báo
-            Toast.makeText(getContext(), "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
-
-            // Chuyển về màn hình Đăng nhập (LoginActivity)
+            fbHelper.signOut();
             Intent intent = new Intent(getActivity(), LoginActivity.class);
-
-            // Xóa toàn bộ lịch sử Activity cũ (để user không bấm Back quay lại được)
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
             startActivity(intent);
         });
 
         return view;
     }
 
-    private void saveProfileChanges() {
-        String fullName = editFullName.getText().toString().trim();
-        String phone = editPhone.getText().toString().trim();
-        String email = editEmail.getText().toString().trim();
+    private void loadUserProfile() {
+        fbHelper.getCurrentUserData(new FBHelper.DataListener() {
+            @Override
+            public void onDataReceived(UserModel user) {
+                if (user != null) {
+                    // Đổ dữ liệu vào giao diện
+                    editFullName.setText(user.getFullName());
+                    editEmail.setText(user.getEmail());
+                    editPhone.setText(user.getPhone());
 
-        if (fullName.isEmpty() || phone.isEmpty() || email.isEmpty()) {
-            Toast.makeText(getContext(), "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+                    // Cập nhật Header
+                    textUserName.setText(user.getFullName());
+                    textUserRole.setText(user.getRole());
+
+                    // Email không cho sửa
+                    editEmail.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                // Nếu chưa có dữ liệu hoặc lỗi mạng
+                Toast.makeText(getContext(), "Không tải được hồ sơ: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveProfileChanges() {
+        String newName = editFullName.getText().toString().trim();
+        String newPhone = editPhone.getText().toString().trim();
+        String uid = fbHelper.getCurrentUserID();
+
+        if (newName.isEmpty()) {
+            Toast.makeText(getContext(), "Tên không được để trống", Toast.LENGTH_SHORT).show();
             return;
         }
-        // TODO: Gửi API lưu thông tin
-        Toast.makeText(getContext(), "Đã lưu thay đổi hồ sơ thành công!", Toast.LENGTH_SHORT).show();
+
+        fbHelper.updateUserInfo(uid, newName, newPhone, new FBHelper.AuthListener() {
+            @Override
+            public void onSuccess(String message) {
+                Toast.makeText(getContext(), "Cập nhật hồ sơ thành công!", Toast.LENGTH_SHORT).show();
+                // Cập nhật lại tên hiển thị ở Header ngay lập tức
+                textUserName.setText(newName);
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
