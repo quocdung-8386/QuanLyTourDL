@@ -10,12 +10,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+
+// IMPORT FRAGMENT THÊM MỚI (Đảm bảo các file này tồn tại trong package)
+import com.example.quanlytourdl.AddPhuongTienFragment;
+import com.example.quanlytourdl.AddHdvFragment; // ĐÃ THÊM IMPORT
 
 public class QuanLyHdvPhuongTienFragment extends Fragment {
 
@@ -24,7 +29,6 @@ public class QuanLyHdvPhuongTienFragment extends Fragment {
     private ImageButton btnMenuDrawer;
     private TabLayout tabLayout;
     private FloatingActionButton btnAddItem;
-    // ĐÃ THAY THẾ: MaterialSegmentedButtonGroup -> ChipGroup
     private ChipGroup chipGroupStatus;
     private RecyclerView recyclerView;
 
@@ -45,7 +49,6 @@ public class QuanLyHdvPhuongTienFragment extends Fragment {
         btnMenuDrawer = view.findViewById(R.id.btn_menu_drawer_ql);
         tabLayout = view.findViewById(R.id.tab_layout_hdv_pt);
         btnAddItem = view.findViewById(R.id.btn_add_item);
-        // ÁNH XẠ MỚI: ChipGroup
         chipGroupStatus = view.findViewById(R.id.chip_group_status);
         recyclerView = view.findViewById(R.id.recycler_hdv_phuong_tien);
 
@@ -63,7 +66,8 @@ public class QuanLyHdvPhuongTienFragment extends Fragment {
         btnBack.setOnClickListener(v -> {
             // Xử lý quay lại (ví dụ: pop the fragment or finish activity)
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                // Quay lại Fragment trước đó trên Back Stack
+                getActivity().getSupportFragmentManager().popBackStack();
             }
         });
         btnMenuDrawer.setOnClickListener(v -> {
@@ -84,7 +88,6 @@ public class QuanLyHdvPhuongTienFragment extends Fragment {
         });
 
         // 5. Xử lý sự kiện ChipGroup (Lọc trạng thái)
-        // ĐÃ THAY THẾ: sử dụng setOnCheckedStateChangeListener cho ChipGroup
         chipGroupStatus.setOnCheckedStateChangeListener((group, checkedIds) -> {
             // Chỉ xử lý khi có ít nhất một Chip được chọn (vì singleSelection=true, chỉ có 1 ID trong checkedIds)
             if (!checkedIds.isEmpty()) {
@@ -100,10 +103,34 @@ public class QuanLyHdvPhuongTienFragment extends Fragment {
             }
         });
 
-        // 6. Xử lý nút Thêm (+)
+        // 6. Xử lý nút Thêm (+) ĐÃ CẬP NHẬT CONTAINER ID
         btnAddItem.setOnClickListener(v -> {
             String type = tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString();
-            Toast.makeText(getContext(), "Mở màn hình Thêm mới " + type, Toast.LENGTH_SHORT).show();
+            Fragment targetFragment = null;
+
+            if (type.equals("Hướng dẫn viên")) {
+                // TẠO INSTANCE CỦA AddHdvFragment
+                targetFragment = new AddHdvFragment();
+                Toast.makeText(getContext(), "Chuyển sang màn hình Thêm Hướng dẫn viên", Toast.LENGTH_SHORT).show();
+            } else if (type.equals("Phương tiện")) {
+                // TẠO INSTANCE CỦA AddPhuongTienFragment
+                targetFragment = new AddPhuongTienFragment();
+                Toast.makeText(getContext(), "Chuyển sang màn hình Thêm Phương tiện", Toast.LENGTH_SHORT).show();
+            }
+
+            // Thực hiện giao dịch Fragment
+            if (targetFragment != null && requireActivity() != null) {
+
+                // SỬ DỤNG FragmentManager CỦA ACTIVITY ĐỂ THAY THẾ CONTAINER CHÍNH
+                // FIX: Sử dụng R.id.main_content_frame để khớp với activity_main.xml
+                requireActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.main_content_frame, targetFragment)
+                        .addToBackStack(null) // Cho phép nhấn nút Back để quay lại Fragment này
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN) // Thêm hiệu ứng chuyển động
+                        .commit();
+            } else if (targetFragment == null) {
+                Toast.makeText(getContext(), "Lỗi: Không tìm thấy Fragment thêm mới hoặc loại không xác định.", Toast.LENGTH_SHORT).show();
+            }
         });
 
         return view;

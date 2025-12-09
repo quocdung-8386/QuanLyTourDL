@@ -7,8 +7,7 @@
     android:layout_height="match_parent"
     android:background="#F9FAFB">
 
-    <!-- Header (Đã được đơn giản hóa, giả định Toolbar nằm trong Activity hoặc được include) -->
-    <!-- Nếu Header là một phần của Fragment: -->
+    <!-- Header -->
     <LinearLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
@@ -78,6 +77,7 @@
                         tools:src="@tools:sample/avatars" />
 
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/btn_upload_avatar"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_gravity="bottom|end"
@@ -100,11 +100,16 @@
             <!-- 2. Thông tin cá nhân -->
             <TextView
                 style="@style/SectionTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Thông tin cá nhân" />
 
             <!-- Họ và tên -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_full_name"
                 style="@style/TextInputLayoutStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -124,13 +129,17 @@
 
                 <!-- Mã HDV (Readonly) -->
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/input_guide_code"
                     style="@style/TextInputLayoutStyle.HalfWidth"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_marginEnd="8dp">
 
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
                         <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edittext_guide_code"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Mã HDV *"
@@ -159,7 +168,10 @@
 
                 <!-- Ngày sinh -->
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/input_birth_date"
                     style="@style/TextInputLayoutStyle.HalfWidth"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     app:endIconDrawable="@drawable/ic_calendar"
                     app:endIconMode="custom"
                     android:layout_marginStart="8dp">
@@ -176,7 +188,10 @@
 
             <!-- Giới tính (Spinner/DropDown) -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_gender"
                 style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp">
 
                 <AutoCompleteTextView
@@ -193,11 +208,16 @@
             <!-- 3. Thông tin liên hệ -->
             <TextView
                 style="@style/SectionTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Thông tin liên hệ" />
 
             <!-- Số điện thoại -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_phone_number"
                 style="@style/TextInputLayoutStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -211,7 +231,10 @@
 
             <!-- Email -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_email"
                 style="@style/TextInputLayoutStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -225,7 +248,10 @@
 
             <!-- Địa chỉ -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_address"
                 style="@style/TextInputLayoutStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -241,6 +267,8 @@
             <!-- 4. Kỹ năng & Kinh nghiệm -->
             <TextView
                 style="@style/SectionTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Kỹ năng &amp; Kinh nghiệm" />
 
             <!-- Ngôn ngữ thành thạo (FlowLayout / ChipGroup) -->
@@ -264,7 +292,10 @@
 
             <!-- Input thêm ngôn ngữ -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/input_language_add"
                 style="@style/TextInputLayoutStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -340,6 +371,8 @@
             <!-- 5. Chứng chỉ & Giấy tờ -->
             <TextView
                 style="@style/SectionTitleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Chứng chỉ &amp; Giấy tờ" />
 
             <!-- Khu vực Upload -->
