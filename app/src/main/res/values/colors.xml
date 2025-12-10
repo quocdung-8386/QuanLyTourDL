@@ -19,4 +19,19 @@
     <color name="colorTextSecondary">#757575</color>
     <color name="colorSuccess">#4CAF50</color>
     <color name="colorBackgroundLight">#F3F4F6</color>
+
+    <!-- green_700: Thể hiện trạng thái "Đang sử dụng" hoặc "Hoạt động" -->
+    <color name="green_700">#388E3C</color>
+
+    <!-- blue_700: Thể hiện trạng thái "Có sẵn" hoặc "Mặc định" -->
+    <color name="blue_700">#1976D2</color>
+
+    <!-- red_700: Thể hiện trạng thái "Không khả dụng" hoặc "Bị chặn" -->
+    <color name="red_700">#D32F2F</color>
+
+    <!-- orange_700: Thể hiện trạng thái "Bảo trì" hoặc "Cảnh báo" -->
+    <color name="orange_700">#F57C00</color>
+
+    <!-- gray_700: Thể hiện trạng thái "Mặc định" hoặc "Trung lập" -->
+    <color name="gray_700">#616161</color>
 </resources>
