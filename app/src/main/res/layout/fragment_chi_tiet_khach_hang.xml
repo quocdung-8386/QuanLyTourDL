@@ -63,11 +63,15 @@
                         android:src="@drawable/ic_launcher_background" />
                 </androidx.cardview.widget.CardView>
 
-                <TextView
-                    android:id="@+id/tvNameDetail"
-                    android:layout_width="wrap_content"
+                <EditText
+                    android:id="@+id/edtNameDetail"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+                    android:background="@null"
+                    android:gravity="center"
+                    android:hint="Nhập tên khách hàng"
+                    android:inputType="textPersonName"
                     android:text="Nguyễn Văn A"
                     android:textColor="#000000"
                     android:textSize="22sp"
@@ -78,7 +82,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Mã KH: DCT12345"
+                    android:text="Mã KH: (Auto)"
                     android:textColor="#757575"
                     android:textSize="14sp" />
             </LinearLayout>
@@ -110,11 +114,16 @@
                         android:layout_height="wrap_content"
                         android:text="Số điện thoại"
                         android:textColor="#757575" />
-                    <TextView
-                        android:id="@+id/tvPhoneDetail"
-                        android:layout_width="wrap_content"
+
+                    <EditText
+                        android:id="@+id/edtPhoneDetail"
+                        android:layout_width="200dp"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
+                        android:background="@null"
+                        android:gravity="end"
+                        android:hint="Nhập SĐT"
+                        android:inputType="phone"
                         android:text="0987 654 321"
                         android:textColor="#000000" />
                 </RelativeLayout>
@@ -129,12 +138,16 @@
                         android:layout_height="wrap_content"
                         android:text="Email"
                         android:textColor="#757575" />
-                    <TextView
-                        android:id="@+id/tvEmailDetail"
-                        android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/edtEmailDetail"
+                        android:layout_width="200dp"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:text="nguyenvana@email.com"
+                        android:background="@null"
+                        android:gravity="end"
+                        android:hint="Nhập Email"
+                        android:inputType="textEmailAddress"
+                        android:text="email@example.com"
                         android:textColor="#000000" />
                 </RelativeLayout>
             </LinearLayout>
@@ -167,10 +180,12 @@
                         android:layout_height="wrap_content"
                         android:text="Quốc tịch"
                         android:textColor="#757575" />
-                    <TextView
+                    <EditText
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
+                        android:background="@null"
+                        android:gravity="end"
                         android:text="Việt Nam"
                         android:textColor="#000000" />
                 </RelativeLayout>
@@ -185,31 +200,48 @@
                         android:layout_height="wrap_content"
                         android:text="Ngày sinh"
                         android:textColor="#757575" />
-                    <TextView
+
+                    <EditText
+                        android:id="@+id/edtDobDetail"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
+                        android:background="@null"
+                        android:gravity="end"
+                        android:hint="dd/mm/yyyy"
+                        android:inputType="date"
                         android:text="15/08/1990"
                         android:textColor="#000000" />
                 </RelativeLayout>
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0"/>
+            </LinearLayout>
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingVertical="12dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Giới tính"
-                        android:textColor="#757575" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="Nam"
-                        android:textColor="#000000" />
-                </RelativeLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingHorizontal="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:id="@+id/btnViewHistory"> <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_history"
+                app:tint="#2E8B57"/> <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:text="Xem Lịch sử Đặt tour"
+                android:textSize="16sp"
+                android:textColor="#000000"/>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="#757575"/>
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -222,6 +254,7 @@
                 android:backgroundTint="#2E8B57"
                 android:textAllCaps="false"
                 app:cornerRadius="6dp"/>
+
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

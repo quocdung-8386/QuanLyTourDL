@@ -18,7 +18,8 @@ import java.util.Calendar;
 
 public class TaoHoSoKhachHangFragment extends Fragment {
 
-    private EditText edtDob, edtFullName, edtPhone;
+    // 1. Khai báo thêm edtEmail
+    private EditText edtDob, edtFullName, edtPhone, edtEmail;
     private ImageView btnBack;
     private Button btnCreateProfile;
 
@@ -42,22 +43,25 @@ public class TaoHoSoKhachHangFragment extends Fragment {
         btnCreateProfile.setOnClickListener(v -> {
             String name = edtFullName.getText().toString().trim();
             String phone = edtPhone.getText().toString().trim();
-            String dob = edtDob.getText().toString().trim(); // Lấy ngày sinh
+            String dob = edtDob.getText().toString().trim();
+
+            // 2. Lấy dữ liệu Email
+            String email = edtEmail.getText().toString().trim();
 
             if (name.isEmpty()) {
                 Toast.makeText(getContext(), "Vui lòng nhập tên khách hàng", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Đóng gói dữ liệu
             Bundle result = new Bundle();
             result.putString("new_name", name);
             result.putString("new_phone", phone);
-            result.putString("new_dob", dob); // Gửi ngày sinh đi
+            result.putString("new_dob", dob);
 
-            // Gửi kết quả về Fragment cha
+            // 3. Đóng gói Email gửi đi
+            result.putString("new_email", email);
+
             getParentFragmentManager().setFragmentResult("add_customer_request", result);
-
             getParentFragmentManager().popBackStack();
         });
     }
@@ -66,6 +70,10 @@ public class TaoHoSoKhachHangFragment extends Fragment {
         edtDob = view.findViewById(R.id.edtDob);
         edtFullName = view.findViewById(R.id.edtFullName);
         edtPhone = view.findViewById(R.id.edtPhone);
+
+        // 4. Ánh xạ (Đảm bảo trong XML có EditText id là edtEmail)
+        edtEmail = view.findViewById(R.id.edtEmail);
+
         btnBack = view.findViewById(R.id.btnBack);
         btnCreateProfile = view.findViewById(R.id.btnCreateProfile);
     }

@@ -1,6 +1,7 @@
 package com.example.quanlytourdl;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +16,14 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.quanlytourdl.model.KhachHang;
 import com.example.quanlytourdl.adapter.KhachHangAdapter;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.quanlytourdl.model.KhachHang;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,56 +33,67 @@ public class DanhSachKhachHangFragment extends Fragment {
     private RecyclerView rvKhachHang;
     private KhachHangAdapter adapter;
     private List<KhachHang> listKhachHang;
-    private ImageView btnAdd, btnBack;
 
-    private DatabaseReference mDatabase;
+    // Lưu ý: Kiểm tra file XML của bạn xem nút thêm là ImageView hay TextView để khai báo cho đúng
+    private ImageView btnAdd;
+    private ImageView btnBack;
+
+    // --- KHAI BÁO FIRESTORE ---
+    private FirebaseFirestore db;
+    private CollectionReference khachHangRef;
+
     private KhachHang khachHangToDelete = null;
+
+    // --- HÀM TẠO MÃ KHÁCH HÀNG TỰ ĐỘNG ---
+    // Logic: Lấy 6 số cuối của thời gian hiện tại để tạo mã ngắn gọn
+    private String taoMaKhachHangTuDong() {
+        long timestamp = System.currentTimeMillis();
+        long shortId = timestamp % 1000000;
+        return "KH" + shortId; // Ví dụ kết quả: KH832910
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 1. Kết nối Firebase
-        mDatabase = FirebaseDatabase.getInstance().getReference("khachhang");
+        // 1. Khởi tạo Firestore
+        db = FirebaseFirestore.getInstance();
+        khachHangRef = db.collection("khachhang");
 
-        // 2. LẮNG NGHE YÊU CẦU THÊM MỚI (Đã update thêm Ngày Sinh)
+        // 2. LẮNG NGHE YÊU CẦU THÊM MỚI (Từ TaoHoSoKhachHangFragment)
         getParentFragmentManager().setFragmentResultListener("add_customer_request", this, new FragmentResultListener() {
             @Override
             public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
                 String newName = result.getString("new_name");
                 String newPhone = result.getString("new_phone");
-                String newDob = result.getString("new_dob"); // Nhận ngày sinh
+                String newDob = result.getString("new_dob");
+                String newEmail = result.getString("new_email");
 
-                // Đẩy lên Firebase
-                String id = mDatabase.push().getKey();
-                if (id != null) {
-                    // Tạo đối tượng với đầy đủ thông tin (bao gồm ngày sinh)
-                    KhachHang newKH = new KhachHang(id, newName, newPhone, newDob, R.drawable.ic_launcher_background);
+                // --- LOGIC QUAN TRỌNG: TẠO MÃ RIÊNG ---
+                String customId = taoMaKhachHangTuDong();
 
-                    mDatabase.child(id).setValue(newKH, (error, ref) -> {
-                        if (error == null) {
-                            Toast.makeText(getContext(), "Thêm thành công", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+                // Tạo đối tượng với ID vừa sinh
+                KhachHang newKH = new KhachHang(customId, newName, newPhone, newDob, newEmail, R.drawable.ic_launcher_background);
+
+                // Dùng .document(customId).set(...) để ID của Document trùng với Mã KH
+                khachHangRef.document(customId).set(newKH)
+                        .addOnSuccessListener(unused -> Toast.makeText(getContext(), "Thêm thành công Mã: " + customId, Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         });
 
-        // 3. LẮNG NGHE YÊU CẦU XÓA
+        // 3. LẮNG NGHE YÊU CẦU XÓA (Từ XoaKhachHangFragment)
         getParentFragmentManager().setFragmentResultListener("delete_customer_request", this, new FragmentResultListener() {
             @Override
             public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
                 boolean confirmed = result.getBoolean("confirm_delete");
                 if (confirmed && khachHangToDelete != null) {
+                    // Xóa trên Firestore
                     String idToDelete = khachHangToDelete.getId();
                     if (idToDelete != null) {
-                        mDatabase.child(idToDelete).removeValue((error, ref) -> {
-                            if (error == null) {
-                                Toast.makeText(getContext(), "Đã xóa thành công", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        khachHangRef.document(idToDelete).delete()
+                                .addOnSuccessListener(unused -> Toast.makeText(getContext(), "Đã xóa khách hàng!", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi xóa: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
                     khachHangToDelete = null;
                 }
@@ -91,15 +104,20 @@ public class DanhSachKhachHangFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Đảm bảo tên layout đúng với file XML của bạn (ví dụ fragment_dskh.xml)
         View view = inflater.inflate(R.layout.fragment_dskh, container, false);
 
+        // Ánh xạ View
         rvKhachHang = view.findViewById(R.id.rvKhachHang);
         btnAdd = view.findViewById(R.id.btnAdd);
         btnBack = view.findViewById(R.id.btnBack);
 
+        // Cấu hình RecyclerView
         listKhachHang = new ArrayList<>();
         adapter = new KhachHangAdapter(listKhachHang,
-                this::moManHinhChiTiet, // Method reference cho gọn
+                // Sự kiện Click vào item -> Mở chi tiết
+                this::moManHinhChiTiet,
+                // Sự kiện Click nút Xóa -> Mở xác nhận xóa
                 (khachHang, position) -> {
                     khachHangToDelete = khachHang;
                     moManHinhXoa(khachHang);
@@ -109,9 +127,12 @@ public class DanhSachKhachHangFragment extends Fragment {
         rvKhachHang.setLayoutManager(new LinearLayoutManager(getContext()));
         rvKhachHang.setAdapter(adapter);
 
-        getDataFromFirebase();
+        // Gọi hàm lấy dữ liệu Realtime
+        getDataFromFirestore();
 
+        // Sự kiện các nút bấm
         btnAdd.setOnClickListener(v -> replaceFragment(new TaoHoSoKhachHangFragment()));
+
         btnBack.setOnClickListener(v -> {
             if (getActivity() != null) getActivity().onBackPressed();
         });
@@ -119,45 +140,58 @@ public class DanhSachKhachHangFragment extends Fragment {
         return view;
     }
 
-    private void getDataFromFirebase() {
-        mDatabase.addValueEventListener(new ValueEventListener() {
+    // Hàm lắng nghe thay đổi từ Firestore (Realtime)
+    private void getDataFromFirestore() {
+        khachHangRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                listKhachHang.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    KhachHang kh = dataSnapshot.getValue(KhachHang.class);
-                    if (kh != null) {
-                        listKhachHang.add(kh);
-                    }
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.e("Firestore", "Lỗi lắng nghe dữ liệu.", error);
+                    return;
                 }
-                adapter.notifyDataSetChanged();
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Lỗi tải data", Toast.LENGTH_SHORT).show();
+                if (value != null) {
+                    listKhachHang.clear();
+                    for (DocumentSnapshot doc : value) {
+                        KhachHang kh = doc.toObject(KhachHang.class);
+                        if (kh != null) {
+                            // Gán ID của document vào object để sau này dùng cho việc Xóa/Sửa
+                            kh.setId(doc.getId());
+                            listKhachHang.add(kh);
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+                }
             }
         });
     }
 
+    // Hàm chuyển Fragment
     private void replaceFragment(Fragment fragment) {
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-        transaction.replace(R.id.main_content_frame, fragment);
+        transaction.replace(R.id.main_content_frame, fragment); // ID này phải trùng với FrameLayout trong Activity chính
         transaction.addToBackStack(null);
         transaction.commit();
     }
 
+    // Mở màn hình Chi Tiết
     private void moManHinhChiTiet(KhachHang kh) {
         ChiTietKhachHangFragment fragmentChiTiet = new ChiTietKhachHangFragment();
         Bundle bundle = new Bundle();
+
+        // Truyền dữ liệu sang màn hình chi tiết
+        bundle.putString("id", kh.getId()); // Đây chính là Mã KH (VD: KH829103)
         bundle.putString("name", kh.getTen());
         bundle.putString("phone", kh.getSdt());
-        bundle.putString("dob", kh.getNgaySinh()); // Truyền thêm ngày sinh sang màn hình chi tiết
+        bundle.putString("dob", kh.getNgaySinh());
         bundle.putInt("avatar", kh.getAvatarResId());
+        bundle.putString("email", kh.getEmail());
+
         fragmentChiTiet.setArguments(bundle);
         replaceFragment(fragmentChiTiet);
     }
 
+    // Mở màn hình Xóa
     private void moManHinhXoa(KhachHang kh) {
         XoaKhachHangFragment fragmentXoa = new XoaKhachHangFragment();
         Bundle bundle = new Bundle();

@@ -44,13 +44,13 @@ public class LoginActivity extends AppCompatActivity {
         checkBoxRememberMe = findViewById(R.id.checkBoxRememberMe);
 
         // Kiểm tra trạng thái đăng nhập tự động
-//        if (fbHelper.isUserLoggedIn()) {
-//            // TODO: Tự động chuyển đến màn hình chính nếu đã đăng nhập
-//            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-//            finish();
-//            // Hiện tại chỉ hiển thị Toast
-//            Toast.makeText(this, "Bạn đã đăng nhập trước đó.", Toast.LENGTH_SHORT).show();
-//        }
+        if (fbHelper.isUserLoggedIn()) {
+            // TODO: Tự động chuyển đến màn hình chính nếu đã đăng nhập
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+            // Hiện tại chỉ hiển thị Toast
+            Toast.makeText(this, "Bạn đã đăng nhập trước đó.", Toast.LENGTH_SHORT).show();
+        }
 
         // Xử lý sự kiện cho nút Đăng nhập
         buttonLogin.setOnClickListener(new View.OnClickListener() {
