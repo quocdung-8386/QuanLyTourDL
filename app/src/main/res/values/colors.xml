@@ -19,7 +19,10 @@
     <color name="colorTextSecondary">#757575</color>
     <color name="colorSuccess">#4CAF50</color>
     <color name="colorBackgroundLight">#F3F4F6</color>
+    <color name="divider_color">#BDBDBD</color> <color name="bg_input_block">#F5F5F5</color>
+    <color name="primary_green">#2E8B57</color>
 
+    <color name="red_error">#D32F2F</color>
     <!-- green_700: Thể hiện trạng thái "Đang sử dụng" hoặc "Hoạt động" -->
     <color name="green_700">#388E3C</color>
 
