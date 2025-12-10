@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:clickable="true"
+    android:focusable="true">
+
+    <RelativeLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:paddingHorizontal="16dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/black"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Tạo Hồ sơ Khách hàng"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCreateProfile"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:background="@color/primary_green"
+        android:text="Tạo Hồ sơ"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerLayout"
+        android:layout_above="@id/btnCreateProfile">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
+
+            <RelativeLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp">
+
+                <ImageView
+                    android:id="@+id/imgAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@mipmap/ic_launcher_round"
+                    android:background="@drawable/bg_circle_shape"/>
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
+                    android:src="@android:drawable/ic_menu_camera"
+                    android:background="@drawable/bg_circle_green"
+                    android:padding="6dp"
+                    app:tint="@color/white"/>
+            </RelativeLayout>
+
+            <TextView style="@style/SectionTitle" android:text="Thông tin liên hệ" />
+            <LinearLayout style="@style/InputBlockContainer">
+                <TextView style="@style/LabelText" android:text="Họ và tên" />
+                <EditText android:id="@+id/edtFullName" style="@style/InputText" android:hint="Nguyễn Văn A" />
+                <View style="@style/Divider" />
+                <TextView style="@style/LabelText" android:text="Số điện thoại" />
+                <EditText android:id="@+id/edtPhone" style="@style/InputText" android:inputType="phone" android:hint="0987 654 321" />
+                <View style="@style/Divider" />
+                <TextView style="@style/LabelText" android:text="Email" />
+                <EditText android:id="@+id/edtEmail" style="@style/InputText" android:inputType="textEmailAddress" android:hint="nguyenvana@email.com" />
+            </LinearLayout>
+
+            <TextView style="@style/SectionTitle" android:text="Thông tin cá nhân" />
+            <LinearLayout style="@style/InputBlockContainer">
+                <TextView style="@style/LabelText" android:text="Quốc tịch" />
+                <EditText android:id="@+id/edtNationality" style="@style/InputText" android:text="Việt Nam" />
+                <View style="@style/Divider" />
+                <TextView style="@style/LabelText" android:text="Ngày sinh" />
+                <EditText android:id="@+id/edtDob" style="@style/InputText" android:focusable="false" android:clickable="true" android:text="15/08/1990" />
+                <View style="@style/Divider" />
+                <TextView style="@style/LabelText" android:text="Giới tính" />
+                <EditText android:id="@+id/edtGender" style="@style/InputText" android:text="Nam" />
+            </LinearLayout>
+
+            <TextView style="@style/SectionTitle" android:text="Thông tin khác" />
+            <LinearLayout style="@style/InputBlockContainer">
+                <TextView style="@style/LabelText" android:text="Nguồn khách" />
+                <EditText android:id="@+id/edtSource" style="@style/InputText" android:text="Facebook Ad" />
+                <View style="@style/Divider" />
+                <TextView style="@style/LabelText" android:text="Ghi chú" />
+                <EditText android:id="@+id/edtNote" style="@style/InputText" android:background="@null" android:paddingTop="8dp" android:paddingBottom="24dp" android:hint="Thêm ghi chú..." android:gravity="top|start" android:inputType="textMultiLine" android:minLines="3" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

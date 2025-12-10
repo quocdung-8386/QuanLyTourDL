@@ -18,5 +18,9 @@
     <color name="color_default_status">#6C757D</color>
     <color name="colorTextSecondary">#757575</color>
     <color name="colorSuccess">#4CAF50</color>
-    <color name="colorBackgroundLight">#F3F4F6</color>
+    <color name="colorBackgroundLight">#F3F4F6</color><color name="primary_green">#2A9D75</color>
+    <color name="bg_input_block">#F5F6F8</color>
+    <color name="divider_color">#E0E0E0</color>
+    <color name="red_error">#D32F2F</color>
+    <color name="bg_input">#F5F5F5</color>
 </resources>

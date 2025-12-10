@@ -9,25 +9,29 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.quanlytourdl.model.KhachHang; // Import Model
-import com.example.quanlytourdl.R;         // Import Tài nguyên (quan trọng)
+import com.example.quanlytourdl.model.KhachHang;
+import com.example.quanlytourdl.R;
 
 import java.util.List;
 
 public class KhachHangAdapter extends RecyclerView.Adapter<KhachHangAdapter.ViewHolder> {
 
     private List<KhachHang> listKhachHang;
-    private OnItemClickListener listener; // Khai báo listener
+    private OnItemClickListener listener;
+    private OnDeleteClickListener deleteListener;
 
-    // 1. Tạo Interface để Fragment có thể implement hành động click
     public interface OnItemClickListener {
         void onItemClick(KhachHang khachHang);
     }
 
-    // 2. Cập nhật Constructor để nhận thêm Listener
-    public KhachHangAdapter(List<KhachHang> listKhachHang, OnItemClickListener listener) {
+    public interface OnDeleteClickListener {
+        void onDeleteClick(KhachHang khachHang, int position);
+    }
+
+    public KhachHangAdapter(List<KhachHang> listKhachHang, OnItemClickListener listener, OnDeleteClickListener deleteListener) {
         this.listKhachHang = listKhachHang;
         this.listener = listener;
+        this.deleteListener = deleteListener;
     }
 
     @NonNull
@@ -42,37 +46,49 @@ public class KhachHangAdapter extends RecyclerView.Adapter<KhachHangAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         KhachHang kh = listKhachHang.get(position);
 
-        // Gán dữ liệu lên View
         holder.tvTen.setText(kh.getTen());
         holder.tvSdt.setText(kh.getSdt());
-        holder.imgAvatar.setImageResource(kh.getAvatarResId());
+        // Set ảnh mặc định (hoặc logic load ảnh nếu có)
+        holder.imgAvatar.setImageResource(R.drawable.ic_launcher_background);
 
-        // 3. Bắt sự kiện click vào item (dòng khách hàng)
+        // Click vào item -> Xem chi tiết
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onItemClick(kh); // Gửi đối tượng khách hàng ra ngoài Fragment
+                listener.onItemClick(kh);
+            }
+        });
+
+        // Click nút Xóa
+        holder.btnDelete.setOnClickListener(v -> {
+            if (deleteListener != null) {
+                int currentPos = holder.getBindingAdapterPosition();
+                if (currentPos != RecyclerView.NO_POSITION) {
+                    deleteListener.onDeleteClick(kh, currentPos);
+                }
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        if (listKhachHang != null) {
-            return listKhachHang.size();
-        }
-        return 0;
+        return (listKhachHang != null) ? listKhachHang.size() : 0;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTen, tvSdt;
+        TextView btnDelete;
         ImageView imgAvatar;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Ánh xạ ID từ file item_khach_hang.xml
+
+            // Ánh xạ View
             tvTen = itemView.findViewById(R.id.tvTenKhachHang);
             tvSdt = itemView.findViewById(R.id.tvSoDienThoai);
             imgAvatar = itemView.findViewById(R.id.imgAvatar);
+
+            // Ánh xạ nút Xóa (Bây giờ là TextView)
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }
