@@ -14,32 +14,32 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.button.MaterialButton;
 
 public class ChiTietKhachHangFragment extends Fragment {
 
-    // Khai báo View (Dùng TextView vì chỉ hiển thị)
+    // Khai báo View
     private ImageView btnBack;
     private TextView tvName, tvCode, tvDob, tvGender, tvCitizenId, tvPhone, tvEmail, tvAddress, tvNationality;
     private MaterialButton btnEditProfile;
-    private LinearLayout btnActionCall, btnActionMessage, btnActionEmail; // Các nút tròn
-    private TextView btnViewAllHistory; // Nút xem tất cả lịch sử
+    private LinearLayout btnActionCall, btnActionMessage, btnActionEmail;
+    private TextView btnViewAllHistory;
 
     private String customerId;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Đảm bảo tên layout trùng với file XML của bạn
+        // Lưu ý: Đảm bảo tên layout đúng với file XML của bạn
         View view = inflater.inflate(R.layout.fragment_chi_tiet_khach_hang, container, false);
 
         // 1. ÁNH XẠ VIEW
         initViews(view);
 
-        // 2. NHẬN DỮ LIỆU TỪ BUNDLE (Danh sách gửi sang)
-        loadDataFromBundle();
+        // 2. NHẬN DỮ LIỆU TỪ BUNDLE
+        // SỬA LỖI: Truyền biến 'view' vào hàm này
+        loadDataFromBundle(view);
 
         // 3. XỬ LÝ SỰ KIỆN
         setupEvents();
@@ -69,18 +69,19 @@ public class ChiTietKhachHangFragment extends Fragment {
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnViewAllHistory = view.findViewById(R.id.btnViewAllHistory);
 
-        // Các nút hành động nhanh (Gọi, map...)
+        // Các nút hành động nhanh
         btnActionCall = view.findViewById(R.id.btnActionCall);
         btnActionMessage = view.findViewById(R.id.btnActionMessage);
         btnActionEmail = view.findViewById(R.id.btnActionEmail);
     }
 
-    private void loadDataFromBundle() {
+    // SỬA LỖI: Thêm tham số (View view) vào hàm
+    private void loadDataFromBundle(View view) {
         Bundle args = getArguments();
         if (args != null) {
             customerId = args.getString("id");
 
-            // Set Text an toàn (kiểm tra null)
+            // Set Text an toàn
             tvCode.setText(customerId != null ? customerId : "---");
             tvName.setText(args.getString("name", "Tên khách hàng"));
             tvPhone.setText(args.getString("phone", "---"));
@@ -88,14 +89,17 @@ public class ChiTietKhachHangFragment extends Fragment {
             tvDob.setText(args.getString("dob", "---"));
             tvAddress.setText(args.getString("address", "---"));
 
-            // Các trường chưa có trong Bundle cũ thì set mặc định hoặc lấy thêm
-            tvGender.setText(args.getString("gender", "Nam"));
+            // Set các trường bổ sung
             tvCitizenId.setText(args.getString("cccd", "---"));
-            tvNationality.setText("Việt Nam"); // Ví dụ cứng hoặc lấy từ data
+            tvNationality.setText("Việt Nam");
+
             String gender = args.getString("gender");
+            // Cập nhật text hiển thị giới tính
+            if (tvGender != null) tvGender.setText(gender != null ? gender : "---");
 
             // --- LOGIC HIỂN THỊ ẢNH ---
-            ImageView imgAvatar = getView().findViewById(R.id.imgAvatar); // Đảm bảo đã ánh xạ
+            // SỬA LỖI: Dùng view.findViewById thay vì getView().findViewById
+            ImageView imgAvatar = view.findViewById(R.id.imgAvatar);
 
             if (gender != null) {
                 if (gender.trim().equalsIgnoreCase("Nam")) {
@@ -103,11 +107,10 @@ public class ChiTietKhachHangFragment extends Fragment {
                 } else if (gender.trim().equalsIgnoreCase("Nữ")) {
                     imgAvatar.setImageResource(R.drawable.ic_avatar_female);
                 } else {
-                    imgAvatar.setImageResource(R.drawable.ic_launcher_background);
+                    imgAvatar.setImageResource(R.drawable.ic_avatar_default); // Nên dùng icon default thay vì launcher
                 }
-
-                // Cập nhật text hiển thị giới tính
-                if (tvGender != null) tvGender.setText(gender);
+            } else {
+                imgAvatar.setImageResource(R.drawable.ic_avatar_default);
             }
         }
     }
@@ -120,19 +123,9 @@ public class ChiTietKhachHangFragment extends Fragment {
             }
         });
 
-        // Nút Chỉnh sửa (Sẽ mở ra Fragment/Activity sửa đổi thông tin)
+        // Nút Chỉnh sửa
         btnEditProfile.setOnClickListener(v -> {
-            // TODO: Chuyển sang màn hình Chỉnh Sửa (EditFragment)
-            Toast.makeText(getContext(), "Chức năng đang phát triển: Chuyển sang màn hình sửa", Toast.LENGTH_SHORT).show();
-
-            /* Code mẫu chuyển trang:
-            EditCustomerFragment editFragment = new EditCustomerFragment();
-            editFragment.setArguments(getArguments()); // Gửi lại dữ liệu sang để sửa
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.main_content_frame, editFragment)
-                    .addToBackStack(null)
-                    .commit();
-            */
+            Toast.makeText(getContext(), "Chức năng đang phát triển", Toast.LENGTH_SHORT).show();
         });
 
         // Nút Xem lịch sử
@@ -143,7 +136,7 @@ public class ChiTietKhachHangFragment extends Fragment {
             historyFragment.setArguments(bundle);
 
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.main_content_frame, historyFragment) // Thay R.id.main_content_frame bằng ID container của bạn
+                    .replace(R.id.main_content_frame, historyFragment)
                     .addToBackStack(null)
                     .commit();
         });
