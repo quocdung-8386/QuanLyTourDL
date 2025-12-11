@@ -37,4 +37,10 @@
 
     <!-- gray_700: Thể hiện trạng thái "Mặc định" hoặc "Trung lập" -->
     <color name="gray_700">#616161</color>
+
+    <color name="bg_app">#F5F7FA</color>
+    <color name="primary_blue">#0EA5E9</color>
+    <color name="dark_blue_bg">#1E293B</color>
+    <color name="text_primary">#1F2937</color>
+    <color name="text_secondary">#6B7280</color>
 </resources>

@@ -40,6 +40,7 @@ import com.example.quanlytourdl.QuanLyTourFragment;
 import com.example.quanlytourdl.QuanLyHopDongFragment;
 import com.example.quanlytourdl.ChoPheDuyetTourFragment;
 import com.example.quanlytourdl.QuanLyHdvPhuongTienFragment;
+import com.example.quanlytourdl.DanhSachKhachHangFragment;
 
 // --- [THÊM MỚI] Import DanhSachKhachHangFragment ---
 import com.example.quanlytourdl.DanhSachKhachHangFragment;
@@ -131,7 +132,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
         popup.getMenu().add(1, MENU_ID_TOUR_APPROVAL, 3, "Phê duyệt/Duyệt bán Tour");
         popup.getMenu().add(1, MENU_ID_CUSTOMER_LIST, 4, "Danh Sách Khách Hàng");
         popup.getMenu().add(1, MENU_ID_GUIDE_VEHICLE_MANAGEMENT, 5, "Quản Lý HDV & Phương tiện");
-        popup.getMenu().add(1, MENU_ID_PAYMENT_RECORD, 6, "Đơn Hàng");
+        popup.getMenu().add(1, MENU_ID_PAYMENT_RECORD, 6, "Quản Lý Đơn Hàng");
 
         // Thiết lập sự kiện click cho các mục menu
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -155,7 +156,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
                         openQuanLyHdvPhuongTienFragment();
                         return true;
                     case MENU_ID_PAYMENT_RECORD:
-                        openGhiNhanThanhToanFragment();
+                        openQuanLyDonHangFragment();
                         return true;
                     default:
                         return false;
@@ -208,14 +209,12 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
         performFragmentTransaction(new DanhSachKhachHangFragment(), "Chuyển sang màn hình Danh Sách Khách Hàng.");
     }
 
-    private void openGhiNhanThanhToanFragment() {
-        performFragmentTransaction(new PlaceholderFragment("Ghi Nhận Thanh Toán (Đơn Hàng)"), "Chuyển sang màn hình Ghi Nhận Thanh Toán.");
-    }
-
     private void openQuanLyHdvPhuongTienFragment() {
         performFragmentTransaction(new QuanLyHdvPhuongTienFragment(), "Chuyển sang màn hình Quản lý HDV & Phương tiện.");
     }
-
+    private void openQuanLyDonHangFragment() {
+        performFragmentTransaction(new QuanLyDonHangFragment(), "Chuyển sang màn hình Quản lý Đơn Hàng.");
+    }
 
     // --- CLASS GIẢ ĐỊNH CHO MỤC ĐÍCH NAVIGATE (CHỈ DÙNG CHO CÁC MÀN HÌNH CHƯA TRIỂN KHAI) ---
     public static class PlaceholderFragment extends Fragment {
