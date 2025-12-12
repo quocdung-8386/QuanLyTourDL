@@ -56,15 +56,30 @@ public class QuanLyDonHangFragment extends Fragment {
 
         // Sự kiện: Nhấn thẻ Tạo đơn hàng mới
         cvTaoDonMoi.setOnClickListener(v -> {
-            // Chỗ này sau này bạn code chuyển màn hình
-            hienThiThongBao("Đang mở màn hình Tạo đơn...");
+            // Lấy ID của View cha đang chứa Fragment hiện tại (KinhDoanhFragment)
+            // Cách này giúp tránh lỗi "No view found"
+            int currentContainerId = ((ViewGroup) getView().getParent()).getId();
+
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(currentContainerId, new TaoDonHangFragment())
+                        .addToBackStack(null) // Để ấn nút Back sẽ quay lại được
+                        .commit();
+            }
         });
 
         // Sự kiện: Nhấn thẻ Hóa đơn
         cvHoaDon.setOnClickListener(v -> {
-            hienThiThongBao("Đang mở danh sách Hóa đơn...");
-        });
+            // Lấy ID container hiện tại
+            int currentContainerId = ((ViewGroup) getView().getParent()).getId();
 
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(currentContainerId, new DanhSachHoaDonFragment())
+                        .addToBackStack(null) // Cho phép quay lại bằng nút Back
+                        .commit();
+            }
+        });
         // Sự kiện: Nhấn Xem tất cả đơn hàng
         tvXemTatCa.setOnClickListener(v -> {
             hienThiThongBao("Xem tất cả đơn hàng gần đây");
