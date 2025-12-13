@@ -1,7 +1,6 @@
 package com.example.quanlytourdl.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,9 +20,17 @@ public class HoaDonAdapter extends RecyclerView.Adapter<HoaDonAdapter.HoaDonView
     private List<HoaDon> hoaDonList;
     private DecimalFormat formatter = new DecimalFormat("#,###");
 
-    public HoaDonAdapter(Context context, List<HoaDon> hoaDonList) {
+    // Interface để xử lý sự kiện click
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(HoaDon hoaDon);
+    }
+
+    public HoaDonAdapter(Context context, List<HoaDon> hoaDonList, OnItemClickListener listener) {
         this.context = context;
         this.hoaDonList = hoaDonList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -42,29 +49,34 @@ public class HoaDonAdapter extends RecyclerView.Adapter<HoaDonAdapter.HoaDonView
         holder.tvTenKhach.setText(hd.getTenKhachHang());
         holder.tvTongTien.setText(formatter.format(hd.getTongTien()) + "đ");
 
-        // Xử lý trạng thái giao diện
+        // Xử lý màu sắc trạng thái
         switch (hd.getTrangThai()) {
-            case 1: // Đã thanh toán (Xanh)
+            case 1: // Đã thanh toán
                 holder.tvTrangThai.setText("Đã thanh toán");
-                holder.tvTrangThai.setBackgroundResource(R.drawable.bg_status_paid); // Bạn cần tạo file drawable này
+                holder.tvTrangThai.setBackgroundResource(R.drawable.bg_status_paid);
                 holder.tvTrangThai.setTextColor(ContextCompat.getColor(context, R.color.status_paid_text));
-                holder.imgIcon.setImageResource(R.drawable.ic_receipt); // Icon hóa đơn xanh
-                holder.imgIcon.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.icon_blue_bg));
+                holder.imgIcon.setImageResource(R.drawable.ic_receipt);
                 break;
-            case 2: // Chờ thanh toán (Cam)
+            case 2: // Chờ thanh toán
                 holder.tvTrangThai.setText("Chờ thanh toán");
-                holder.tvTrangThai.setBackgroundResource(R.drawable.bg_status_pending); // Tạo file xml bg cam
+                holder.tvTrangThai.setBackgroundResource(R.drawable.bg_status_pending);
                 holder.tvTrangThai.setTextColor(ContextCompat.getColor(context, R.color.status_pending_text));
-                holder.imgIcon.setImageResource(R.drawable.ic_more_horiz); // Icon 3 chấm
-                // Set màu nền icon tương ứng...
+                holder.imgIcon.setImageResource(R.drawable.ic_more_horiz);
                 break;
-            case 3: // Quá hạn (Đỏ)
+            case 3: // Quá hạn
                 holder.tvTrangThai.setText("Quá hạn");
-                holder.tvTrangThai.setBackgroundResource(R.drawable.bg_status_overdue); // Tạo file xml bg đỏ
+                holder.tvTrangThai.setBackgroundResource(R.drawable.bg_status_overdue);
                 holder.tvTrangThai.setTextColor(ContextCompat.getColor(context, R.color.status_overdue_text));
-                holder.imgIcon.setImageResource(R.drawable.ic_warning); // Icon cảnh báo
+                holder.imgIcon.setImageResource(R.drawable.ic_warning);
                 break;
         }
+
+        // Bắt sự kiện click
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(hd);
+            }
+        });
     }
 
     @Override
@@ -72,7 +84,7 @@ public class HoaDonAdapter extends RecyclerView.Adapter<HoaDonAdapter.HoaDonView
         return hoaDonList.size();
     }
 
-    public class HoaDonViewHolder extends RecyclerView.ViewHolder {
+    public static class HoaDonViewHolder extends RecyclerView.ViewHolder {
         TextView tvMaHoaDon, tvNgayTao, tvTenKhach, tvTongTien, tvTrangThai;
         ImageView imgIcon;
 

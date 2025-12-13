@@ -7,21 +7,26 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    tools:context=".TaoDonHangFragment">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutHeader"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingVertical="16dp"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
             android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="16dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
+            android:padding="12dp"
             android:src="@drawable/ic_arrow_back"
             app:tint="#1F2937"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -31,9 +36,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tạo Đơn hàng"
+            android:text="Tạo Đơn Hàng"
             android:textColor="#1F2937"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -44,16 +49,19 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         android:paddingBottom="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeader">
+        app:layout_constraintTop_toBottomOf="@id/layoutHeader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="10dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -63,18 +71,10 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Khách hàng"
-                android:textColor="#6B7280"
-                android:textSize="14sp" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:orientation="horizontal">
 
                 <EditText
@@ -85,13 +85,13 @@
                     android:background="@drawable/bg_input_border"
                     android:drawableStart="@drawable/ic_search"
                     android:drawablePadding="12dp"
-                    android:hint="Tìm kiếm tên, SĐT..."
+                    android:hint="Tên khách hàng hoặc SĐT"
                     android:paddingHorizontal="12dp"
                     android:textColor="#1F2937"
                     android:textColorHint="#9CA3AF"
                     android:textSize="14sp"
                     android:maxLines="1"
-                    android:inputType="text"
+                    android:inputType="textPersonName"
                     app:drawableTint="#9CA3AF"/>
 
                 <ImageButton
@@ -107,7 +107,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginVertical="20dp"
+                android:layout_marginVertical="24dp"
                 android:background="#F3F4F6" />
 
             <TextView
@@ -132,6 +132,8 @@
                 android:layout_height="50dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_input_border"
+                android:clickable="true"
+                android:focusable="true"
                 android:paddingHorizontal="12dp">
 
                 <TextView
@@ -140,7 +142,7 @@
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
                     android:layout_toStartOf="@id/iconDropdown"
-                    android:text="Chọn một tour..."
+                    android:text="Nhấn để chọn tour..."
                     android:textColor="#1F2937"
                     android:textSize="14sp" />
 
@@ -161,7 +163,7 @@
                 android:layout_marginTop="12dp"
                 app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="8dp"
-                app:cardElevation="2dp"
+                app:cardElevation="0dp"
                 app:strokeColor="#E5E7EB"
                 app:strokeWidth="1dp">
 
@@ -173,10 +175,11 @@
 
                     <ImageView
                         android:id="@+id/imgTourThumb"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
                         android:scaleType="centerCrop"
                         android:background="#E5E7EB"/>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -188,9 +191,11 @@
                             android:id="@+id/tvTenTour"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tour Hà Giang 3N2Đ"
+                            android:text="Tên Tour sẽ hiện ở đây"
                             android:textColor="#111827"
                             android:textStyle="bold"
+                            android:maxLines="2"
+                            android:ellipsize="end"
                             android:textSize="14sp"/>
 
                         <TextView
@@ -198,19 +203,27 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Mã: HG-3N2D-001"
+                            android:text="Mã: ---"
                             android:textColor="#6B7280"
                             android:textSize="12sp" />
 
                         <TextView
-                            android:id="@+id/tvGiaTour"
+                            android:id="@+id/tvGiaTourDisplay"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="2.500.000 đ/khách"
+                            android:text="0 đ/khách"
                             android:textColor="#2563EB"
                             android:textStyle="bold"
                             android:textSize="14sp"/>
+
+                        <TextView
+                            android:id="@+id/tvSlotConLai"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Còn trống: 0"
+                            android:textSize="12sp"
+                            android:textColor="#059669"/>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -219,6 +232,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:baselineAligned="false"
                 android:orientation="horizontal">
 
                 <LinearLayout
@@ -231,9 +245,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Người lớn"
+                        android:text="Người lớn (>12t)"
                         android:textColor="#6B7280"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
 
                     <EditText
                         android:id="@+id/edtNguoiLon"
@@ -244,7 +258,7 @@
                         android:drawableStart="@drawable/ic_person"
                         android:drawablePadding="10dp"
                         android:paddingHorizontal="12dp"
-                        android:hint="1"
+                        android:text="1"
                         android:inputType="number"
                         android:textColor="#1F2937"
                         app:drawableTint="#9CA3AF"/>
@@ -260,9 +274,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Trẻ em"
+                        android:text="Trẻ em (5-11t)"
                         android:textColor="#6B7280"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
 
                     <EditText
                         android:id="@+id/edtTreEm"
@@ -283,13 +297,13 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginVertical="20dp"
+                android:layout_marginVertical="24dp"
                 android:background="#F3F4F6" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thời gian"
+                android:text="Thời gian khởi hành"
                 android:textColor="#111827"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -298,6 +312,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                android:baselineAligned="false"
                 android:orientation="horizontal">
 
                 <LinearLayout
@@ -323,9 +338,10 @@
                         android:drawableStart="@drawable/ic_calendar_today"
                         android:drawablePadding="10dp"
                         android:paddingHorizontal="12dp"
-                        android:hint="dd/mm/yyyy"
+                        android:hint="--/--/----"
                         android:clickable="true"
                         android:focusable="false"
+                        android:inputType="none"
                         android:textColor="#1F2937"
                         app:drawableTint="#9CA3AF"/>
                 </LinearLayout>
@@ -353,22 +369,14 @@
                         android:drawableStart="@drawable/ic_calendar_today"
                         android:drawablePadding="10dp"
                         android:paddingHorizontal="12dp"
-                        android:hint="dd/mm/yyyy"
+                        android:hint="--/--/----"
                         android:clickable="true"
                         android:focusable="false"
+                        android:inputType="none"
                         android:textColor="#1F2937"
                         app:drawableTint="#9CA3AF"/>
                 </LinearLayout>
             </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Thanh toán"
-                android:textColor="#111827"
-                android:textSize="16sp"
-                android:textStyle="bold" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -379,21 +387,22 @@
         android:background="#FFFFFF"
         android:elevation="16dp"
         android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSubmit"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:background="@drawable/bg_button_blue"
-            android:text="Tạo Đơn hàng"
+            android:text="Xác nhận Đặt Tour"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textAllCaps="false"
-            android:drawableStart="@drawable/ic_check_circle"
+            android:gravity="center"
             android:paddingHorizontal="20dp"
-            android:drawablePadding="8dp"
             app:drawableTint="#FFFFFF"/>
     </LinearLayout>
 
