@@ -7,8 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ProgressBar; // Import mới
-import android.widget.TextView;    // Import mới
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,6 +28,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Fragment hiển thị danh sách Tour cần Phân công, được lọc theo trạng thái (Chờ Gán/Đã Gán)
@@ -41,8 +42,8 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
     private TabLayout tabLayout;
     private RecyclerView recyclerViewTours;
     private ImageButton btnBack, btnNotification;
-    private ProgressBar progressBar; // Thành phần mới
-    private TextView emptyStateTextView; // Thành phần mới
+    private ProgressBar progressBar;
+    private TextView emptyStateTextView;
 
     // --- Firebase & Data Variables ---
     private FirebaseFirestore db;
@@ -50,12 +51,15 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
     private TourAssignmentAdapter adapter;
     private final List<Tour> toursList = new ArrayList<>();
 
-    // Giả định appId
-    private final String appId = getAppIdFromEnvironment();
+    // ⭐ Đặt biến cho Collection Path để dễ quản lý hơn
+    private static final String APP_ID = "QLTDL_AppId_Placeholder";
+    private static final String TOURS_COLLECTION_PATH = String.format("artifacts/%s/public/data/tours", APP_ID);
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Giả định layout ID fragment_tour_assignment_list
         View view = inflater.inflate(R.layout.fragment_tour_assignment_list, container, false);
 
         // 1. Khởi tạo Firebase
@@ -67,29 +71,29 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
         btnBack = view.findViewById(R.id.btn_back_assignment_list);
         btnNotification = view.findViewById(R.id.btn_notification_assignment);
 
-        // Ánh xạ các thành phần quản lý trạng thái
         progressBar = view.findViewById(R.id.progress_loading_assignment);
         emptyStateTextView = view.findViewById(R.id.text_empty_state_assignment);
 
         // 3. Thiết lập RecyclerView
         recyclerViewTours.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // 4. Khởi tạo Adapter và truyền listener (this)
+        // 4. Khởi tạo Adapter
         Context context = getContext();
         if (context != null) {
-            try {
-                adapter = new TourAssignmentAdapter(context, toursList, this);
-                recyclerViewTours.setAdapter(adapter);
-            } catch (NoClassDefFoundError e) {
-                Log.e(TAG, "Lỗi: TourAssignmentAdapter hoặc Tour model chưa được định nghĩa.", e);
-                Toast.makeText(getContext(), "Lỗi: Không tìm thấy Adapter/Model.", Toast.LENGTH_LONG).show();
-            }
+            adapter = new TourAssignmentAdapter(context, toursList, this);
+            recyclerViewTours.setAdapter(adapter);
         }
 
         // 5. Xử lý sự kiện Toolbar
         btnBack.setOnClickListener(v -> {
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                // Quay lại Fragment trước đó hoặc Activity (tùy thuộc vào cách bạn sử dụng)
+                // Ưu tiên pop Fragment nếu nó được nhúng
+                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                    getParentFragmentManager().popBackStack();
+                } else {
+                    getActivity().onBackPressed();
+                }
             }
         });
 
@@ -102,9 +106,8 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                String tabTitle = tab.getText() != null ? tab.getText().toString() : "Chờ Gán";
+                String tabTitle = Objects.requireNonNull(tab.getText()).toString();
                 String statusForQuery = mapTabTitleToStatus(tabTitle);
-                // Bắt đầu tải dữ liệu, hiển thị loading
                 loadToursFromFirestore(statusForQuery, tabTitle);
             }
 
@@ -113,19 +116,24 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-                String tabTitle = tab.getText() != null ? tab.getText().toString() : "Chờ Gán";
+                // Tải lại khi nhấp lại
+                String tabTitle = Objects.requireNonNull(tab.getText()).toString();
                 String statusForQuery = mapTabTitleToStatus(tabTitle);
                 loadToursFromFirestore(statusForQuery, tabTitle);
             }
         });
 
         // 7. Tải dữ liệu ban đầu
+        // ⭐ Tối ưu hóa: Chọn tab đầu tiên và kích hoạt sự kiện tải dữ liệu
         if (tabLayout.getTabCount() > 0) {
             TabLayout.Tab initialSelectedTab = tabLayout.getTabAt(0);
             if (initialSelectedTab != null) {
-                String initialTitle = initialSelectedTab.getText() != null ? initialSelectedTab.getText().toString() : "Chờ Gán";
-                String initialStatus = mapTabTitleToStatus(initialTitle);
-                loadToursFromFirestore(initialStatus, initialTitle);
+                // Chọn tab (đảm bảo tab được chọn và sự kiện onTabSelected được kích hoạt)
+                initialSelectedTab.select();
+                // Nếu sự kiện select() không kích hoạt onTabSelected, ta cần gọi thủ công:
+                // String initialTitle = initialSelectedTab.getText() != null ? initialSelectedTab.getText().toString() : "Chờ Gán";
+                // String initialStatus = mapTabTitleToStatus(initialTitle);
+                // loadToursFromFirestore(initialStatus, initialTitle);
             }
         }
 
@@ -140,18 +148,18 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
     public void onAssignTourClick(Tour tour) {
         Log.d(TAG, "Yêu cầu xử lý phân công cho Tour: " + tour.getMaTour() + " - " + tour.getTenTour());
         Toast.makeText(getContext(), "Mở màn hình Gán Nhân Viên cho tour: " + tour.getTenTour(), Toast.LENGTH_LONG).show();
+        // ⭐ Bổ sung: Chuyển Fragment tại đây để mở màn hình phân công chi tiết (ví dụ: TourAssignmentDetailFragment)
     }
 
     private String mapTabTitleToStatus(String tabTitle) {
-        if (tabTitle.equals("Chờ Gán")) {
-            // Trạng thái Tour cần được phân công (ví dụ: đã được phê duyệt nhưng chưa có HDV/PT)
+        if (tabTitle.equalsIgnoreCase("Chờ Gán")) {
             return "DANG_CHO_PHAN_CONG";
         }
-        else if (tabTitle.equals("Đã Gán")) {
-            // Trạng thái Tour đã được phân công HDV và phương tiện
+        else if (tabTitle.equalsIgnoreCase("Đã Gán")) {
             return "DA_GAN_NHAN_VIEN";
         }
-        return "DANG_CHO_PHAN_CONG"; // Mặc định
+        // Trường hợp mặc định cho tab đầu tiên hoặc lỗi
+        return "DANG_CHO_PHAN_CONG";
     }
 
     /**
@@ -166,10 +174,7 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
             tourListener.remove();
         }
 
-        // Đường dẫn Collection chuẩn theo Canvas Firestore (Public data)
-        String collectionPath = String.format("artifacts/%s/public/data/tours", appId);
-
-        CollectionReference toursRef = db.collection(collectionPath);
+        CollectionReference toursRef = db.collection(TOURS_COLLECTION_PATH);
         // Lọc theo trường "status"
         Query query = toursRef.whereEqualTo("status", status);
 
@@ -177,7 +182,6 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
         tourListener = query.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
                 Log.w(TAG, "Lỗi lắng nghe dữ liệu Tour cho trạng thái: " + status, e);
-                // Ẩn loading và hiển thị thông báo lỗi
                 Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 showEmptyState("Lỗi kết nối hoặc truy vấn dữ liệu.");
                 return;
@@ -210,30 +214,28 @@ public class TourAssignmentListFragment extends Fragment implements TourAssignme
         });
     }
 
-    private String getAppIdFromEnvironment() {
-        // Giữ nguyên placeholder. Bạn cần thay thế bằng logic lấy ID ứng dụng thực tế.
-        return "QLTDL_AppId_Placeholder";
-    }
 
     // --- Quản lý Trạng thái Hiển thị ---
 
     private void showLoading() {
-        recyclerViewTours.setVisibility(View.GONE);
-        emptyStateTextView.setVisibility(View.GONE);
-        progressBar.setVisibility(View.VISIBLE);
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        if (recyclerViewTours != null) recyclerViewTours.setVisibility(View.GONE);
+        if (emptyStateTextView != null) emptyStateTextView.setVisibility(View.GONE);
     }
 
     private void showContent() {
-        progressBar.setVisibility(View.GONE);
-        emptyStateTextView.setVisibility(View.GONE);
-        recyclerViewTours.setVisibility(View.VISIBLE);
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        if (emptyStateTextView != null) emptyStateTextView.setVisibility(View.GONE);
+        if (recyclerViewTours != null) recyclerViewTours.setVisibility(View.VISIBLE);
     }
 
     private void showEmptyState(String message) {
-        progressBar.setVisibility(View.GONE);
-        recyclerViewTours.setVisibility(View.GONE);
-        emptyStateTextView.setText(message);
-        emptyStateTextView.setVisibility(View.VISIBLE);
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        if (recyclerViewTours != null) recyclerViewTours.setVisibility(View.GONE);
+        if (emptyStateTextView != null) {
+            emptyStateTextView.setText(message);
+            emptyStateTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

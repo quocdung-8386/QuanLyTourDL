@@ -4,6 +4,9 @@ import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
 public class NhaCungCap implements Serializable {
+
+    // Thuộc tính này được @Exclude để không lưu vào Firestore,
+    // nhưng được dùng để lưu trữ Document ID khi đọc từ Firestore.
     @Exclude
     private String maNhaCungCap;
 
@@ -13,22 +16,20 @@ public class NhaCungCap implements Serializable {
     private String email;
     private String nguoiLienHe;
     private String loaiDichVu;
-    // ID của hợp đồng đang hoạt động (active contract ID)
-    private String maHopDong;
-    // Thêm trường này để dễ dàng quản lý nếu sau này muốn thêm bảo mật
+    private String maHopDong; // ID của hợp đồng đang hoạt động (maHopDongActive)
     private String maNguoiDungTao;
-
-    // Trạng thái hợp đồng
     private String trangThaiHopDong;
-    // Mã hợp đồng gần nhất
     private String maHopDongGanNhat;
 
 
-    // Constructor mặc định (bắt buộc cho Firebase Firestore/Realtime Database)
+    // Constructor mặc định (BẮT BUỘC cho Firebase)
     public NhaCungCap() {
     }
 
-    // Constructor đầy đủ
+    /**
+     * Constructor đầy đủ cho NhaCungCap
+     * Lưu ý: maNhaCungCap KHÔNG được truyền vào đây vì nó được quản lý bởi Firestore
+     */
     public NhaCungCap(String tenNhaCungCap, String diaChi, String soDienThoai, String email,
                       String nguoiLienHe, String loaiDichVu, String maHopDong, String maNguoiDungTao,
                       String trangThaiHopDong, String maHopDongGanNhat) {

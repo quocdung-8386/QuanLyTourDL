@@ -41,6 +41,7 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Giả định item_hdv_card.xml đã được định nghĩa
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hdv_card, parent, false);
         return new ItemViewHolder(view);
     }
@@ -53,19 +54,31 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
             // Hiển thị dữ liệu Hướng dẫn viên
             if (item instanceof Guide) {
                 Guide guide = (Guide) item;
-                holder.imgAvatar.setImageResource(R.drawable.ic_hdv_placeholder); // Ảnh mặc định cho HDV
-                holder.textName.setText(guide.getTen());
-                holder.textIdDetail.setText("ID: " + guide.getId());
-                holder.textStatusBadge.setText(guide.getTrangThai());
-                setStatusStyle(holder.textStatusBadge, guide.getTrangThai());
+                holder.imgAvatar.setImageResource(R.drawable.ic_hdv_placeholder);
+
+                // SỬA LỖI TIỀM NĂNG: Thay getTen() bằng getFullName() (tên trường Firestore là fullName)
+                // và sử dụng Mã HDV cho chi tiết
+                holder.textName.setText(guide.getFullName());
+                holder.textIdDetail.setText("Mã HDV: " + guide.getGuideCode());
+
+                String status = guide.getTrangThai();
+
+                // Xử lý trạng thái
+                if (status != null && !status.isEmpty()) {
+                    holder.textStatusBadge.setText(status);
+                    setStatusStyle(holder.textStatusBadge, status);
+                } else {
+                    holder.textStatusBadge.setText("Chưa có trạng thái");
+                    setStatusStyle(holder.textStatusBadge, "Default");
+                }
 
                 // Xử lý sự kiện click item
                 holder.itemView.setOnClickListener(v -> {
-                    Toast.makeText(v.getContext(), "Chi tiết HDV: " + guide.getTen(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(v.getContext(), "Chi tiết HDV: " + guide.getFullName(), Toast.LENGTH_SHORT).show();
                     // Mở Fragment chi tiết HDV
                 });
                 holder.btnMoreOptions.setOnClickListener(v -> {
-                    Toast.makeText(v.getContext(), "Tùy chọn cho HDV: " + guide.getTen(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(v.getContext(), "Tùy chọn cho HDV: " + guide.getFullName(), Toast.LENGTH_SHORT).show();
                 });
             }
         } else {
@@ -75,8 +88,18 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
                 holder.imgAvatar.setImageResource(R.drawable.ic_phuongtien_placeholder); // Ảnh mặc định cho PT (Cần định nghĩa icon này)
                 holder.textName.setText(vehicle.getBienSoXe());
                 holder.textIdDetail.setText("Loại: " + vehicle.getLoaiPhuongTien() + " | " + vehicle.getSoChoNgoi() + " chỗ");
-                holder.textStatusBadge.setText(vehicle.getTinhTrangBaoDuong());
-                setStatusStyle(holder.textStatusBadge, vehicle.getTinhTrangBaoDuong());
+
+                String status = vehicle.getTinhTrangBaoDuong();
+
+                // Xử lý trạng thái
+                if (status != null && !status.isEmpty()) {
+                    holder.textStatusBadge.setText(status);
+                    setStatusStyle(holder.textStatusBadge, status);
+                } else {
+                    holder.textStatusBadge.setText("Chưa có trạng thái");
+                    setStatusStyle(holder.textStatusBadge, "Default");
+                }
+
 
                 // Xử lý sự kiện click item
                 holder.itemView.setOnClickListener(v -> {
@@ -100,27 +123,34 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
      * Cần đảm bảo các drawable bg_status_... và color... được định nghĩa.
      */
     private void setStatusStyle(TextView statusBadge, String status) {
+        // Đảm bảo status là chữ thường hoặc dùng hàm equalsIgnoreCase nếu cần
         switch (status) {
             case "Sẵn sàng": // HDV
             case "Hoạt động tốt": // PT
+                // Giả định R.drawable.bg_status_ready và R.color.green_700 tồn tại
                 statusBadge.setBackgroundResource(R.drawable.bg_status_ready);
-                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.green_700)); // Ví dụ màu xanh lá
+                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.green_700));
                 break;
             case "Đang đi tour": // HDV
+                // Giả định R.drawable.bg_status_in_use và R.color.blue_700 tồn tại
                 statusBadge.setBackgroundResource(R.drawable.bg_status_in_use);
-                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.blue_700)); // Ví dụ màu xanh dương
+                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.blue_700));
                 break;
             case "Tạm nghỉ": // HDV
             case "Cần sửa chữa lớn": // PT
+                // Giả định R.drawable.bg_status_unavailable và R.color.red_700 tồn tại
                 statusBadge.setBackgroundResource(R.drawable.bg_status_unavailable);
-                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.red_700)); // Ví dụ màu đỏ
+                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.red_700));
                 break;
             case "Cần bảo trì nhỏ": // PT
             case "Đang bảo dưỡng": // PT
+                // Giả định R.drawable.bg_status_maintenance và R.color.orange_700 tồn tại
                 statusBadge.setBackgroundResource(R.drawable.bg_status_maintenance);
-                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.orange_700)); // Ví dụ màu cam
+                statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.orange_700));
                 break;
+            case "Default": // Trạng thái mặc định hoặc chưa cập nhật
             default:
+                // Giả định R.drawable.bg_status_default và R.color.gray_700 tồn tại
                 statusBadge.setBackgroundResource(R.drawable.bg_status_default);
                 statusBadge.setTextColor(ContextCompat.getColor(statusBadge.getContext(), R.color.gray_700));
                 break;

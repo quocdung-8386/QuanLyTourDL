@@ -24,7 +24,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -33,38 +32,63 @@ public class TaoTourDetailFullFragment extends Fragment {
 
     private static final String TAG = "TaoTourDetailFragment";
 
-    // Trạng thái (status) cho Tour mới tạo
+    // 💡 Hằng số Trạng thái
     public static final String STATUS_PENDING_APPROVAL = "CHO_PHE_DUYET";
-    // Trạng thái sau khi admin phê duyệt
+    public static final String STATUS_DRAFT = "NHAP";
     public static final String STATUS_APPROVED = "DANG_MO_BAN";
 
-    // Firebase
-    private FirebaseFirestore db;
-    private FirebaseAuth auth;
-
+    // ⭐ Thành phần View
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
     private MaterialButton btnPrevStep;
     private MaterialButton btnNextStep;
     private TextView btnLuuNhap;
 
+    // ⭐ Dữ liệu
     private final String[] tabTitles = {"1. Thông tin", "2. Lịch trình", "3. Chi phí", "4. Hình ảnh & XB"};
+    // Đối tượng Tour TẠM THỜI để lưu trữ dữ liệu (Trong thực tế nên dùng ViewModel)
+    private final Tour currentTourData = new Tour();
+
+    // ⭐ Firebase
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+
+    // --- Interface Bắt buộc cho các Fragment Bước Con ---
+
+    /**
+     * Interface bắt buộc các Fragment bước con phải implement để Fragment cha có thể
+     * yêu cầu thu thập dữ liệu và validation.
+     */
+    public interface TourStepDataCollector {
+        /**
+         * Thu thập dữ liệu từ Fragment này và gán vào đối tượng Tour đã cho.
+         * @param tour Đối tượng Tour để gán dữ liệu vào.
+         * @return true nếu dữ liệu hợp lệ và đã được gán, false nếu validation thất bại.
+         */
+        boolean collectDataAndValidate(Tour tour);
+    }
 
     public static TaoTourDetailFullFragment newInstance() {
         return new TaoTourDetailFullFragment();
     }
 
+    // --- Life Cycle ---
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Khởi tạo Firebase instances
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+
+        // Khởi tạo các trường quản lý cơ bản cho Tour mới
+        String tourId = UUID.randomUUID().toString();
+        currentTourData.setMaTour(tourId);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Giả định R.layout.fragment_tao_tour_detail_full tồn tại
         return inflater.inflate(R.layout.fragment_tao_tour_detail_full, container, false);
     }
 
@@ -72,26 +96,40 @@ public class TaoTourDetailFullFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Ánh xạ Views
-        Toolbar toolbar = view.findViewById(R.id.toolbar_tao_tour_detail);
+        initViews(view);
+        setupToolbar(view);
+        setupViewPager();
+        setupListeners();
+
+        updateNavigationButtons(0);
+    }
+
+    private void initViews(View view) {
         viewPager = view.findViewById(R.id.view_pager_tour_steps);
         tabLayout = view.findViewById(R.id.tab_layout_tour_steps);
         btnPrevStep = view.findViewById(R.id.btn_prev_step);
         btnNextStep = view.findViewById(R.id.btn_next_step);
         btnLuuNhap = view.findViewById(R.id.btn_luu_nhap);
+    }
 
-        // Thiết lập Toolbar
+    private void setupToolbar(View view) {
+        Toolbar toolbar = view.findViewById(R.id.toolbar_tao_tour_detail);
         if (toolbar != null) {
+            // Giả định R.drawable.ic_arrow_back_24 tồn tại
+            toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
             toolbar.setNavigationOnClickListener(v -> {
                 if (getActivity() != null) {
                     getParentFragmentManager().popBackStack();
                 }
             });
         }
+    }
 
+    private void setupViewPager() {
         TourStepsAdapter adapter = new TourStepsAdapter(this);
         viewPager.setAdapter(adapter);
 
+        // Chặn vuốt ngang, chỉ cho phép chuyển trang bằng nút bấm
         viewPager.setUserInputEnabled(false);
 
         new TabLayoutMediator(tabLayout, viewPager,
@@ -105,22 +143,24 @@ public class TaoTourDetailFullFragment extends Fragment {
                 updateNavigationButtons(position);
             }
         });
-
-        btnLuuNhap.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Đã lưu nháp dữ liệu tour (Logic đang chờ triển khai).", Toast.LENGTH_SHORT).show();
-        });
-
-        btnPrevStep.setOnClickListener(v -> navigateToPrevStep());
-        btnNextStep.setOnClickListener(v -> navigateToNextStep());
-
-        updateNavigationButtons(0);
     }
 
-    // --- Logic Điều hướng & Lưu Dữ Liệu ---
+    private void setupListeners() {
+        TourStepsAdapter adapter = (TourStepsAdapter) viewPager.getAdapter();
+        if (adapter == null) return;
+
+        btnLuuNhap.setOnClickListener(v -> saveTourAsDraft(adapter));
+        btnPrevStep.setOnClickListener(v -> navigateToPrevStep());
+        btnNextStep.setOnClickListener(v -> navigateToNextStep(adapter));
+    }
+
+
+    // --- Logic Điều hướng & UI ---
 
     private void updateNavigationButtons(int position) {
         int totalSteps = tabTitles.length;
 
+        // Nút quay lại chỉ hiện từ bước 1 trở đi
         btnPrevStep.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);
 
         if (position == totalSteps - 1) { // Bước cuối cùng
@@ -132,13 +172,13 @@ public class TaoTourDetailFullFragment extends Fragment {
         } else {
             btnNextStep.setText("Tiếp tục");
             try {
-                // Giả định ic_arrow_right_24 tồn tại
+                // Giả định R.drawable.ic_arrow_right_24 tồn tại
                 btnNextStep.setIconResource(R.drawable.ic_arrow_right_24);
                 if (getContext() != null) {
                     btnNextStep.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
                 }
             } catch (Exception e) {
-                Log.w(TAG, "Không tìm thấy ic_arrow_right_24. Dùng icon mặc định.");
+                Log.w(TAG, "Missing icon resource for next button.");
                 btnNextStep.setIcon(null);
             }
             btnNextStep.setIconGravity(MaterialButton.ICON_GRAVITY_END);
@@ -152,73 +192,110 @@ public class TaoTourDetailFullFragment extends Fragment {
         }
     }
 
-    private void navigateToNextStep() {
+    private void navigateToNextStep(TourStepsAdapter adapter) {
         int currentItem = viewPager.getCurrentItem();
         int totalSteps = tabTitles.length;
 
-        TourStepsAdapter adapter = (TourStepsAdapter) viewPager.getAdapter();
-        if (adapter == null) return;
         Fragment currentFragment = adapter.getFragment(currentItem);
 
-        // B1: Thực hiện Validation
-        // ...
+        // 1. Thực hiện Validation và Thu thập dữ liệu cho bước hiện tại
+        if (!(currentFragment instanceof TourStepDataCollector)) {
+            Log.e(TAG, "Fragment step " + currentItem + " does not implement TourStepDataCollector.");
+            Toast.makeText(getContext(), "Lỗi hệ thống: Fragment thiếu cơ chế thu thập dữ liệu.", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        // B2: Chuyển trang hoặc Xuất bản
-        if (currentItem < totalSteps - 1) {
-            viewPager.setCurrentItem(currentItem + 1, true);
+        TourStepDataCollector collector = (TourStepDataCollector) currentFragment;
+
+        if (collector.collectDataAndValidate(currentTourData)) {
+            // Dữ liệu hợp lệ:
+            if (currentItem < totalSteps - 1) {
+                // CHUYỂN BƯỚC: Sang trang tiếp theo
+                viewPager.setCurrentItem(currentItem + 1, true);
+            } else {
+                // BƯỚC CUỐI CÙNG: Xuất bản
+                Toast.makeText(getContext(), "Đang tiến hành Xuất bản Tour...", Toast.LENGTH_SHORT).show();
+                publishTourAndSaveToFirestore(currentTourData);
+            }
         } else {
-            // BƯỚC CUỐI CÙNG: Xuất bản
-            Toast.makeText(getContext(), "Đang tiến hành Xuất bản Tour...", Toast.LENGTH_SHORT).show();
-            publishTourAndSaveToFirestore(adapter);
+            // Dữ liệu không hợp lệ: Validation thất bại, Fragment con nên đã hiển thị lỗi.
+            Toast.makeText(getContext(), "Vui lòng hoàn thành đầy đủ và chính xác các thông tin ở bước này.", Toast.LENGTH_SHORT).show();
         }
     }
 
+
+    // --- Logic Lưu và Xuất bản Tour ---
+
     /**
-     * Thu thập dữ liệu từ tất cả các bước, lưu vào Firestore với trạng thái chờ phê duyệt, và quay lại màn hình trước đó.
+     * Lặp qua tất cả Fragment đang hoạt động để thu thập dữ liệu và lưu Tour với status "NHAP".
      */
-    private void publishTourAndSaveToFirestore(TourStepsAdapter adapter) {
+    private void saveTourAsDraft(TourStepsAdapter adapter) {
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous_creator";
-        String tourId = UUID.randomUUID().toString();
         Date now = new Date();
 
-        // 1. Khởi tạo đối tượng Tour và gán dữ liệu quản lý
-        Tour newTour = new Tour();
-        newTour.setMaTour(tourId);
-        newTour.setNguoiTao(userId);
-        newTour.setNgayTao(now);
-        newTour.setStatus(STATUS_PENDING_APPROVAL);
+        // 1. Chuẩn bị đối tượng Tour (Sử dụng ID đã tạo trong onCreate)
+        currentTourData.setNguoiTao(userId);
+        currentTourData.setNgayTao(now); // Cập nhật ngày tạo/cập nhật nháp
+        currentTourData.setStatus(STATUS_DRAFT);
 
-        // 2. Gán dữ liệu giả định/placeholders (Cần được thay thế bằng dữ liệu thực tế từ các Fragment)
-        newTour.setTenTour("Tour Mới Cần Duyệt " + tourId.substring(0, 4));
-        newTour.setDiemKhoiHanh("Hà Nội");
-        newTour.setDiemDen("Sapa");
-        newTour.setNgayKhoiHanh(new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)));
-        newTour.setSoLuongKhach(10);
-        newTour.setGiaTour(5000000);
-        newTour.setSeoDescription("Mô tả SEO của tour");
-        newTour.setFeatured(false);
-        newTour.setImageUrls(Collections.singletonList("https://placehold.co/600x400/000000/FFFFFF?text=Tour+Thumbnail"));
-        newTour.setAnhThumbnailUrl(newTour.getImageUrls().get(0));
-
+        // 2. Thu thập dữ liệu hiện có từ các bước đã hoàn thành
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            Fragment fragment = adapter.getFragment(i);
+            if (fragment instanceof TourStepDataCollector) {
+                // Thu thập dữ liệu, bỏ qua kết quả validation nghiêm ngặt
+                ((TourStepDataCollector) fragment).collectDataAndValidate(currentTourData);
+            }
+        }
 
         // 3. LƯU VÀO FIRESTORE
+        saveTourToFirestore(currentTourData, "Đã lưu nháp Tour thành công!", "Lỗi lưu nháp Tour: ");
+    }
+
+
+    /**
+     * Chuẩn bị Tour để xuất bản (status: CHO_PHE_DUYET) và lưu vào Firestore.
+     */
+    private void publishTourAndSaveToFirestore(Tour tourToPublish) {
+        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous_creator";
+        Date now = new Date();
+
+        // 1. Gán lại các trường quản lý cuối cùng
+        tourToPublish.setNguoiTao(userId);
+        tourToPublish.setNgayTao(now);
+        tourToPublish.setStatus(STATUS_PENDING_APPROVAL);
+
+        // 2. LƯU VÀO FIRESTORE
+        String successMsg = "Tour đã được gửi thành công và đang chờ Ban Quản Trị phê duyệt.";
+        String errorMsgPrefix = "Lỗi Xuất bản Tour: ";
+
+        saveTourToFirestore(tourToPublish, successMsg, errorMsgPrefix);
+    }
+
+    /**
+     * Logic chung để lưu đối tượng Tour vào Firestore.
+     */
+    private void saveTourToFirestore(Tour tour, String successToastMessage, String failureToastPrefix) {
+        if (tour.getMaTour() == null || tour.getMaTour().isEmpty()) {
+            Log.e(TAG, "Tour ID cannot be null or empty during save.");
+            Toast.makeText(getContext(), "Lỗi hệ thống: Không thể tạo ID cho Tour.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         db.collection("Tours")
-                .document(tourId)
-                .set(newTour)
+                .document(tour.getMaTour())
+                .set(tour)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Tour successfully written with ID: " + tourId);
+                    Log.d(TAG, "Tour successfully saved with ID: " + tour.getMaTour());
+                    Toast.makeText(getContext(), successToastMessage, Toast.LENGTH_LONG).show();
 
-                    // THÔNG BÁO VÀ QUAY LẠI MÀN HÌNH DANH SÁCH
-                    Toast.makeText(getContext(), "Tour đã được gửi thành công và đang chờ Ban Quản Trị phê duyệt. Tour sẽ xuất hiện ở mục đang mở bán sau khi được duyệt.", Toast.LENGTH_LONG).show();
-
-                    // Quay lại màn hình trước đó (thoát khỏi form tạo tour)
-                    if (getActivity() != null) {
+                    // Nếu xuất bản thành công, thoát khỏi form tạo tour
+                    if (tour.getStatus().equals(STATUS_PENDING_APPROVAL) && getActivity() != null) {
                         getParentFragmentManager().popBackStack();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.w(TAG, "Error writing Tour document", e);
-                    Toast.makeText(getContext(), "Lỗi Xuất bản Tour: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.w(TAG, "Error saving Tour document", e);
+                    Toast.makeText(getContext(), failureToastPrefix + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 
@@ -226,14 +303,20 @@ public class TaoTourDetailFullFragment extends Fragment {
 
     private static class TourStepsAdapter extends FragmentStateAdapter {
         private final List<Fragment> fragmentList = new ArrayList<>();
+        private final FragmentManager fragmentManager;
 
         public TourStepsAdapter(@NonNull Fragment fragment) {
             super(fragment);
-            // THAY THẾ DƯỚI ĐÂY BẰNG CÁC CLASS FRAGMENT THỰC TẾ CỦA BẠN
-            fragmentList.add(new TaoTourThongTinFragment());      // 1. Thông tin chung
-            fragmentList.add(new TaoTourLichTrinhFragment());    // 2. Lịch trình
-            fragmentList.add(new TaoTourChiPhiFragment());       // 3. Chi phí
-            fragmentList.add(new TaoTourHinhAnhFragment());      // 4. Hình ảnh & Xuất bản
+            // Ép kiểu để truy cập đối tượng Tour được chia sẻ
+            TaoTourDetailFullFragment parentFragment = (TaoTourDetailFullFragment) fragment;
+            this.fragmentManager = fragment.getChildFragmentManager();
+
+            // ⭐ TRUYỀN ĐỐI TƯỢNG TOUR VÀO CONSTRUCTOR CỦA MỖI BƯỚC
+            // (Giả lập các Fragment con, cần tạo file thực tế)
+            fragmentList.add(new TaoTourThongTinFragment(parentFragment.currentTourData));
+            fragmentList.add(new TaoTourLichTrinhFragment(parentFragment.currentTourData));
+            fragmentList.add(new TaoTourChiPhiFragment(parentFragment.currentTourData));
+            fragmentList.add(new TaoTourHinhAnhFragment(parentFragment.currentTourData));
         }
 
         @NonNull
@@ -242,8 +325,20 @@ public class TaoTourDetailFullFragment extends Fragment {
             return fragmentList.get(position);
         }
 
+        /**
+         * Lấy Fragment đang hoạt động (đã được ViewPager2 khởi tạo) bằng Tag mặc định.
+         * @param position Vị trí Fragment.
+         * @return Fragment instance.
+         */
         public Fragment getFragment(int position) {
-            return fragmentList.get(position);
+            // FragmentStateAdapter sử dụng tag dạng "f" + itemId
+            String tag = "f" + getItemId(position);
+            return fragmentManager.findFragmentByTag(tag);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
         }
 
         @Override

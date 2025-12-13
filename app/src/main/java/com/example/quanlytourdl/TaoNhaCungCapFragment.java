@@ -16,8 +16,13 @@ import android.widget.Toast;
 import com.example.quanlytourdl.model.NhaCungCap;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Transaction;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class TaoNhaCungCapFragment extends Fragment {
 
@@ -34,12 +39,10 @@ public class TaoNhaCungCapFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        // Lấy ID layout thông qua tên chuỗi (giả định)
+
         int layoutId = getResources().getIdentifier("fragment_tao_nha_cung_cap", "layout", requireContext().getPackageName());
         if (layoutId == 0) {
             Log.e(TAG, "Không tìm thấy layout ID 'fragment_tao_nha_cung_cap'.");
-            // Xử lý khi không tìm thấy layout, ví dụ: trả về View trống
             return new View(requireContext());
         }
 
@@ -47,11 +50,10 @@ public class TaoNhaCungCapFragment extends Fragment {
 
         // Khởi tạo Firestore và Auth
         db = FirebaseFirestore.getInstance();
-        nhaCungCapRef = db.collection("NhaCungCap"); // Tham chiếu đến collection 'NhaCungCap'
+        nhaCungCapRef = db.collection("NhaCungCap");
         mAuth = FirebaseAuth.getInstance();
 
         // Ánh xạ các thành phần UI
-        // Giả định R.id.* tương ứng với layout
         etTenNhaCungCap = view.findViewById(R.id.edt_supplier_name);
         etDiaChi = view.findViewById(R.id.edt_address);
         etSoDienThoai = view.findViewById(R.id.edt_phone);
@@ -66,6 +68,8 @@ public class TaoNhaCungCapFragment extends Fragment {
 
         // Xử lý sự kiện click
         btnTaoMoi.setOnClickListener(v -> taoNhaCungCap());
+
+        // Logic nút Hủy: Quay lại Fragment trước đó
         btnHuy.setOnClickListener(v -> {
             if (getParentFragmentManager() != null) {
                 getParentFragmentManager().popBackStack();
@@ -76,7 +80,6 @@ public class TaoNhaCungCapFragment extends Fragment {
     }
 
     private void setupSpinner() {
-        // Danh sách dịch vụ (ví dụ)
         String[] loaiDichVuArray = new String[]{"Khách sạn", "Vận chuyển", "Ăn uống", "Tham quan", "Khác"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_dropdown_item, loaiDichVuArray);
@@ -91,23 +94,14 @@ public class TaoNhaCungCapFragment extends Fragment {
         String nguoiLH = etNguoiLienHe.getText().toString().trim();
         String loaiDV = spLoaiDichVu.getSelectedItem().toString();
 
-        // Kiểm tra dữ liệu đầu vào đơn giản
         if (ten.isEmpty() || diaChi.isEmpty() || sdt.isEmpty() || email.isEmpty()) {
             Toast.makeText(getContext(), "Vui lòng điền đầy đủ các trường bắt buộc.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Lấy UID của người dùng đang đăng nhập
         FirebaseUser currentUser = mAuth.getCurrentUser();
         String maNguoiDungTao = (currentUser != null) ? currentUser.getUid() : "anonymous_public";
 
-        // --- ĐIỀU CHỈNH ĐỂ KHỚP VỚI CONSTRUCTOR 10 THAM SỐ CỦA NhaCungCap ---
-        String maHopDongActive = null; // Ban đầu là null
-        String trangThaiHopDong = null; // Trường mới - Ban đầu là null
-        String maHopDongGanNhat = null; // Trường mới - Ban đầu là null
-
-
-        // Tạo đối tượng NhaCungCap với 10 tham số
         NhaCungCap newSupplier = new NhaCungCap(
                 ten,
                 diaChi,
@@ -115,38 +109,76 @@ public class TaoNhaCungCapFragment extends Fragment {
                 email,
                 nguoiLH,
                 loaiDV,
-                maHopDongActive,
+                null, // maHopDongActive
                 maNguoiDungTao,
-                trangThaiHopDong, // Tham số mới
-                maHopDongGanNhat  // Tham số mới
+                null, // trangThaiHopDong
+                null  // maHopDongGanNhat
         );
 
-        // Gọi hàm lưu vào Firestore
         saveNewSupplierToFirestore(newSupplier);
     }
 
     private void saveNewSupplierToFirestore(NhaCungCap newSupplier) {
+        if (db == null) return;
 
-        // THAY ĐỔI: Sử dụng add() để Firestore tự động tạo ID và document
-        nhaCungCapRef.add(newSupplier)
-                .addOnSuccessListener(documentReference -> {
-                    // Lấy ID tự động tạo của document vừa được thêm
-                    String supplierId = documentReference.getId();
-                    // Chúng ta có thể set ID này lại vào đối tượng, mặc dù Firestore không cần,
-                    // nhưng hữu ích nếu chúng ta muốn xử lý đối tượng này tiếp sau khi lưu.
+        // Tham chiếu đến document bộ đếm ID
+        final DocumentReference counterRef = db.collection("counters").document("supplier_id");
+
+        // Logic Firebase Transaction để tạo ID NCC-XXXX
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+
+                    Long currentId;
+                    try {
+                        // 1. Đọc giá trị hiện tại của bộ đếm
+                        currentId = transaction.get(counterRef).getLong("current_id");
+                    } catch (Exception e) {
+                        Log.e(TAG, "Lỗi đọc bộ đếm ID: ", e);
+                        // Ném ngoại lệ để hủy transaction nếu không đọc được
+                        try {
+                            throw new Exception("Lỗi cấu hình Firestore, không thể đọc bộ đếm ID nhà cung cấp.");
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+
+                    if (currentId == null) {
+                        currentId = 0L;
+                    }
+
+                    // 2. Tăng giá trị bộ đếm lên 1
+                    long nextId = currentId + 1;
+
+                    // 3. Định dạng ID mới
+                    String supplierId = String.format(Locale.US, "NCC-%04d", nextId);
+
+                    // 4. Cập nhật lại bộ đếm
+                    Map<String, Object> updateData = new HashMap<>();
+                    updateData.put("current_id", nextId);
+                    // ⭐ ĐÃ SỬA LỖI: Sử dụng transaction.set() thay vì transaction.update()
+                    // để tạo document nếu nó chưa tồn tại (khắc phục lỗi 'Can't update a document that doesn't exist.').
+                    transaction.set(counterRef, updateData);
+
+                    // 5. Cập nhật ID vào đối tượng và lưu document mới
                     newSupplier.setMaNhaCungCap(supplierId);
 
-                    Toast.makeText(getContext(), "Tạo nhà cung cấp THÀNH CÔNG! ID: " + supplierId, Toast.LENGTH_LONG).show();
-                    Log.d(TAG, "Đã thêm Nhà Cung Cấp với ID: " + supplierId);
+                    DocumentReference newSupplierRef = nhaCungCapRef.document(supplierId);
+                    transaction.set(newSupplierRef, newSupplier);
 
-                    // Sau khi thêm thành công, có thể quay lại fragment trước đó
+                    return null;
+
+                }).addOnSuccessListener(aVoid -> {
+                    // Xử lý thành công
+                    Toast.makeText(getContext(), "Tạo nhà cung cấp THÀNH CÔNG! ID: " + newSupplier.getMaNhaCungCap(), Toast.LENGTH_LONG).show();
+                    Log.d(TAG, "Đã thêm Nhà Cung Cấp với ID: " + newSupplier.getMaNhaCungCap());
+
                     if (getParentFragmentManager() != null) {
                         getParentFragmentManager().popBackStack();
                     }
                 })
                 .addOnFailureListener(e -> {
+                    // Xử lý lỗi Transaction
                     Toast.makeText(getContext(), "LỖI LƯU DỮ LIỆU: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Lỗi lưu Nhà cung cấp vào Firestore: ", e);
+                    Log.e(TAG, "Lỗi Transaction khi lưu Nhà cung cấp: ", e);
                 });
     }
 }

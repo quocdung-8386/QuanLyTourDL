@@ -46,11 +46,13 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
     private Map<Integer, TextInputEditText> costEditTexts;
 
     // Format utility
+    // Sử dụng Locale.getDefault() để tương thích với định dạng của người dùng (dấu phẩy/dấu chấm)
     private final NumberFormat currencyFormatter = new DecimalFormat("#,###",
             new java.text.DecimalFormatSymbols(Locale.getDefault()));
 
-    // Biến tạm để lưu trữ chi phí mặc định (cho chức năng Reset về 0)
-    private final Map<Integer, Long> defaultCosts = new HashMap<>();
+    // ⭐ Định nghĩa ký tự ngăn cách hàng nghìn và hàng thập phân cho việc Parse
+    private final char groupingSeparator = new java.text.DecimalFormatSymbols(Locale.getDefault()).getGroupingSeparator();
+
 
     public void setOnCostUpdateListener(OnCostUpdateListener listener) {
         this.listener = listener;
@@ -59,7 +61,6 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Layout đã được đổi tên trong file XML mới
         return inflater.inflate(R.layout.bottom_sheet_tinh_gia_von, container, false);
     }
 
@@ -82,16 +83,16 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
         btnSaveCost.setOnClickListener(v -> saveCostData());
         btnResetCost.setOnClickListener(v -> resetCostData());
 
-        // 4. Load dữ liệu ban đầu (từ Bundle, nhưng nếu Bundle rỗng thì giá trị sẽ rỗng)
+        // 4. Load dữ liệu ban đầu
         loadInitialData();
 
         // 5. Tính toán ban đầu và thiết lập TextWatcher
         applyTextWatchers();
-        calculateTotalCost(); // Tính toán lần đầu với dữ liệu đã load (sẽ là 0 nếu không có data cũ)
+        calculateTotalCost();
     }
 
     /**
-     * Ánh xạ tất cả các trường chi phí con, lưu vào Map và ĐẶT GIÁ TRỊ RỖNG.
+     * Ánh xạ tất cả các trường chi phí con.
      */
     private void initializeCostFields(View view) {
         costEditTexts = new HashMap<>();
@@ -103,14 +104,9 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
         costEditTexts.put(R.id.et_cost_insurance, view.findViewById(R.id.et_cost_insurance));
         costEditTexts.put(R.id.et_cost_other, view.findViewById(R.id.et_cost_other));
 
-        // Đảm bảo tất cả các trường chi phí đều rỗng khi khởi tạo
+        // ⭐ QUAN TRỌNG: Nếu không có dữ liệu cũ, hãy để rỗng
         for (TextInputEditText et : costEditTexts.values()) {
-            et.setText(""); // Đặt giá trị rỗng
-        }
-
-        // Lưu giá trị mặc định là 0 cho chức năng Reset
-        for (Map.Entry<Integer, TextInputEditText> entry : costEditTexts.entrySet()) {
-            defaultCosts.put(entry.getKey(), 0L);
+            et.setText("");
         }
     }
 
@@ -123,13 +119,17 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
             if (currentPax > 0) {
                 etPaxCount.setText(String.valueOf(currentPax));
             } else {
-                etPaxCount.setText(""); // Đảm bảo rỗng nếu 0
+                etPaxCount.setText("");
             }
 
-            // TODO: Nếu Fragment mẹ truyền chi phí chi tiết, cần cập nhật logic tại đây.
-            // Hiện tại, các trường chi phí sẽ giữ nguyên là rỗng.
+            // ⭐ BỔ SUNG: Logic để load chi phí chi tiết nếu có
+            // Giả định Fragment mẹ truyền dữ liệu chi phí chi tiết qua Bundle (ví dụ: cost_guide)
+            // Ví dụ: long costGuide = getArguments().getLong("cost_guide", 0);
+            // if (costGuide > 0) {
+            //     Objects.requireNonNull(costEditTexts.get(R.id.et_cost_guide)).setText(formatCurrency(costGuide));
+            // }
+            // Cần lặp lại cho tất cả các trường chi phí nếu cần lưu trữ chi tiết.
         } else {
-            // Đảm bảo các trường rỗng nếu không có Bundle
             etPaxCount.setText("");
         }
     }
@@ -142,7 +142,7 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
         etPaxCount.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                // Không cần tính toán lại tổng chi phí, chỉ cần đảm bảo người dùng nhập số
+                // Không cần tính toán tổng chi phí khi số lượng khách thay đổi
             }
         });
 
@@ -166,14 +166,17 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
     }
 
     /**
-     * Chuyển đổi chuỗi tiền tệ đã định dạng ("1.500.000") thành giá trị Long (1500000).
+     * Chuyển đổi chuỗi tiền tệ đã định dạng thành giá trị Long.
      */
     private long parseCurrency(String formattedString) {
         if (formattedString == null || formattedString.isEmpty()) return 0;
         try {
-            // Xóa dấu chấm, phẩy, và ký tự tiền tệ
-            String cleanString = formattedString.replaceAll("[., VNĐ]", "");
-            if (cleanString.isEmpty()) return 0; // Quan trọng: Trả về 0 nếu chuỗi rỗng sau khi làm sạch
+            // ⭐ SỬA LỖI: Chỉ loại bỏ dấu ngăn cách hàng nghìn (groupingSeparator)
+            String cleanString = formattedString
+                    .replaceAll("\\s|VNĐ", "") // Loại bỏ khoảng trắng và VNĐ
+                    .replace(String.valueOf(groupingSeparator), "");
+
+            if (cleanString.isEmpty()) return 0;
             return Long.parseLong(cleanString);
         } catch (NumberFormatException e) {
             return 0;
@@ -181,14 +184,14 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
     }
 
     /**
-     * Định dạng số Long thành chuỗi tiền tệ ("1.500.000").
+     * Định dạng số Long thành chuỗi tiền tệ.
      */
     private String formatCurrency(long amount) {
         return currencyFormatter.format(amount);
     }
 
     /**
-     * Lớp TextWatcher tùy chỉnh để tự động định dạng tiền tệ.
+     * ⭐ Lớp TextWatcher tùy chỉnh để tự động định dạng tiền tệ.
      */
     private class CurrencyTextWatcher extends SimpleTextWatcher {
         private final TextInputEditText editText;
@@ -199,8 +202,8 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
         }
 
         @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            // Loại bỏ logic này trong onTextChanged để tránh các vấn đề về vòng lặp định dạng
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            current = s.toString();
         }
 
         @Override
@@ -208,7 +211,8 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
             if (!s.toString().equals(current)) {
                 editText.removeTextChangedListener(this);
 
-                String cleanString = s.toString().replaceAll("[., VNĐ]", "");
+                // Loại bỏ tất cả ký tự không phải số (trừ dấu ngăn cách hàng nghìn)
+                String cleanString = s.toString().replaceAll("[^\\d" + groupingSeparator + "]", "");
 
                 if (!cleanString.isEmpty()) {
                     long parsed = parseCurrency(cleanString);
@@ -216,11 +220,12 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
 
                     current = formatted;
                     editText.setText(formatted);
+
                     // Đặt con trỏ về cuối văn bản đã định dạng
                     try {
                         editText.setSelection(formatted.length());
                     } catch (Exception e) {
-                        // Bỏ qua lỗi IndexOutOfBounds khi nhập liệu nhanh
+                        // Tránh IndexOutOfBounds khi nhập liệu nhanh
                     }
                 } else {
                     current = "";
@@ -248,12 +253,10 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
     // --- Hành động Nút ---
 
     private void resetCostData() {
-        // Đặt lại số lượng khách về rỗng
         etPaxCount.setText("");
 
-        // Đặt lại các trường chi phí về rỗng (giá trị 0)
         for (TextInputEditText et : costEditTexts.values()) {
-            et.setText("");
+            et.setText(""); // Đặt lại về rỗng (tức là 0)
         }
 
         calculateTotalCost(); // Tổng chi phí sẽ là 0
@@ -268,6 +271,7 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
         // 1. Validation Số lượng khách
         if (paxStr.isEmpty()) {
             Toast.makeText(getContext(), "Vui lòng nhập Số lượng khách dự kiến.", Toast.LENGTH_SHORT).show();
+            etPaxCount.setError("Không được để trống");
             return;
         }
 
@@ -275,27 +279,21 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
             paxCount = Integer.parseInt(paxStr);
             if (paxCount <= 0) {
                 Toast.makeText(getContext(), "Số lượng khách phải lớn hơn 0.", Toast.LENGTH_SHORT).show();
+                etPaxCount.setError("Phải lớn hơn 0");
                 return;
             }
         } catch (NumberFormatException e) {
             Toast.makeText(getContext(), "Số lượng khách không hợp lệ.", Toast.LENGTH_SHORT).show();
+            etPaxCount.setError("Không hợp lệ");
             return;
         }
 
-        // 2. Validation Tổng chi phí
-        // Lấy tổng chi phí đã được tính và hiển thị trên tvTotalCostCalculated
-        String totalCostStr = tvTotalCostCalculated.getText().toString();
-        // Loại bỏ tiền tố "Tổng: " và hậu tố " VNĐ" để lấy chuỗi số đã định dạng
-        if (totalCostStr.contains("Tổng: ") && totalCostStr.contains(" VNĐ")) {
-            String cleanedTotalCostStr = totalCostStr.replace("Tổng: ", "").replace(" VNĐ", "").trim();
-            totalCost = parseCurrency(cleanedTotalCostStr);
-        } else {
-            // Fallback: Tính lại tổng chi phí từ các trường nhập liệu nếu chuỗi TextView bị lỗi
-            totalCost = 0;
-            for (TextInputEditText et : costEditTexts.values()) {
-                String text = Objects.requireNonNull(et.getText()).toString();
-                totalCost += parseCurrency(text);
-            }
+        // 2. Lấy Tổng chi phí đã tính toán
+        // Lấy lại từ các trường nhập liệu một lần nữa để đảm bảo tính chính xác
+        totalCost = 0;
+        for (TextInputEditText et : costEditTexts.values()) {
+            String text = Objects.requireNonNull(et.getText()).toString();
+            totalCost += parseCurrency(text);
         }
 
         if (totalCost <= 0) {
@@ -303,7 +301,7 @@ public class BottomSheetTinhGiaVon extends BottomSheetDialogFragment {
             return;
         }
 
-        // Nếu tất cả đều hợp lệ
+        // 3. Nếu tất cả đều hợp lệ, truyền dữ liệu
         if (listener != null) {
             listener.onCostUpdated(totalCost, paxCount);
         }

@@ -12,7 +12,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Tiêu đề và Mô tả ngắn -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,7 +29,6 @@
             android:textSize="14sp"
             android:layout_marginBottom="24dp"/>
 
-        <!-- Trường Tên Tour -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_ten_tour"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -51,7 +49,6 @@
                 tools:text="VD: Khám phá Hà Giang mùa lúa chín 3N2Đ" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Trường Mã Tour (Đã loại bỏ icon Refresh) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_ma_tour"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -61,15 +58,14 @@
             android:hint="Mã Tour">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_ma_tour"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:enabled="false"
-                android:text="TỰ ĐỘNG TẠO"
-                android:textColor="?attr/colorPrimary"
-                android:textStyle="bold" />
+                android:inputType="text"
+                android:textSize="16sp"
+                tools:text="MT-1234"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Trường Loại Tour (Dropdown) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_loai_tour"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -87,7 +83,6 @@
                 android:textSize="16sp"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Ngày bắt đầu và Ngày kết thúc -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -133,7 +128,6 @@
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-        <!-- Thời lượng dự kiến -->
         <TextView
             android:id="@+id/tv_thoi_luong"
             android:layout_width="wrap_content"
@@ -147,7 +141,69 @@
             app:drawableStartCompat="@drawable/ic_time"
             app:drawableTint="#888888" />
 
-        <!-- Trường Mô tả chi tiết -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Địa điểm và Số lượng khách"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_diem_khoi_hanh"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="Điểm Khởi hành *">
+
+            <AutoCompleteTextView
+                android:id="@+id/actv_diem_khoi_hanh"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:textSize="16sp"
+                tools:text="TP. Hồ Chí Minh" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_diem_den"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:hint="Điểm Đến chính *">
+
+            <AutoCompleteTextView
+                android:id="@+id/actv_diem_den"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:textSize="16sp"
+                tools:text="Hà Nội" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_so_luong_toi_da"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:hint="Số lượng khách tối đa *">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_so_luong_toi_da"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="3"
+                android:textSize="16sp"
+                android:imeOptions="actionDone"
+                tools:text="20" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_mo_ta"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

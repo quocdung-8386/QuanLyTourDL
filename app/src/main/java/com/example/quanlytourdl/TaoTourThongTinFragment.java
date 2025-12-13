@@ -1,6 +1,6 @@
 package com.example.quanlytourdl;
 
-import android.app.DatePickerDialog;
+import android.app.DatePickerDialog; // ⭐ ĐÃ THÊM: Import DatePickerDialog
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,426 +8,389 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
+import com.example.quanlytourdl.model.Tour;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
+import java.util.Calendar; // ⭐ ĐÃ THÊM: Import Calendar
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-public class TaoTourThongTinFragment extends Fragment {
+public class TaoTourThongTinFragment extends Fragment implements TaoTourDetailFullFragment.TourStepDataCollector {
 
-    private static final String TAG = "ThongTinChungFragment";
-    private static final String DEFAULT_APP_ID = "default-tour-app-id";
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    private static final String TAG = "TaoTourThongTinFragment";
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-    // UI Components (Ánh xạ theo ID trong XML bạn cung cấp)
-    private TextInputEditText etTourName; // et_ten_tour
-    private AutoCompleteTextView actvTourType; // actv_loai_tour
-    private TextInputEditText etStartDate; // et_ngay_bat_dau
-    private TextInputEditText etEndDate; // et_ngay_ket_thuc
-    private TextView tvDuration; // tv_thoi_luong
-    private TextInputEditText etDescription; // et_mo_ta
+    // ⭐ ĐÃ THÊM: Danh sách các Loại Tour có sẵn
+    private static final String[] LOAI_TOUR_OPTIONS = new String[] {
+            "Tour Trong nước",
+            "Tour Du lịch Bền vững",
+            "Tour Tự túc (Free & Easy)",
+            "Tour Khám phá (Adventure)"
+    };
 
-    // Giả định các thành phần này nằm trong layout gốc hoặc parent Fragment
-    private Button saveButton;
-    private TextView statusTextView; // Cần được tìm thấy hoặc truyền vào từ Fragment cha
-    private TextView userIdTextView; // Cần được tìm thấy hoặc truyền vào từ Fragment cha
+    // ⭐ ĐÃ THÊM: Danh sách ví dụ Điểm Khởi Hành/Điểm Đến
+    private static final String[] DIEM_KHOI_HANH_OPTIONS = new String[] {"TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Cần Thơ"};
+    private static final String[] DIEM_DEN_OPTIONS = new String[] {"Hà Nội", "Đà Nẵng", "Phú Quốc", "Singapore", "Thái Lan", "Hà Giang"};
 
-    // Firebase instances
-    private FirebaseFirestore db;
-    private FirebaseAuth auth;
-    private String appId;
-    private ListenerRegistration firestoreListener;
+    // ⭐ Đối tượng Tour được chia sẻ từ Fragment cha
+    private final Tour tour;
 
-    private final List<String> tourTypes = Arrays.asList(
-            "Tour Nội địa",
-            "Tour Cá nhân",
-            "Tour Đoàn/Công ty"
-    );
+    // ⭐ THÀNH PHẦN UI THỰC TẾ (Khớp với layout XML)
+    private TextInputEditText etTenTour;
+    private AutoCompleteTextView actvLoaiTour;
+    private TextInputEditText etNgayBatDau;
+    private TextInputEditText etNgayKetThuc;
+    private AutoCompleteTextView actvDiemKhoiHanh;
+    private AutoCompleteTextView actvDiemDen;
+    private TextInputEditText etSoLuongToiDa;
+    private TextInputEditText etMoTa;
+    private TextView tvThoiLuong;
+    private TextInputEditText etMaTour;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setupFirebase();
+    // Biến lưu trữ mã tour ngẫu nhiên (chỉ được tạo một lần)
+    private String generatedTourCode = null;
+
+
+    // Bắt buộc phải có constructor nhận đối tượng Tour
+    public TaoTourThongTinFragment(Tour tour) {
+        this.tour = tour;
+    }
+
+    // Constructor rỗng
+    public TaoTourThongTinFragment() {
+        this(new Tour()); // Khởi tạo Tour mặc định
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Giả định file layout là fragment_thong_tin_co_ban.xml (theo ID trong code)
-        View view = inflater.inflate(R.layout.fragment_thong_tin_co_ban, container, false);
-
-        // Ánh xạ các thành phần UI
-        etTourName = view.findViewById(R.id.et_ten_tour);
-        actvTourType = view.findViewById(R.id.actv_loai_tour);
-        etStartDate = view.findViewById(R.id.et_ngay_bat_dau);
-        etEndDate = view.findViewById(R.id.et_ngay_ket_thuc);
-        tvDuration = view.findViewById(R.id.tv_thoi_luong);
-        etDescription = view.findViewById(R.id.et_mo_ta);
-
-        // TẠM THỜI gán statusTextView và userIdTextView bằng null
-        // Do chúng không được ánh xạ trong đoạn code gốc.
-        statusTextView = null;
-        userIdTextView = null;
-
-        return view;
+        return inflater.inflate(R.layout.fragment_thong_tin_co_ban, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Thiết lập Dropdown Loại Tour
-        setupTourTypeDropdown();
+        // ⭐ ÁNH XẠ VIEWS VÀ KHẮC PHỤC LỖI ID
+        etTenTour = view.findViewById(R.id.et_ten_tour);
+        etMaTour = view.findViewById(R.id.et_ma_tour);
+        actvLoaiTour = view.findViewById(R.id.actv_loai_tour);
+        etNgayBatDau = view.findViewById(R.id.et_ngay_bat_dau);
+        etNgayKetThuc = view.findViewById(R.id.et_ngay_ket_thuc);
+        tvThoiLuong = view.findViewById(R.id.tv_thoi_luong);
+        actvDiemKhoiHanh = view.findViewById(R.id.actv_diem_khoi_hanh);
+        actvDiemDen = view.findViewById(R.id.actv_diem_den);
+        etSoLuongToiDa = view.findViewById(R.id.et_so_luong_toi_da);
+        etMoTa = view.findViewById(R.id.et_mo_ta);
 
-        // 2. Thiết lập Date Pickers
-        etStartDate.setOnClickListener(v -> showDatePickerDialog(etStartDate));
-        etEndDate.setOnClickListener(v -> showDatePickerDialog(etEndDate));
+        // ⭐ Thiết lập Adapter cho các trường AutoCompleteTextView
+        setupAdapters();
 
-        // 3. Gắn Listener cho nút Lưu (Nếu nút tồn tại trong layout này - đã bị loại bỏ)
-        // Nếu `saveButton` không được tìm thấy, nút "Lưu Nháp" sẽ được điều khiển bởi Fragment cha.
+        // ⭐ ĐÃ THÊM: Thiết lập Listener cho etNgayBatDau, etNgayKetThuc để mở DatePicker
+        etNgayBatDau.setOnClickListener(v -> showDatePickerDialog(etNgayBatDau));
+        etNgayKetThuc.setOnClickListener(v -> showDatePickerDialog(etNgayKetThuc));
 
-        // 4. Thiết lập Auth Listener Firebase
-        auth.addAuthStateListener(firebaseAuth -> {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user != null) {
-                String userId = user.getUid();
-                Log.d(TAG, "Authenticated with UID: " + userId);
-                if (userIdTextView != null) {
-                    userIdTextView.setText("User ID: " + userId);
-                }
-                startRealtimeListener(userId);
-            } else {
-                Log.d(TAG, "User signed out or not yet signed in. Attempting sign-in.");
-                stopRealtimeListener();
-                signInUser();
-            }
-        });
+        // Ngăn bàn phím hiện lên khi click vào trường ngày
+        etNgayBatDau.setKeyListener(null);
+        etNgayKetThuc.setKeyListener(null);
+
+
+        // Cập nhật giao diện với dữ liệu hiện có (nếu là chỉnh sửa)
+        updateDisplay();
+
+        // Ngăn không cho người dùng sửa Mã Tour
+        if (etMaTour != null) {
+            etMaTour.setKeyListener(null);
+            etMaTour.setFocusable(false);
+            etMaTour.setClickable(false);
+        }
     }
 
     /**
-     * Khởi tạo Firebase Firestore và Auth.
+     * ⭐ ĐÃ THÊM: Phương thức hiển thị DatePickerDialog
      */
-    private void setupFirebase() {
+    private void showDatePickerDialog(final TextInputEditText editText) {
+        if (getContext() == null) return;
+        final Calendar calendar = Calendar.getInstance();
+
+        // Thử parse ngày hiện có trong EditText (nếu có)
         try {
-            // Sửa lỗi cú pháp JavaScript: Trong Java, ta phải sử dụng giá trị mặc định
-            // hoặc System.getProperty() nếu biến được truyền qua VM arguments.
-            // Để tương thích với môi trường Canvas, ta sẽ giả định biến này có thể được gán
-            // thông qua một cơ chế nào đó (ví dụ: một class Constants), nhưng ở đây ta dùng DEFAULT_APP_ID.
-            // Nếu bạn đang dùng Android Studio, hãy bỏ qua các biến __xxx__.
-
-            // Giữ lại DEFAULT_APP_ID để biên dịch:
-            appId = DEFAULT_APP_ID;
-
-            db = FirebaseFirestore.getInstance();
-            auth = FirebaseAuth.getInstance();
-        } catch (Exception e) {
-            Log.e(TAG, "Lỗi khởi tạo Firebase: " + e.getMessage(), e);
-            if (statusTextView != null) {
-                statusTextView.setText("Lỗi khởi tạo Firebase.");
-            }
-        }
-    }
-
-    /**
-     * Xử lý đăng nhập ẩn danh (do không có token tùy chỉnh).
-     */
-    private void signInUser() {
-        if (auth.getCurrentUser() != null) return;
-
-        auth.signInAnonymously()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "Signed in anonymously.");
-                    } else {
-                        Log.e(TAG, "Anonymous sign-in failed: " + task.getException().getMessage());
-                        if (statusTextView != null) {
-                            statusTextView.setText("Lỗi đăng nhập Firebase.");
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Thiết lập danh sách tùy chọn cho Dropdown Loại Tour.
-     */
-    private void setupTourTypeDropdown() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
-                tourTypes
-        );
-        actvTourType.setAdapter(adapter);
-    }
-
-    /**
-     * Hiển thị DatePickerDialog và cập nhật trường ngày tháng.
-     */
-    private void showDatePickerDialog(final TextInputEditText dateField) {
-        final Calendar c = Calendar.getInstance();
-        if (!dateField.getText().toString().isEmpty()) {
-            try {
-                // Đảm bảo không bị crash nếu ngày tháng cũ không hợp lệ
-                Date existingDate = DATE_FORMAT.parse(dateField.getText().toString());
-                if (existingDate != null) {
-                    c.setTime(existingDate);
+            String currentText = editText.getText().toString();
+            if (!currentText.isEmpty()) {
+                Date currentDate = dateFormat.parse(currentText);
+                if (currentDate != null) {
+                    calendar.setTime(currentDate);
                 }
-            } catch (ParseException e) {
-                Log.e(TAG, "Lỗi phân tích cú pháp ngày: " + e.getMessage());
             }
+        } catch (Exception e) {
+            Log.e(TAG, "Lỗi phân tích ngày hiện tại: ", e);
+            // Mặc định sử dụng ngày hiện tại nếu parse thất bại
         }
 
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
-                (view, y, m, d) -> {
-                    c.set(y, m, d);
-                    dateField.setText(DATE_FORMAT.format(c.getTime()));
-                    calculateDuration(); // Tính lại thời lượng sau khi chọn ngày
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(),
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    // Cập nhật Calendar với ngày mới
+                    calendar.set(selectedYear, selectedMonth, selectedDay);
+                    Date selectedDate = calendar.getTime();
+
+                    // Hiển thị ngày đã chọn
+                    editText.setText(dateFormat.format(selectedDate));
+
+                    // Cập nhật thời lượng sau khi cả hai trường ngày được điền
+                    Date start = null;
+                    Date end = null;
+                    try {
+                        if (etNgayBatDau.getText() != null && !etNgayBatDau.getText().toString().isEmpty()) {
+                            start = dateFormat.parse(etNgayBatDau.getText().toString());
+                        }
+                        if (etNgayKetThuc.getText() != null && !etNgayKetThuc.getText().toString().isEmpty()) {
+                            end = dateFormat.parse(etNgayKetThuc.getText().toString());
+                        }
+                    } catch (Exception ignored) {
+                        // Bỏ qua lỗi parse
+                    }
+                    updateThoiLuongDisplay(start, end);
+
                 }, year, month, day);
+
         datePickerDialog.show();
     }
 
+
     /**
-     * Tính toán và hiển thị thời lượng tour (Ngày/Đêm).
+     * ⭐ ĐÃ THÊM: Thiết lập ArrayAdapter cho các AutoCompleteTextView (Loại Tour, Điểm Khởi hành/Đến)
      */
-    private void calculateDuration() {
-        String startStr = etStartDate.getText().toString();
-        String endStr = etEndDate.getText().toString();
+    private void setupAdapters() {
+        if (getContext() == null) return;
 
-        if (startStr.isEmpty() || endStr.isEmpty()) {
-            tvDuration.setText("Thời lượng dự kiến: 0 ngày 0 đêm");
-            return;
+        // 1. Loại Tour
+        ArrayAdapter<String> loaiTourAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line, // Layout mặc định cho dropdown
+                LOAI_TOUR_OPTIONS
+        );
+        actvLoaiTour.setAdapter(loaiTourAdapter);
+
+        // 2. Điểm Khởi Hành
+        ArrayAdapter<String> diemKhoiHanhAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                DIEM_KHOI_HANH_OPTIONS
+        );
+        actvDiemKhoiHanh.setAdapter(diemKhoiHanhAdapter);
+
+        // 3. Điểm Đến
+        ArrayAdapter<String> diemDenAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                DIEM_DEN_OPTIONS
+        );
+        actvDiemDen.setAdapter(diemDenAdapter);
+    }
+
+    /**
+     * ⭐ ĐÃ SỬA: Cập nhật logic hiển thị Mã Tour để buộc hiển thị MT-XXXX nếu Mã cũ không hợp lệ (UUID)
+     */
+    private void updateDisplay() {
+        if (tour != null) {
+            etTenTour.setText(tour.getTenTour());
+
+            // ⭐ LOGIC MỚI Xử lý Mã Tour tự động theo định dạng MT-XXXX
+            String currentMaTour = tour.getMaTour() != null ? tour.getMaTour() : "";
+
+            // Điều kiện để tạo mã mới:
+            // 1. Mã tour rỗng (Tour mới hoàn toàn)
+            // 2. Mã tour có định dạng không mong muốn (quá dài như UUID, hoặc không bắt đầu bằng "MT-")
+            if (currentMaTour.isEmpty() || currentMaTour.length() > 10 || !currentMaTour.startsWith("MT-")) {
+
+                // Đây là Tour mới, hoặc Tour cũ có mã không hợp lệ -> Tạo mã ngẫu nhiên
+                if (generatedTourCode == null) {
+                    generatedTourCode = generateTourCode();
+                }
+                etMaTour.setText(generatedTourCode);
+
+            } else {
+                // Đây là Tour đã có mã MT-XXXX hợp lệ (trường hợp chỉnh sửa)
+                etMaTour.setText(currentMaTour);
+            }
+            // HẾT LOGIC MỚI
+
+            // ⭐ Gán giá trị với 'false' để không tự động mở dropdown khi gán dữ liệu cũ
+            actvLoaiTour.setText(tour.getLoaiTour(), false);
+            actvDiemKhoiHanh.setText(tour.getDiemKhoiHanh(), false);
+            actvDiemDen.setText(tour.getDiemDen(), false);
+
+            etMoTa.setText(tour.getMoTa());
+
+            if (tour.getSoLuongKhachToiDa() > 0) {
+                etSoLuongToiDa.setText(String.valueOf(tour.getSoLuongKhachToiDa()));
+            }
+
+            // Hiển thị Ngày và Thời lượng
+            if (tour.getNgayKhoiHanh() != null) {
+                etNgayBatDau.setText(dateFormat.format(tour.getNgayKhoiHanh()));
+            }
+            if (tour.getNgayKetThuc() != null) {
+                etNgayKetThuc.setText(dateFormat.format(tour.getNgayKetThuc()));
+            }
+            updateThoiLuongDisplay(tour.getNgayKhoiHanh(), tour.getNgayKetThuc());
         }
+    }
 
+    /**
+     * ⭐ PHƯƠNG THỨC TẠO MÃ TOUR NGẪU NHIÊN: Định dạng MT-XXXX
+     */
+    private String generateTourCode() {
+        Random random = new Random();
+        int randomNumber = random.nextInt(10000); // Tạo số ngẫu nhiên từ 0 đến 9999
+
+        // Sử dụng String.format để đảm bảo luôn có 4 chữ số, VD: 0045, 1234
+        String randomDigits = String.format(Locale.getDefault(), "%04d", randomNumber);
+
+        return "MT-" + randomDigits;
+    }
+
+    private void updateThoiLuongDisplay(Date start, Date end) {
+        if (start != null && end != null && !end.before(start)) {
+            long diff = end.getTime() - start.getTime();
+            int soNgay = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) + 1;
+            int soDem = soNgay - 1;
+            tvThoiLuong.setText(String.format("Thời lượng dự kiến: %d ngày %d đêm", soNgay, soDem));
+        } else {
+            tvThoiLuong.setText("Thời lượng dự kiến: 0 ngày 0 đêm");
+        }
+    }
+
+
+    /**
+     * ⭐ Thực hiện Thu thập và Validation dữ liệu của Bước 1.
+     */
+    @Override
+    public boolean collectDataAndValidate(Tour tour) {
+        // Đặt lại lỗi thành null/clear trước khi validation mới
+        if (etTenTour != null) etTenTour.setError(null);
+        if (actvLoaiTour != null) actvLoaiTour.setError(null);
+        if (actvDiemKhoiHanh != null) actvDiemKhoiHanh.setError(null);
+        if (actvDiemDen != null) actvDiemDen.setError(null);
+        if (etNgayKetThuc != null) etNgayKetThuc.setError(null);
+        if (etSoLuongToiDa != null) etSoLuongToiDa.setError(null);
+
+
+        String tenTour = etTenTour.getText() != null ? etTenTour.getText().toString().trim() : "";
+        String loaiTour = actvLoaiTour.getText() != null ? actvLoaiTour.getText().toString().trim() : "";
+        String diemKhoiHanh = actvDiemKhoiHanh.getText() != null ? actvDiemKhoiHanh.getText().toString().trim() : "";
+        String diemDen = actvDiemDen.getText() != null ? actvDiemDen.getText().toString().trim() : "";
+        String moTa = etMoTa.getText() != null ? etMoTa.getText().toString().trim() : "";
+        String soLuongToiDaStr = etSoLuongToiDa.getText() != null ? etSoLuongToiDa.getText().toString().trim() : "";
+
+        Date ngayKhoiHanh = null;
+        Date ngayKetThuc = null;
+
+        // Xử lý Ngày
         try {
-            Date startDate = DATE_FORMAT.parse(startStr);
-            Date endDate = DATE_FORMAT.parse(endStr);
-
-            if (startDate != null && endDate != null && endDate.after(startDate)) {
-                // Tính toán sự khác biệt về ngày
-                long diff = endDate.getTime() - startDate.getTime();
-                long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) + 1; // +1 để tính cả ngày bắt đầu
-                long nights = days - 1;
-
-                String durationText = String.format(Locale.getDefault(),
-                        "Thời lượng dự kiến: %d ngày %d đêm", days, nights);
-                tvDuration.setText(durationText);
-            } else {
-                tvDuration.setText("Thời lượng dự kiến: Ngày kết thúc phải sau Ngày bắt đầu");
+            if (etNgayBatDau.getText() != null && !etNgayBatDau.getText().toString().isEmpty()) {
+                ngayKhoiHanh = dateFormat.parse(etNgayBatDau.getText().toString());
             }
-
-        } catch (ParseException e) {
-            Log.e(TAG, "Lỗi tính toán thời lượng: " + e.getMessage());
-        }
-    }
-
-
-    /**
-     * Tạo đường dẫn Document Firestore.
-     * Cấu trúc: /artifacts/{appId}/users/{userId}/tour_data/general_info
-     */
-    private DocumentReference getDocumentPath(String userId) {
-        return db.collection("artifacts").document(appId)
-                .collection("users").document(userId)
-                .collection("tour_data").document("general_info");
-    }
-
-    /**
-     * Bắt đầu lắng nghe dữ liệu Tour theo thời gian thực (onSnapshot).
-     */
-    private void startRealtimeListener(String userId) {
-        stopRealtimeListener();
-
-        DocumentReference docRef = getDocumentPath(userId);
-
-        firestoreListener = docRef.addSnapshotListener((snapshot, e) -> {
-            if (e != null) {
-                Log.w(TAG, "Lỗi lắng nghe Firestore.", e);
-                if (statusTextView != null) statusTextView.setText("Lỗi kết nối dữ liệu.");
-                return;
+            if (etNgayKetThuc.getText() != null && !etNgayKetThuc.getText().toString().isEmpty()) {
+                ngayKetThuc = dateFormat.parse(etNgayKetThuc.getText().toString());
             }
-
-            if (snapshot != null && snapshot.exists()) {
-                // Tải dữ liệu và cập nhật UI
-                etTourName.setText(snapshot.getString("tourName"));
-                // false: không kích hoạt dropdown
-                actvTourType.setText(snapshot.getString("tourType"), false);
-                etStartDate.setText(snapshot.getString("startDate"));
-                etEndDate.setText(snapshot.getString("endDate"));
-                etDescription.setText(snapshot.getString("description"));
-
-                calculateDuration(); // Tính lại thời lượng sau khi tải ngày tháng
-
-                if (statusTextView != null) statusTextView.setText("Thông tin Tour đã được tải.");
-                Log.d(TAG, "Dữ liệu thời gian thực được cập nhật.");
-            } else {
-                // Tài liệu không tồn tại
-                if (statusTextView != null) statusTextView.setText("Hãy nhập và lưu thông tin Tour.");
-                // Xóa các trường để chuẩn bị cho dữ liệu mới
-                etTourName.setText("");
-                actvTourType.setText("", false);
-                etStartDate.setText("");
-                etEndDate.setText("");
-                etDescription.setText("");
-                calculateDuration();
-            }
-        });
-    }
-
-    /**
-     * Hủy bỏ Listener Firestore hiện tại.
-     */
-    private void stopRealtimeListener() {
-        if (firestoreListener != null) {
-            firestoreListener.remove();
-            firestoreListener = null;
-            Log.d(TAG, "Firestore Listener đã được hủy.");
-        }
-    }
-
-    /**
-     * Phương thức PRIVATE: Chỉ thực hiện validation form.
-     * @return true nếu form hợp lệ, false nếu ngược lại.
-     */
-    private boolean validateForm() {
-        String tourName = etTourName.getText().toString().trim();
-        String tourType = actvTourType.getText().toString().trim();
-        String startDate = etStartDate.getText().toString().trim();
-        String endDate = etEndDate.getText().toString().trim();
-
-        // 1. Kiểm tra các trường bắt buộc
-        if (tourName.isEmpty() || tourType.isEmpty() || startDate.isEmpty() || endDate.isEmpty()) {
-            if (statusTextView != null) statusTextView.setText("Vui lòng nhập đầy đủ các trường bắt buộc (*).");
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Lỗi định dạng ngày tháng. Vui lòng kiểm tra lại.", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Lỗi phân tích ngày tháng", e);
             return false;
         }
 
-        // 2. Kiểm tra ngày kết thúc có hợp lệ không
+        // 1. Validation
+        if (tenTour.isEmpty()) {
+            Toast.makeText(getContext(), "Vui lòng nhập Tên Tour.", Toast.LENGTH_SHORT).show();
+            etTenTour.setError("Không được để trống");
+            return false;
+        }
+        if (loaiTour.isEmpty() || loaiTour.equals("Chọn loại tour")) {
+            Toast.makeText(getContext(), "Vui lòng chọn Loại Tour.", Toast.LENGTH_SHORT).show();
+            actvLoaiTour.setError("Không được để trống");
+            return false;
+        }
+        if (diemKhoiHanh.isEmpty() || diemDen.isEmpty()) {
+            Toast.makeText(getContext(), "Vui lòng nhập đầy đủ Điểm Khởi Hành và Điểm Đến.", Toast.LENGTH_SHORT).show();
+            if (diemKhoiHanh.isEmpty()) actvDiemKhoiHanh.setError("Không được để trống");
+            if (diemDen.isEmpty()) actvDiemDen.setError("Không được để trống");
+            return false;
+        }
+        if (ngayKhoiHanh == null || ngayKetThuc == null) {
+            Toast.makeText(getContext(), "Vui lòng chọn Ngày Khởi Hành và Ngày Kết Thúc.", Toast.LENGTH_SHORT).show();
+            // Không setError cụ thể vì nó là 2 trường khác nhau
+            return false;
+        }
+        if (ngayKetThuc.before(ngayKhoiHanh)) {
+            Toast.makeText(getContext(), "Ngày kết thúc không thể trước ngày khởi hành.", Toast.LENGTH_SHORT).show();
+            etNgayKetThuc.setError("Ngày không hợp lệ");
+            return false;
+        }
+
+        int soLuongToiDa;
         try {
-            Date start = DATE_FORMAT.parse(startDate);
-            Date end = DATE_FORMAT.parse(endDate);
-            if (end == null || start == null || end.before(start)) {
-                if (statusTextView != null) statusTextView.setText("Lỗi: Ngày kết thúc phải sau Ngày bắt đầu.");
+            if (soLuongToiDaStr.isEmpty()) {
+                Toast.makeText(getContext(), "Số lượng khách tối đa không được để trống.", Toast.LENGTH_SHORT).show();
+                etSoLuongToiDa.setError("Không được để trống");
                 return false;
             }
-        } catch (ParseException e) {
-            if (statusTextView != null) statusTextView.setText("Lỗi: Định dạng ngày không hợp lệ.");
+            soLuongToiDa = Integer.parseInt(soLuongToiDaStr);
+            if (soLuongToiDa <= 0) {
+                Toast.makeText(getContext(), "Số lượng khách tối đa phải lớn hơn 0.", Toast.LENGTH_SHORT).show();
+                etSoLuongToiDa.setError("Phải > 0");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Số lượng khách tối đa phải là số nguyên.", Toast.LENGTH_SHORT).show();
+            etSoLuongToiDa.setError("Phải là số");
             return false;
         }
 
+        // 2. Gán dữ liệu vào đối tượng Tour
+
+        // ⭐ Gán Mã Tour TỰ ĐỘNG nếu đây là Tour mới (Logic giữ nguyên)
+        if (tour.getMaTour() == null || tour.getMaTour().isEmpty() || tour.getMaTour().length() > 10) {
+            // Sử dụng mã đã tạo trong updateDisplay
+            if (generatedTourCode != null) {
+                tour.setMaTour(generatedTourCode);
+            } else {
+                // Trường hợp an toàn (nếu collectDataAndValidate được gọi trước updateDisplay)
+                tour.setMaTour(generateTourCode());
+            }
+        }
+
+        tour.setTenTour(tenTour);
+        tour.setLoaiTour(loaiTour);
+        tour.setDiemKhoiHanh(diemKhoiHanh);
+        tour.setDiemDen(diemDen);
+        tour.setMoTa(moTa);
+        tour.setNgayKhoiHanh(ngayKhoiHanh);
+        tour.setNgayKetThuc(ngayKetThuc);
+        tour.setSoLuongKhachToiDa(soLuongToiDa);
+
+        // Tính toán tự động
+        long diff = ngayKetThuc.getTime() - ngayKhoiHanh.getTime();
+        int soNgay = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) + 1;
+        int soDem = soNgay - 1;
+        tour.setSoNgay(soNgay);
+        tour.setSoDem(soDem);
+
+        updateThoiLuongDisplay(ngayKhoiHanh, ngayKetThuc);
+        Log.d(TAG, "Bước 1 - Thông tin: Thu thập thành công.");
         return true;
-    }
-
-    /**
-     * Phương thức PRIVATE: Thực hiện logic lưu dữ liệu vào Firestore.
-     */
-    private void saveDataToFirestore(String userId) {
-        String tourName = etTourName.getText().toString().trim();
-        String tourType = actvTourType.getText().toString().trim();
-        String startDate = etStartDate.getText().toString().trim();
-        String endDate = etEndDate.getText().toString().trim();
-        String description = etDescription.getText().toString().trim();
-
-        Map<String, Object> tourInfo = new HashMap<>();
-        tourInfo.put("tourName", tourName);
-        tourInfo.put("tourType", tourType);
-        tourInfo.put("startDate", startDate);
-        tourInfo.put("endDate", endDate);
-        tourInfo.put("description", description);
-        tourInfo.put("lastUpdated", System.currentTimeMillis());
-
-        // Mã Tour (Mặc định: Tự động tạo nếu chưa có)
-        // Trong trường hợp này, ta tạo mới mỗi lần lưu nháp vì không có ID Tour cố định
-        tourInfo.put("tourCode", "TOUR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase(Locale.ROOT));
-
-        DocumentReference docRef = getDocumentPath(userId);
-
-        docRef.set(tourInfo)
-                .addOnSuccessListener(aVoid -> {
-                    // Listener Realtime sẽ cập nhật trạng thái UI
-                    Log.d(TAG, "Thông tin chung Tour đã được lưu thành công.");
-                    if (statusTextView != null) statusTextView.setText("Đã lưu thành công!");
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Lỗi khi lưu thông tin chung Tour", e);
-                    if (statusTextView != null) statusTextView.setText("Lỗi lưu dữ liệu: " + e.getMessage());
-                });
-    }
-
-    // --- CÁC PHƯƠNG THỨC CÔNG KHAI DÀNH CHO FRAGMENT CHA ---
-
-    /**
-     * PUBLIC: Phương thức dùng cho nút "Lưu Nháp".
-     * Chỉ kiểm tra User Auth và gọi hàm lưu. (Không cần validation nghiêm ngặt như khi chuyển bước).
-     */
-    public void saveGeneralInfo() {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            if (statusTextView != null) statusTextView.setText("Lỗi: Người dùng chưa đăng nhập. Đang thử đăng nhập lại.");
-            signInUser();
-            return;
-        }
-
-        // Vẫn thực hiện validation cơ bản trước khi lưu nháp
-        if (validateForm()) {
-            saveDataToFirestore(user.getUid());
-        }
-    }
-
-    /**
-     * PUBLIC: Phương thức dùng cho nút "Tiếp tục" (Next Step).
-     * BẮT BUỘC phải có theo yêu cầu của Fragment cha.
-     * Thực hiện Validation nghiêm ngặt. Nếu hợp lệ, tiến hành lưu và trả về TRUE.
-     *
-     * @return true nếu validation và lưu thành công, false nếu ngược lại.
-     */
-    public boolean isFormValidAndSave() {
-        // 1. Kiểm tra validation
-        if (!validateForm()) {
-            return false;
-        }
-
-        // 2. Kiểm tra trạng thái User
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            if (statusTextView != null) statusTextView.setText("Lỗi: Người dùng chưa đăng nhập. Vui lòng thử lại.");
-            signInUser(); // Cố gắng đăng nhập lại
-            return false;
-        }
-
-        // 3. Tiến hành lưu dữ liệu
-        saveDataToFirestore(user.getUid());
-
-        // Trả về true ngay lập tức để cho phép chuyển bước.
-        // LƯU Ý: Việc lưu Firestore là bất đồng bộ (async), nhưng ta chấp nhận chuyển bước
-        // nếu validation thành công.
-        return true;
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        stopRealtimeListener();
     }
 }

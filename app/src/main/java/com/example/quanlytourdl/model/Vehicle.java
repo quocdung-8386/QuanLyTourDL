@@ -1,18 +1,11 @@
 package com.example.quanlytourdl.model;
-
-/**
- * Model class đại diện cho đối tượng Phương tiện trong Firestore.
- * Collection: phuongtien
- */
 public class Vehicle {
     private String id;
     private String bienSoXe;
     private String loaiPhuongTien;
     private String hangXe;
     private int soChoNgoi;
-    private String tinhTrangBaoDuong; // "Hoạt động tốt", "Cần bảo trì nhỏ", "Cần sửa chữa lớn", "Đang bảo dưỡng"
-
-    // Constructor rỗng cần thiết cho Firestore
+    private String tinhTrangBaoDuong;
     public Vehicle() {}
 
     public String getId() { return id; }

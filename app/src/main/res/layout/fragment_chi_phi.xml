@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white">
@@ -11,7 +12,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Tiêu đề -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -29,7 +29,6 @@
             android:textSize="14sp"
             android:layout_marginBottom="24dp"/>
 
-        <!-- CARD 1: TÍNH GIÁ VỐN -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_cost_calculation"
             android:layout_width="match_parent"
@@ -59,6 +58,7 @@
                     android:id="@+id/tv_total_cost_price"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    tools:text="15,000,000 VNĐ"
                     android:text="0 VNĐ"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="24sp"
@@ -69,6 +69,7 @@
                     android:id="@+id/tv_cost_per_pax"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    tools:text="Giá vốn/khách dự kiến: 1,500,000 VNĐ (SL: 10)"
                     android:text="Giá vốn/khách dự kiến: 0 VNĐ (SL: 0)"
                     android:textColor="#666666"
                     android:textSize="14sp"
@@ -88,7 +89,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- CARD 2: ÁP DỤNG LỢI NHUẬN -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_pricing"
             android:layout_width="match_parent"
@@ -108,47 +108,152 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Giá Bán Tour (Selling Price)"
+                    android:text="Xác định Lợi nhuận"
                     android:textColor="@android:color/black"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="4dp"/>
 
-                <TextView
-                    android:id="@+id/tv_selling_price"
-                    android:layout_width="wrap_content"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_profit_percent"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="0 VNĐ"
-                    android:textColor="#00AA00"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp"/>
+                    android:layout_marginBottom="12dp"
+                    android:hint="Tỷ suất Lợi nhuận mong muốn (%)"
+                    app:suffixText="%">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_profit_percent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:maxLength="4"
+                        android:textSize="16sp"
+                        tools:text="15.0" />
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
-                    android:id="@+id/tv_profit_margin"
+                    android:id="@+id/tv_profit_absolute"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tỷ suất lợi nhuận dự kiến: 0%"
+                    tools:text="Lợi nhuận dự kiến: 225,000 VNĐ / khách"
+                    android:text="Lợi nhuận dự kiến: 0 VNĐ / khách"
                     android:textColor="#666666"
                     android:textSize="14sp"
                     android:layout_marginBottom="16dp"/>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_open_profit_dialog"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:id="@+id/btn_calculate_selling_price"
+                    style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Áp Dụng Lợi Nhuận"
+                    android:text="Tính Giá Bán"
                     android:textAllCaps="false"
-                    app:icon="@drawable/ic_percent_24"
-                    app:iconTint="?attr/colorPrimary"
-                    android:textColor="?attr/colorPrimary"
                     android:layout_gravity="end"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Dịch vụ Bao gồm & Không bao gồm (Giữ lại từ file cũ) -->
-        <!-- ... Các trường inclusion/exclusion tương tự fragment_chi_phi_tour.xml cũ ... -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_selling_prices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:strokeColor="#DDDDDD"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Giá Bán Chính thức (VNĐ)"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_gia_nguoi_lon"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Giá Bán Người Lớn *"
+                    app:startIconDrawable="@drawable/ic_vnd_24"
+                    app:endIconMode="clear_text">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_gia_nguoi_lon"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp"
+                        tools:text="1725000" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_gia_tre_em"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Giá Bán Trẻ em (Ví dụ: 50% NL)"
+                    app:startIconDrawable="@drawable/ic_vnd_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_gia_tre_em"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp"
+                        tools:text="862500" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_gia_em_be"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Giá Bán Em bé (Ví dụ: Miễn phí hoặc 10% NL)"
+                    app:startIconDrawable="@drawable/ic_vnd_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_gia_em_be"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp"
+                        tools:text="172500" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_gia_nuoc_ngoai"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Giá Bán Khách nước ngoài (USD)"
+                    app:startIconDrawable="@drawable/ic_usd_24">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_gia_nuoc_ngoai"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp"
+                        tools:text="75" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

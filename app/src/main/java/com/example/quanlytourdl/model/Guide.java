@@ -1,24 +1,21 @@
 package com.example.quanlytourdl.model;
 
-/**
- * Model class đại diện cho đối tượng Hướng dẫn viên trong Firestore.
- * Collection: huongdanvien
- */
 public class Guide {
     private String id;
-    private String ten;
+    private String fullName;
+    private String guideCode;
     private String sdt;
     private String email;
-    private String trangThai; // "Sẵn sàng", "Đang đi tour", "Tạm nghỉ"
-
-    // Constructor rỗng cần thiết cho Firestore
+    private String trangThai;
     public Guide() {}
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getTen() { return ten; }
-    public void setTen(String ten) { this.ten = ten; }
+    public String getGuideCode() { return guideCode; }
+    public void setGuideCode(String guideCode) { this.guideCode = guideCode; }
 
     public String getSdt() { return sdt; }
     public void setSdt(String sdt) { this.sdt = sdt; }
@@ -31,6 +28,6 @@ public class Guide {
 
     @Override
     public String toString() {
-        return "HDV: " + ten + " - Trạng thái: " + trangThai;
+        return "HDV: " + fullName + " - Mã: " + guideCode + " - Trạng thái: " + trangThai;
     }
 }

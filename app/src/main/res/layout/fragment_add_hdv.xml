@@ -24,8 +24,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Quay lại"
-            android:src="@drawable/ic_arrow_back"
-            android:tint="#374151"
+            app:tint="#374151"
+            tools:src="@drawable/ic_arrow_back"
             android:layout_marginStart="8dp"/>
 
         <TextView
@@ -74,19 +74,20 @@
                         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
                         app:strokeColor="@android:color/white"
                         app:strokeWidth="4dp"
-                        tools:src="@tools:sample/avatars" />
+                        tools:src="@drawable/profile_placeholder" />
 
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/btn_upload_avatar"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_gravity="bottom|end"
-                        android:src="@drawable/ic_camera_24"
+                        tools:src="@drawable/ic_camera_24"
                         app:backgroundTint="#8B5CF6"
                         app:tint="@android:color/white"
                         app:fabSize="mini"
                         app:borderWidth="0dp"
-                        android:elevation="4dp"/>
+                        android:elevation="4dp"
+                        android:contentDescription="Tải ảnh đại diện"/>
                 </FrameLayout>
 
                 <TextView
@@ -113,6 +114,7 @@
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edittext_full_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Họ và tên *"
@@ -143,7 +145,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Mã HDV *"
-                            android:text="HDV-8392"
+                            android:text="Tự động tạo"
                             android:textColor="#6B7280"
                             android:background="@drawable/bg_input_readonly"
                             android:padding="14dp"
@@ -177,6 +179,7 @@
                     android:layout_marginStart="8dp">
 
                     <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edittext_birth_date"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Ngày sinh *"
@@ -221,6 +224,7 @@
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edittext_phone_number"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Số điện thoại *"
@@ -238,6 +242,7 @@
                 android:layout_marginBottom="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edittext_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Email"
@@ -255,6 +260,7 @@
                 android:layout_marginBottom="24dp">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edittext_address"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Địa chỉ"
@@ -384,19 +390,20 @@
                 android:gravity="center"
                 android:background="@drawable/bg_upload_dashed"
                 android:padding="24dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="8dp">
 
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:src="@drawable/ic_upload"
-                    android:tint="#8B5CF6"
-                    android:layout_marginBottom="8dp"/>
+                    app:tint="#8B5CF6"
+                    tools:src="@drawable/ic_upload"
+                    android:layout_marginBottom="8dp"
+                    android:contentDescription="Biểu tượng tải lên"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tải lên Thẻ HDV / Chứng chỉ"
+                    android:text="Tải lên Thẻ HDV / Chứng chỉ *"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="#8B5CF6"/>
@@ -410,54 +417,35 @@
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
 
-            <!-- File đã tải lên (Mẫu) -->
+            <!-- Trạng thái File đã tải lên -->
             <LinearLayout
-                android:id="@+id/file_uploaded_item"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="12dp"
-                android:background="@drawable/bg_input_rounded"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="16dp">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_pdf_file_24"
-                    android:tint="#EF4444"
-                    android:layout_marginEnd="12dp"/>
+                    app:tint="#8B5CF6"
+                    tools:src="@drawable/ic_document"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Icon file"/>
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tv_uploaded_file_name"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:text="Chưa có file nào được chọn"
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    tools:text="Chung_chi_HDV_Quoc_te.pdf"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Chung_chi_HDV_Quoc_te.pdf"
-                        android:textSize="14sp"
-                        android:textColor="#374151"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="2.4 MB"
-                        android:textSize="12sp"
-                        android:textColor="#6B7280"/>
-                </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/btn_delete_file"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Xóa file"
-                    android:src="@drawable/ic_trash_24"
-                    android:tint="#9CA3AF"/>
+                <!-- Remove File Button (Add in Java/Kotlin logic) -->
             </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -500,7 +488,7 @@
             android:textStyle="bold"
             android:backgroundTint="#2563EB"
             app:cornerRadius="12dp"
-            app:icon="@drawable/ic_check_24"
+            tools:icon="@drawable/ic_check_24"
             app:iconTint="@android:color/white"
             app:iconGravity="textStart"
             android:layout_marginStart="8dp"/>

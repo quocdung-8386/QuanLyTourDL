@@ -29,6 +29,7 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
 
     // Interface để truyền dữ liệu về Fragment chứa nó
     public interface OnProfitUpdateListener {
+        // Truyền về tỷ suất lợi nhuận (dạng decimal: 0.x)
         void onProfitUpdated(double profitMargin);
     }
 
@@ -44,7 +45,10 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
     private long costPerPax = 0; // Giá vốn trên mỗi khách (được truyền từ Fragment mẹ)
 
     // Format utility
-    private final NumberFormat currencyFormatter = new DecimalFormat("#,###");
+    // ⭐ ĐÃ SỬA: Chỉ định Locale Việt Nam (hoặc Locale.getDefault() nếu muốn chung)
+    private final NumberFormat currencyFormatter = new DecimalFormat("#,###",
+            new java.text.DecimalFormatSymbols(new Locale("vi", "VN")));
+
 
     public void setOnProfitUpdateListener(OnProfitUpdateListener listener) {
         this.listener = listener;
@@ -53,7 +57,6 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Sử dụng layout mới
         return inflater.inflate(R.layout.bottom_sheet_ap_dung_loi_nhuan, container, false);
     }
 
@@ -61,11 +64,11 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Ánh xạ UI (sử dụng ID mới)
+        // 1. Ánh xạ UI
         etProfitMargin = view.findViewById(R.id.et_profit_margin);
         tvPredictedSellingPrice = view.findViewById(R.id.tv_predicted_selling_price);
-        btnSaveProfit = view.findViewById(R.id.btn_save_profit_margin); // ID mới
-        btnCloseDialog = view.findViewById(R.id.btn_close_profit_dialog); // ID mới
+        btnSaveProfit = view.findViewById(R.id.btn_save_profit_margin);
+        btnCloseDialog = view.findViewById(R.id.btn_close_profit_dialog);
 
         // 2. Load dữ liệu ban đầu
         loadInitialData();
@@ -105,6 +108,7 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
 
             // Chuyển đổi sang phần trăm để hiển thị (ví dụ: 0.25 -> 25.0)
             if (currentProfitDecimal > 0) {
+                // Hiển thị lợi nhuận với 1 chữ số thập phân
                 String profitPercentStr = String.format(Locale.getDefault(), "%.1f", currentProfitDecimal * 100);
                 etProfitMargin.setText(profitPercentStr);
             }
@@ -116,7 +120,8 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
      */
     private void calculateAndDisplaySellingPrice() {
         if (costPerPax <= 0) {
-            tvPredictedSellingPrice.setText("Chưa có Giá Vốn");
+            // ⭐ TINH CHỈNH: Hiển thị giá vốn để người dùng dễ theo dõi
+            tvPredictedSellingPrice.setText("Giá Vốn/Khách: 0 VNĐ. Chưa thể tính toán.");
             return;
         }
 
@@ -134,14 +139,15 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
         // Chuyển từ % sang decimal (0-1)
         double profitMarginDecimal = profitPercentage / 100.0;
 
+        // Validation nhanh
         if (profitMarginDecimal >= 1.0) {
-            tvPredictedSellingPrice.setText("Lợi nhuận quá cao!");
+            tvPredictedSellingPrice.setText("Lợi nhuận phải < 100%");
             return;
         }
 
         long sellingPrice = 0;
-        if (profitMarginDecimal >= 0) {
-            // Giá bán = Giá vốn / (1 - Tỷ suất lợi nhuận)
+        if (profitMarginDecimal >= 0 && profitMarginDecimal < 1.0) {
+            // ⭐ CÔNG THỨC QUAN TRỌNG: Giá bán = Giá vốn / (1 - Tỷ suất lợi nhuận)
             sellingPrice = (long) Math.round(costPerPax / (1.0 - profitMarginDecimal));
         }
 
@@ -174,6 +180,7 @@ public class BottomSheetApDungLoiNhuan extends BottomSheetDialogFragment {
             return;
         }
 
+        // ⭐ VALIDATION CUỐI CÙNG
         if (profitPercentage < 0 || profitPercentage >= 100) {
             Toast.makeText(getContext(), "Lợi nhuận phải nằm trong khoảng 0% đến 99.9%.", Toast.LENGTH_SHORT).show();
             return;
