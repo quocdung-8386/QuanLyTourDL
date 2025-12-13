@@ -73,12 +73,31 @@ public class QuanLyDonHangFragment extends Fragment {
         });
 
         // Sự kiện: Nhấn Xem tất cả
-        tvXemTatCa.setOnClickListener(v -> hienThiThongBao("Xem tất cả đơn hàng gần đây"));
+        tvXemTatCa.setOnClickListener(v ->
+        {
+            int currentContainerId = ((ViewGroup) getView().getParent()).getId();
+            if (getParentFragmentManager() != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(currentContainerId, new DanhSachHoaDonFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+
 
         // --- CÁC NÚT LINEAR LAYOUT VẪN BẮT SỰ KIỆN CLICK BÌNH THƯỜNG ---
 
         // Sự kiện Admin: Hoàn tiền / Hủy bỏ
-        btnHoanTien.setOnClickListener(v -> hienThiThongBao("Truy cập công cụ Hoàn tiền / Hủy bỏ"));
+        btnHoanTien.setOnClickListener(v ->
+                {
+                    DanhSachHoanTienFragment fragmentHoanHuy = new DanhSachHoanTienFragment();
+
+                    int containerId = ((ViewGroup) getView().getParent()).getId();
+                    getParentFragmentManager().beginTransaction()
+                            .replace(containerId, fragmentHoanHuy) // Chuyển sang fragment hoàn hủy
+                            .addToBackStack(null) // Lưu trạng thái để back về được
+                            .commit();
+                });
 
         // Sự kiện Admin: Đối chiếu ngân hàng
         btnDoiChieu.setOnClickListener(v -> hienThiThongBao("Truy cập công cụ Đối chiếu"));
