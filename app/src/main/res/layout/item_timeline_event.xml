@@ -83,7 +83,7 @@
                     android:textSize="14sp"
                     android:textColor="@android:color/darker_gray"
                     android:layout_marginBottom="8dp"
-                    tools:text="Nhận phòng tại khách sạn SamyCeline (Hoặc tương đương) và thư giãn." />
+                    tools:text="Nhận phòng tại khách sạn SamyCeline." />
 
                 <LinearLayout
                     android:id="@+id/event_media_container"

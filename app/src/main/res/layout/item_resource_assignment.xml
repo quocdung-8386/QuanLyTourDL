@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground"> <ImageView
+    android:id="@+id/img_avatar"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:scaleType="centerCrop"
+    android:src="@drawable/ic_hdv_placeholder"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    android:contentDescription="Avatar tài nguyên"/>
+
+    <ImageView
+        android:id="@+id/img_status_icon"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="@drawable/ic_check_circle"
+        app:tint="@android:color/holo_green_dark"
+        app:layout_constraintEnd_toEndOf="@id/img_avatar"
+        app:layout_constraintBottom_toBottomOf="@id/img_avatar"
+        tools:src="@drawable/ic_check_circle"
+        android:elevation="2dp"
+        android:contentDescription="Icon trạng thái"/>
+
+    <TextView
+        android:id="@+id/tv_resource_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textStyle="bold"
+        tools:text="Nguyễn Văn An"
+        app:layout_constraintStart_toEndOf="@id/img_avatar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tv_rating"/>
+
+    <TextView
+        android:id="@+id/tv_resource_details"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="@android:color/darker_gray"
+        tools:text="Tiếng Anh, Tiếng Hàn • 5 năm KN"
+        app:layout_constraintStart_toEndOf="@id/img_avatar"
+        app:layout_constraintTop_toBottomOf="@id/tv_resource_name"
+        app:layout_constraintEnd_toStartOf="@id/radio_select"/>
+
+    <TextView
+        android:id="@+id/tv_schedule_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="2dp"
+        android:background="@drawable/bg_status_badge"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:text="Trống lịch"
+        app:layout_constraintStart_toEndOf="@id/img_avatar"
+        app:layout_constraintTop_toBottomOf="@id/tv_resource_details" />
+
+    <TextView
+        android:id="@+id/tv_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:drawablePadding="4dp"
+        android:drawableStart="@drawable/ic_star_filled"
+        android:gravity="center_vertical"
+        android:textStyle="bold"
+        android:textColor="#FFC107"
+        tools:text="4.9"
+        app:layout_constraintTop_toTopOf="@id/tv_resource_name"
+        app:layout_constraintBottom_toTopOf="@id/tv_resource_details"
+        app:layout_constraintEnd_toStartOf="@id/radio_select"/>
+
+    <RadioButton
+        android:id="@+id/radio_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

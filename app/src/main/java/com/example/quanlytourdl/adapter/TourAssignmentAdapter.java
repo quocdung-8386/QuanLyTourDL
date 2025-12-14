@@ -35,12 +35,11 @@ public class TourAssignmentAdapter extends RecyclerView.Adapter<TourAssignmentAd
 
     // ⭐ Hằng số Trạng thái Tour: Đảm bảo khớp với DB
     private static final String STATUS_AWAITING_ASSIGNMENT = "DANG_CHO_PHAN_CONG";
-    private static final String STATUS_ASSIGNED = "DA_GAN_NHAN_VIEN"; // Hoặc bất kỳ trạng thái nào bạn dùng
+    private static final String STATUS_ASSIGNED = "DA_GAN_NHAN_VIEN";
 
     private final List<Tour> tourList;
     private final Context context;
     private final AssignmentListener listener;
-    // Sử dụng SimpleDateFormat để kiểm soát định dạng tốt hơn
     private final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy", new Locale("vi", "VN"));
 
     public TourAssignmentAdapter(Context context, List<Tour> tourList, AssignmentListener listener) {
@@ -73,7 +72,6 @@ public class TourAssignmentAdapter extends RecyclerView.Adapter<TourAssignmentAd
         holder.tourCodeTextView.setText(String.format("Mã Tour: %s", tour.getMaTour()));
         holder.tourNameTextView.setText(tour.getTenTour());
 
-        // Ngày khởi hành
         String ngayKhoiHanhText = tour.getNgayKhoiHanh() != null ? dateFormatter.format(tour.getNgayKhoiHanh()) : "Chưa xác định";
         holder.departureDateTextView.setText(String.format("Ngày khởi hành: %s", ngayKhoiHanhText));
 
@@ -83,24 +81,38 @@ public class TourAssignmentAdapter extends RecyclerView.Adapter<TourAssignmentAd
         holder.customerCountTextView.setText(customerCountText);
 
         // 2. Xử lý Trạng thái Phân công
+        // Dùng tour.getStatus() để kiểm tra trạng thái chung của Tour
         boolean isAssigned = tour.getStatus() != null && tour.getStatus().equals(STATUS_ASSIGNED);
 
         if (isAssigned) {
             // Đã Phân Công
-            holder.statusTextView.setText("ĐÃ PHÂN CÔNG (Xem chi tiết)");
-            holder.statusTextView.setTextColor(ContextCompat.getColor(context, R.color.green_700)); // Màu xanh cho Đã gán
+            String assignedGuide = tour.getAssignedGuideName() != null ? tour.getAssignedGuideName() : "N/A";
+            String assignedVehicle = tour.getAssignedVehicleLicensePlate() != null ? tour.getAssignedVehicleLicensePlate() : "N/A";
+
+            String statusDetail = String.format("ĐÃ GÁN: HDV (%s) - Xe (%s)", assignedGuide, assignedVehicle);
+            holder.statusTextView.setText(statusDetail);
+
+            // ⭐ Màu sắc cho trạng thái Đã Gán (Green)
+            holder.statusTextView.setTextColor(ContextCompat.getColor(context, R.color.green_700));
 
             holder.assignButton.setText("Xem/Sửa Gán");
-            holder.assignButton.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.blue_700)); // Màu xanh cho nút
+            // ⭐ Màu sắc cho nút Xem/Sửa (Blue)
+            holder.assignButton.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.blue_700));
+            // Giả định R.drawable.ic_edit_assignment tồn tại
+            holder.assignButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_edit));
         } else {
             // Chưa Phân Công (ĐANG_CHO_PHAN_CONG)
-            holder.statusTextView.setText("CHƯA PHÂN CÔNG (Cần gán HDV/PT)");
-            holder.statusTextView.setTextColor(ContextCompat.getColor(context, R.color.red_700)); // Màu đỏ/cảnh báo
+            holder.statusTextView.setText("CHƯA PHÂN CÔNG: Cần gán HDV và Phương tiện");
+
+            // ⭐ Màu sắc cho trạng thái Chờ Gán (Red/Warning)
+            holder.statusTextView.setTextColor(ContextCompat.getColor(context, R.color.red_700));
 
             holder.assignButton.setText("Gán Ngay");
-            holder.assignButton.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.orange_700)); // Màu cam cho nút
+            // ⭐ Màu sắc cho nút Gán Ngay (Orange/Accent)
+            holder.assignButton.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.orange_700));
+            // Giả định R.drawable.ic_add_assignment tồn tại
+            holder.assignButton.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_add_circle));
         }
-        // Giả định các màu (green_700, red_700, blue_500, orange_600) đã tồn tại trong colors.xml
 
         // 3. Xử lý sự kiện Gán/Xem Chi Tiết
         holder.assignButton.setOnClickListener(v -> {
@@ -111,8 +123,8 @@ public class TourAssignmentAdapter extends RecyclerView.Adapter<TourAssignmentAd
             }
         });
 
-        // 4. Tải ảnh (Chức năng này thường được xử lý bởi thư viện như Glide/Picasso)
-        // Hiện tại chỉ dùng placeholder
+        // 4. Tải ảnh (Sử dụng placeholder)
+        // Nếu dùng thư viện, bạn sẽ gọi: Glide.with(context).load(tour.getHinhAnhChinhUrl()).into(holder.thumbnailImageView);
         holder.thumbnailImageView.setImageResource(R.drawable.tour_placeholder_danang);
     }
 
@@ -121,28 +133,26 @@ public class TourAssignmentAdapter extends RecyclerView.Adapter<TourAssignmentAd
         return tourList.size();
     }
 
+    // --- ViewHolder Class ---
     public static class TourAssignmentViewHolder extends RecyclerView.ViewHolder {
 
-        // ⭐ Ánh xạ đã được sửa để khớp với item_tour_assignment.xml ⭐
         ImageView thumbnailImageView;
-        TextView tourCodeTextView;      // R.id.text_tour_code
-        TextView tourNameTextView;      // R.id.text_tour_name
-        TextView departureDateTextView; // R.id.text_departure_date
-        TextView customerCountTextView; // R.id.text_customer_count
-        TextView statusTextView;        // R.id.text_assignment_status
-        MaterialButton assignButton;    // R.id.btn_assign_now
+        TextView tourCodeTextView;
+        TextView tourNameTextView;
+        TextView departureDateTextView;
+        TextView customerCountTextView;
+        TextView statusTextView;
+        MaterialButton assignButton;
 
         public TourAssignmentViewHolder(View itemView) {
             super(itemView);
 
-            // --- Ánh xạ các trường thông tin ---
-            thumbnailImageView = itemView.findViewById(R.id.img_tour); // Đã sửa từ img_tour_thumbnail
+            // ⭐ Ánh xạ các trường khớp với item_tour_assignment.xml ⭐
+            thumbnailImageView = itemView.findViewById(R.id.img_tour);
             tourCodeTextView = itemView.findViewById(R.id.text_tour_code);
             tourNameTextView = itemView.findViewById(R.id.text_tour_name);
             departureDateTextView = itemView.findViewById(R.id.text_departure_date);
             customerCountTextView = itemView.findViewById(R.id.text_customer_count);
-
-            // --- Ánh xạ các trường hành động/trạng thái ---
             statusTextView = itemView.findViewById(R.id.text_assignment_status);
             assignButton = itemView.findViewById(R.id.btn_assign_now);
         }

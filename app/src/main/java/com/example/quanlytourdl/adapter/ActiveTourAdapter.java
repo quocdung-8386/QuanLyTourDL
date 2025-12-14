@@ -84,7 +84,8 @@ public class ActiveTourAdapter extends RecyclerView.Adapter<ActiveTourAdapter.Ac
         holder.tourNameTextView.setText(tour.getTenTour() != null ? tour.getTenTour() : "Tour không tên");
 
         // Hiển thị HOT badge dựa trên isNoiBat
-        if (tour.isNoiBat()) {
+        // DÒNG ĐÃ SỬA LỖI: Sử dụng getIsNoiBat() thay vì isNoiBat()
+        if (tour.getIsNoiBat()) {
             holder.hotBadgeTextView.setVisibility(View.VISIBLE);
         } else {
             holder.hotBadgeTextView.setVisibility(View.GONE);

@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Lớp mô hình Tour du lịch.
+ * Lớp mô hình Tour du lịch. Đã bổ sung các trường Phân công Tài nguyên.
  */
 public class Tour {
     private String maTour;
@@ -17,18 +17,13 @@ public class Tour {
     private int soNgay;
     private int soDem;
     private String moTa;
-
     private int soLuongKhachToiDa;
-    // ⭐ ĐÃ THÊM: Số lượng khách thực tế đã đặt (cần cho hiển thị 30/35)
     private int soLuongKhachHienTai;
-
-    // THÔNG TIN ĐỊNH GIÁ & CHI PHÍ
+    private float rating;
     private long giaNguoiLon;
     private long giaTreEm;
-    // ... (các trường khác giữ nguyên)
     private long giaEmBe;
     private double giaNuocNgoai;
-
     private long tongGiaVon;
     private long giaVonPerPax;
     private double tySuatLoiNhuan;
@@ -51,11 +46,18 @@ public class Tour {
     private Date ngayTao;
     private String status; // Ví dụ: CHO_PHE_DUYET, DANG_MO_BAN, NHAP
 
+    // ⭐ CÁC TRƯỜNG BỔ SUNG CHO PHÂN CÔNG TÀI NGUYÊN ⭐
+    private String assignedGuideId;
+    private String assignedGuideName;
+    private String assignedVehicleId;
+    private String assignedVehicleLicensePlate;
+
+
     // Constructor rỗng bắt buộc cho Firestore
     public Tour() {}
 
-    // ⭐ CONSTRUCTOR ĐẦY ĐỦ THAM SỐ (Đã cập nhật để bao gồm soLuongKhachHienTai)
-    public Tour(String maTour, String tenTour, String loaiTour, String diemKhoiHanh, String diemDen, Date ngayKhoiHanh, Date ngayKetThuc, int soNgay, int soDem, String moTa, int soLuongKhachToiDa, int soLuongKhachHienTai, long giaNguoiLon, long giaTreEm, long giaEmBe, double giaNuocNgoai, long tongGiaVon, long giaVonPerPax, double tySuatLoiNhuan, String dichVuBaoGom, String dichVuKhongBaoGom, String lichTrinhChiTiet, String hinhAnhChinhUrl, List<String> danhSachHinhAnh, String moTaSeo, boolean isXuatBan, boolean isNoiBat, String nguoiTao, Date ngayTao, String status) {
+    // ⭐ CONSTRUCTOR ĐẦY ĐỦ THAM SỐ (BẠN NÊN CẬP NHẬT TRƯỜNG MỚI NẾU SỬ DỤNG)
+    public Tour(String maTour, String tenTour, String loaiTour, String diemKhoiHanh, String diemDen, Date ngayKhoiHanh, Date ngayKetThuc, int soNgay, int soDem, String moTa, int soLuongKhachToiDa, int soLuongKhachHienTai, float rating, long giaNguoiLon, long giaTreEm, long giaEmBe, double giaNuocNgoai, long tongGiaVon, long giaVonPerPax, double tySuatLoiNhuan, String dichVuBaoGom, String dichVuKhongBaoGom, String lichTrinhChiTiet, String hinhAnhChinhUrl, List<String> danhSachHinhAnh, String moTaSeo, boolean isXuatBan, boolean isNoiBat, String nguoiTao, Date ngayTao, String status) {
         this.maTour = maTour;
         this.tenTour = tenTour;
         this.loaiTour = loaiTour;
@@ -67,7 +69,8 @@ public class Tour {
         this.soDem = soDem;
         this.moTa = moTa;
         this.soLuongKhachToiDa = soLuongKhachToiDa;
-        this.soLuongKhachHienTai = soLuongKhachHienTai; // Cập nhật
+        this.soLuongKhachHienTai = soLuongKhachHienTai;
+        this.rating = rating;
         this.giaNguoiLon = giaNguoiLon;
         this.giaTreEm = giaTreEm;
         this.giaEmBe = giaEmBe;
@@ -122,7 +125,6 @@ public class Tour {
     public int getSoLuongKhachToiDa() { return soLuongKhachToiDa; }
     public void setSoLuongKhachToiDa(int soLuongKhachToiDa) { this.soLuongKhachToiDa = soLuongKhachToiDa; }
 
-    // ⭐ GETTER & SETTER MỚI
     public int getSoLuongKhachHienTai() { return soLuongKhachHienTai; }
     public void setSoLuongKhachHienTai(int soLuongKhachHienTai) { this.soLuongKhachHienTai = soLuongKhachHienTai; }
 
@@ -141,11 +143,13 @@ public class Tour {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public float getRating() { return rating; }
+    public void setRating(float rating) { this.rating = rating; }
+
     // --------------------------------------------------------------------------------
     // Getters and Setters (Các trường Định giá / Dịch vụ / SEO)
     // --------------------------------------------------------------------------------
 
-    // Định giá
     public long getGiaNguoiLon() { return giaNguoiLon; }
     public void setGiaNguoiLon(long giaNguoiLon) { this.giaNguoiLon = giaNguoiLon; }
 
@@ -158,7 +162,6 @@ public class Tour {
     public double getGiaNuocNgoai() { return giaNuocNgoai; }
     public void setGiaNuocNgoai(double giaNuocNgoai) { this.giaNuocNgoai = giaNuocNgoai; }
 
-    // Giá Vốn / Lợi nhuận
     public long getTongGiaVon() { return tongGiaVon; }
     public void setTongGiaVon(long tongGiaVon) { this.tongGiaVon = tongGiaVon; }
 
@@ -168,14 +171,12 @@ public class Tour {
     public double getTySuatLoiNhuan() { return tySuatLoiNhuan; }
     public void setTySuatLoiNhuan(double tySuatLoiNhuan) { this.tySuatLoiNhuan = tySuatLoiNhuan; }
 
-    // Dịch vụ
     public String getDichVuBaoGom() { return dichVuBaoGom; }
     public void setDichVuBaoGom(String dichVuBaoGom) { this.dichVuBaoGom = dichVuBaoGom; }
 
     public String getDichVuKhongBaoGom() { return dichVuKhongBaoGom; }
     public void setDichVuKhongBaoGom(String dichVuKhongBaoGom) { this.dichVuKhongBaoGom = dichVuKhongBaoGom; }
 
-    // Hình ảnh & SEO / Xuất bản
     public String getHinhAnhChinhUrl() { return hinhAnhChinhUrl; }
     public void setHinhAnhChinhUrl(String hinhAnhChinhUrl) { this.hinhAnhChinhUrl = hinhAnhChinhUrl; }
 
@@ -185,9 +186,35 @@ public class Tour {
     public String getMoTaSeo() { return moTaSeo; }
     public void setMoTaSeo(String moTaSeo) { this.moTaSeo = moTaSeo; }
 
-    public boolean isXuatBan() { return isXuatBan; }
-    public void setXuatBan(boolean xuatBan) { isXuatBan = xuatBan; }
+    // --------------------------------------------------------------------------------
+    // ⭐ ĐÃ SỬA LỖI MAPPING FIREBASE CHO isXuatBan & isNoiBat
+    //    (Đã thay đổi isXxx() thành getIsXxx() và setXxx() thành setIsXxx())
+    // --------------------------------------------------------------------------------
 
-    public boolean isNoiBat() { return isNoiBat; }
-    public void setNoiBat(boolean noiBat) { isNoiBat = noiBat; }
+    // public boolean isXuatBan() { return isXuatBan; } // Getter cũ
+    // public void setXuatBan(boolean xuatBan) { isXuatBan = xuatBan; } // Setter cũ
+    public boolean getIsXuatBan() { return isXuatBan; } // Getter mới
+    public void setIsXuatBan(boolean xuatBan) { this.isXuatBan = xuatBan; } // Setter mới
+
+    // public boolean isNoiBat() { return isNoiBat; } // Getter cũ
+    // public void setNoiBat(boolean noiBat) { isNoiBat = noiBat; } // Setter cũ
+    public boolean getIsNoiBat() { return isNoiBat; } // Getter mới
+    public void setIsNoiBat(boolean noiBat) { this.isNoiBat = noiBat; } // Setter mới
+
+
+    // --------------------------------------------------------------------------------
+    // ⭐ GETTERS VÀ SETTERS MỚI CHO PHÂN CÔNG TÀI NGUYÊN ⭐
+    // --------------------------------------------------------------------------------
+
+    public String getAssignedGuideId() { return assignedGuideId; }
+    public void setAssignedGuideId(String assignedGuideId) { this.assignedGuideId = assignedGuideId; }
+
+    public String getAssignedGuideName() { return assignedGuideName; }
+    public void setAssignedGuideName(String assignedGuideName) { this.assignedGuideName = assignedGuideName; }
+
+    public String getAssignedVehicleId() { return assignedVehicleId; }
+    public void setAssignedVehicleId(String assignedVehicleId) { this.assignedVehicleId = assignedVehicleId; }
+
+    public String getAssignedVehicleLicensePlate() { return assignedVehicleLicensePlate; }
+    public void setAssignedVehicleLicensePlate(String assignedVehicleLicensePlate) { this.assignedVehicleLicensePlate = assignedVehicleLicensePlate; }
 }
