@@ -36,15 +36,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/btnMenu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_menu"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#000000" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ScrollView
@@ -95,15 +86,19 @@
                         android:background="@drawable/bg_green_dot" />
                 </FrameLayout>
 
-                <TextView
-                    android:id="@+id/tvName"
+                <EditText
+                    android:id="@+id/edtName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:background="@null"
+                    android:enabled="false"
+                    android:inputType="textPersonName|textCapWords"
                     android:text="Nguyễn Văn A"
                     android:textColor="#000000"
                     android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:gravity="center"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -145,9 +140,9 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:clickable="true"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:orientation="vertical">
                         <androidx.cardview.widget.CardView
                             android:layout_width="50dp"
                             android:layout_height="50dp"
@@ -176,9 +171,9 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:clickable="true"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:orientation="vertical">
                         <androidx.cardview.widget.CardView
                             android:layout_width="50dp"
                             android:layout_height="50dp"
@@ -207,9 +202,9 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:orientation="vertical"
                         android:clickable="true"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:orientation="vertical">
                         <androidx.cardview.widget.CardView
                             android:layout_width="50dp"
                             android:layout_height="50dp"
@@ -305,15 +300,18 @@
                                 android:text="Ngày sinh"
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/tvDob"
-                                android:layout_width="wrap_content"
+                            <EditText
+                                android:id="@+id/edtDob"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="0dp"
+                                android:background="@null"
+                                android:enabled="false"
                                 android:text="12/05/1990"
                                 android:textColor="#000000"
                                 android:textSize="14sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:inputType="date"/>
                         </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"
@@ -326,11 +324,13 @@
                                 android:text="Giới tính"
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/tvGender"
-                                android:layout_width="wrap_content"
+                            <EditText
+                                android:id="@+id/edtGender"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="0dp"
+                                android:background="@null"
+                                android:enabled="false"
                                 android:text="Nam"
                                 android:textColor="#000000"
                                 android:textSize="14sp"
@@ -356,18 +356,35 @@
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
 
-                            <TextView
-                                android:id="@+id/tvCode"
-                                android:layout_width="match_parent"
+                            <LinearLayout
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:layout_marginEnd="8dp"
-                                android:text="KH-001239"
-                                android:textColor="#2962FF"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:maxLines="1"
-                                android:ellipsize="end"/>
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:id="@+id/tvCode"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/bg_code_chip"
+                                    android:fontFamily="monospace"
+                                    android:paddingHorizontal="10dp"
+                                    android:paddingVertical="6dp"
+                                    android:text="#KH12345"
+                                    android:textColor="#37474F"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:letterSpacing="0.05"/>
+
+                                <ImageView
+                                    android:id="@+id/btnCopyCode"
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_marginStart="8dp"
+                                    android:src="@drawable/ic_content_copy"
+                                    app:tint="#2962FF" />
+                            </LinearLayout>
                         </LinearLayout>
 
                         <LinearLayout
@@ -381,15 +398,18 @@
                                 android:text="CMND/CCCD"
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/tvCitizenId"
-                                android:layout_width="wrap_content"
+                            <EditText
+                                android:id="@+id/edtCitizenId"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="0dp"
+                                android:background="@null"
+                                android:enabled="false"
                                 android:text="001090012345"
                                 android:textColor="#000000"
                                 android:textSize="14sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:inputType="number"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -475,14 +495,17 @@
                                 android:text="Số điện thoại"
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/tvPhone"
-                                android:layout_width="wrap_content"
+                            <EditText
+                                android:id="@+id/edtPhone"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:background="@null"
+                                android:enabled="false"
                                 android:text="0912 345 678"
                                 android:textColor="#2962FF"
                                 android:textSize="15sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:inputType="phone"/>
                         </LinearLayout>
                         <ImageView
                             android:layout_width="16dp"
@@ -518,14 +541,17 @@
                                 android:text="Email"
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/tvEmail"
-                                android:layout_width="wrap_content"
+                            <EditText
+                                android:id="@+id/edtEmail"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:background="@null"
+                                android:enabled="false"
                                 android:text="nguyenvana@example.com"
                                 android:textColor="#000000"
                                 android:textSize="15sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:inputType="textEmailAddress"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -556,14 +582,17 @@
                                 android:text="Địa chỉ"
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
-                            <TextView
-                                android:id="@+id/tvAddress"
-                                android:layout_width="wrap_content"
+                            <EditText
+                                android:id="@+id/edtAddress"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="123 Đường ABC, Quận 1, TP.HCM"
+                                android:background="@null"
+                                android:enabled="false"
+                                android:text="123 Đường ABC..."
                                 android:textColor="#000000"
                                 android:textSize="15sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:inputType="textPostalAddress"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
