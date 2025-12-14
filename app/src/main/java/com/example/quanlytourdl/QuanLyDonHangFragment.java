@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ import java.util.Locale;
 public class QuanLyDonHangFragment extends Fragment {
 
     // 1. Khai báo các View
+    private ImageView btnBack;
     private CardView btnThongBao, cvTaoDonMoi, cvHoaDon;
     private TextView tvXemTatCa;
     private LinearLayout btnHoanTien, btnDoiChieu;
@@ -61,6 +63,7 @@ public class QuanLyDonHangFragment extends Fragment {
 
     private void khoiTaoView(View view) {
         // Ánh xạ View từ XML
+        btnBack = view.findViewById(R.id.btnBack);
         btnThongBao  = view.findViewById(R.id.btnThongBao);
         cvTaoDonMoi  = view.findViewById(R.id.cvTaoDonMoi);
         cvHoaDon     = view.findViewById(R.id.cvHoaDon);
@@ -199,6 +202,19 @@ public class QuanLyDonHangFragment extends Fragment {
 
         // 6. Nút Đối chiếu (Admin)
         btnDoiChieu.setOnClickListener(v -> hienThiThongBao("Truy cập công cụ Đối chiếu"));
+        // 7. Nút quay lại màn hình chính
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Kiểm tra xem có thể quay lại được không
+                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                    getParentFragmentManager().popBackStack();
+                } else {
+                    // Nếu đây là Fragment đầu tiên, có thể đóng Activity hoặc không làm gì
+                    // getActivity().onBackPressed(); // Bỏ comment dòng này nếu muốn thoát app/activity
+                }
+            }
+        });
     }
 
     // Hàm phụ để chuyển Fragment cho gọn code
