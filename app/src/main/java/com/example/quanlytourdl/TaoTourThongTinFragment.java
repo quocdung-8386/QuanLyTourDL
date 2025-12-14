@@ -39,7 +39,7 @@ public class TaoTourThongTinFragment extends Fragment implements TaoTourDetailFu
 
     // ⭐ ĐÃ THÊM: Danh sách ví dụ Điểm Khởi Hành/Điểm Đến
     private static final String[] DIEM_KHOI_HANH_OPTIONS = new String[] {"TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Cần Thơ"};
-    private static final String[] DIEM_DEN_OPTIONS = new String[] {"Hà Nội", "Đà Nẵng", "Phú Quốc", "Singapore", "Thái Lan", "Hà Giang"};
+    private static final String[] DIEM_DEN_OPTIONS = new String[] {"Hà Nội", "Đà Nẵng", "Phú Quốc","Hà Giang"};
 
     // ⭐ Đối tượng Tour được chia sẻ từ Fragment cha
     private final Tour tour;

@@ -17,6 +17,7 @@ import com.example.quanlytourdl.model.TourDaySchedule;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.Gson; // ⭐ ĐÃ THÊM IMPORT GSON
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +99,7 @@ public class TaoTourLichTrinhFragment extends Fragment implements TaoTourDetailF
         int initialDays = tour.getSoNgay() > 0 ? tour.getSoNgay() : 1;
 
         // Khởi tạo schedule list (giả định tour không có dữ liệu schedule chi tiết)
-        // Nếu tour có dữ liệu chi tiết, bạn cần loop qua dữ liệu đó
+        // Nếu tour có dữ liệu chi tiết JSON, logic load cần được triển khai ở đây
         for (int i = 1; i <= initialDays; i++) {
             TourDaySchedule schedule = new TourDaySchedule();
             schedule.dayNumber = i;
@@ -151,7 +152,6 @@ public class TaoTourLichTrinhFragment extends Fragment implements TaoTourDetailF
 
         // Thêm View vào container chính
         // ⭐ CHÚ Ý: Thêm View ở vị trí cuối cùng (trước tvEmptyState)
-        // Nếu tvEmptyState là View con cuối cùng, ta thêm ở vị trí llItineraryDaysContainer.getChildCount() - 1
         llItineraryDaysContainer.addView(dayView, llItineraryDaysContainer.getChildCount() - 1);
     }
 
@@ -216,7 +216,7 @@ public class TaoTourLichTrinhFragment extends Fragment implements TaoTourDetailF
     }
 
     /**
-     * ⭐ Thực hiện Thu thập và Validation dữ liệu của Bước 2. (Đã sửa lỗi Null Safety)
+     * ⭐ PHƯƠNG THỨC ĐÃ SỬA: Thu thập dữ liệu và chuyển đổi thành CHUỖI JSON ARRAY
      */
     @Override
     public boolean collectDataAndValidate(Tour tour) {
@@ -226,14 +226,15 @@ public class TaoTourLichTrinhFragment extends Fragment implements TaoTourDetailF
             return false;
         }
 
-        StringBuilder detailedScheduleSummary = new StringBuilder();
+        // Danh sách cuối cùng để chuyển đổi sang JSON
+        List<TourDaySchedule> finalScheduleList = new ArrayList<>();
 
         // Chỉ duyệt qua số lượng ngày thực tế trong danh sách dữ liệu
         for (int i = 0; i < dayScheduleList.size(); i++) {
-            // Lấy View tại vị trí i. (tvEmptyState nằm ở vị trí cuối, sẽ không bị duyệt tới)
+            // Lấy View tại vị trí i.
             View dayView = llItineraryDaysContainer.getChildAt(i);
 
-            // Nếu View không phải là MaterialCardView, có lỗi nghiêm trọng về cấu trúc.
+            // Kiểm tra cấu trúc View
             if (!(dayView instanceof MaterialCardView)) {
                 Log.e(TAG, "Lỗi nghiêm trọng: View tại index " + i + " không phải là lịch trình ngày.");
                 Toast.makeText(getContext(), "Lỗi hệ thống: Cấu trúc lịch trình bị lỗi.", Toast.LENGTH_LONG).show();
@@ -242,12 +243,11 @@ public class TaoTourLichTrinhFragment extends Fragment implements TaoTourDetailF
 
             TourDaySchedule schedule = dayScheduleList.get(i);
 
-            // LẤY DỮ LIỆU TỪ INPUT VÀ KIỂM TRA NULL (Đã giải quyết NullPointerException)
+            // LẤY DỮ LIỆU TỪ INPUT
             TextInputEditText etDailySummary = dayView.findViewById(R.id.et_daily_summary);
             String summary;
 
             if (etDailySummary == null) {
-                // Lỗi này chỉ xảy ra nếu ID trong XML bị đổi hoặc View bị inflate sai
                 Log.e(TAG, "Không tìm thấy et_daily_summary trong View Ngày " + schedule.dayNumber);
                 Toast.makeText(getContext(), String.format("Lỗi hệ thống: Không thể tìm thấy trường tóm tắt cho Ngày %d.", schedule.dayNumber), Toast.LENGTH_LONG).show();
                 return false;
@@ -262,18 +262,28 @@ public class TaoTourLichTrinhFragment extends Fragment implements TaoTourDetailF
                 return false;
             }
 
-            // Cập nhật mô hình dữ liệu
+            // Cập nhật mô hình dữ liệu (Và thêm vào danh sách cuối cùng)
             schedule.summary = summary;
-
-            // Tổng hợp dữ liệu
-            detailedScheduleSummary.append(String.format("Ngày %d: %s\n", schedule.dayNumber, summary));
+            finalScheduleList.add(schedule);
         }
 
-        // Gán dữ liệu vào Tour object
-        tour.setSoNgay(dayScheduleList.size());
-        tour.setLichTrinhChiTiet(detailedScheduleSummary.toString());
+        // CHUYỂN ĐỔI DANH SÁCH ĐỐI TƯỢNG (List) THÀNH CHUỖI JSON ARRAY
+        try {
+            Gson gson = new Gson();
+            String jsonArrayString = gson.toJson(finalScheduleList);
 
-        Log.d(TAG, "Bước 2 - Lịch trình: Thu thập thành công cho " + tour.getSoNgay() + " ngày.");
-        return true;
+            // Gán dữ liệu vào Tour object
+            tour.setSoNgay(finalScheduleList.size());
+            tour.setLichTrinhChiTiet(jsonArrayString); // ⭐ LƯU CHUỖI JSON ARRAY
+
+            Log.d(TAG, "Bước 2 - Lịch trình: Thu thập thành công cho " + tour.getSoNgay() + " ngày.");
+            Log.d(TAG, "JSON Lịch trình: " + jsonArrayString);
+
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "Lỗi chuyển đổi sang JSON:", e);
+            Toast.makeText(getContext(), "Lỗi hệ thống: Không thể xử lý dữ liệu lịch trình.", Toast.LENGTH_LONG).show();
+            return false;
+        }
     }
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✅ Các Dịch Vụ Bao Gồm Trong Tour"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_included_services"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@android:color/darker_gray"
+            android:paddingBottom="16dp"
+            tools:text="▶ Khách sạn 4 sao (2 đêm)\n▶ 3 bữa ăn chính (Tiêu chuẩn 150,000đ/bữa)\n▶ Xe vận chuyển đời mới theo suốt tuyến" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/holo_blue_light"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/tv_section_excluded"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="❌ Các Dịch Vụ Không Bao Gồm"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_excluded_services"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="16dp"
+            tools:text="❌ Chi phí cá nhân, mua sắm\n❌ Tiền tip cho HDV và tài xế\n❌ Phụ thu phòng đơn" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

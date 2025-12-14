@@ -1,7 +1,6 @@
 package com.example.quanlytourdl;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -34,7 +33,7 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
 
     private final Tour tour;
 
-    // ⭐ THÀNH PHẦN UI
+    // THÀNH PHẦN UI
     private LinearLayout llImageListContainer;
     private MaterialCardView cardAddImageButton;
     private TextView tvImageCount;
@@ -42,12 +41,12 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
     private SwitchMaterial switchPublishStatus;
     private SwitchMaterial switchFeaturedTour;
 
-    // ⭐ ACTIVITY RESULT LAUNCHER CHO VIỆC CHỌN ẢNH
+    // ACTIVITY RESULT LAUNCHER CHO VIỆC CHỌN ẢNH
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     public TaoTourHinhAnhFragment(Tour tour) {
         this.tour = tour;
-        // ⭐ Khởi tạo danh sách ảnh nếu chưa có
+        // Khởi tạo danh sách ảnh nếu chưa có
         if (tour.getDanhSachHinhAnh() == null) {
             tour.setDanhSachHinhAnh(new ArrayList<>());
         }
@@ -61,7 +60,7 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ⭐ ĐĂNG KÝ RESULT LAUNCHER
+        // ĐĂNG KÝ RESULT LAUNCHER
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -76,6 +75,7 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
 
     @Nullable
     @Override
+    // ⭐ ĐÃ SỬA LỖI COMPILER: Thay ViewGroup viewGroup bằng Bundle savedInstanceState
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_hinhanh_xb, container, false);
     }
@@ -114,10 +114,9 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
         }
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*"); // Chỉ chọn file ảnh
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // ⭐ CHO PHÉP CHỌN NHIỀU ẢNH
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-        // Cần đảm bảo rằng ít nhất một ứng dụng có thể xử lý Intent này
         if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
             imagePickerLauncher.launch(intent);
         } else {
@@ -130,8 +129,7 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
      */
     private void handleImagePickResult(Intent data) {
         List<String> imageList = tour.getDanhSachHinhAnh();
-        int currentCount = imageList != null ? imageList.size() : 0;
-        int availableSlots = MAX_IMAGE_COUNT - currentCount;
+        int availableSlots = getAvailableImageSlots();
 
         if (data.getClipData() != null) {
             // Trường hợp chọn NHIỀU ẢNH
@@ -169,40 +167,26 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
     private void addImageToTour(Uri imageUri) {
         List<String> imageList = tour.getDanhSachHinhAnh();
         if (imageList != null && imageList.size() < MAX_IMAGE_COUNT) {
-            // Lưu Uri dưới dạng String
             imageList.add(imageUri.toString());
             // TODO: Triển khai createImageView để hiển thị ảnh
-            // createImageView(imageUri);
         }
     }
 
-    // ⭐ Hàm phụ trợ để lấy số lượng slot còn trống
     private int getAvailableImageSlots() {
         List<String> imageList = tour.getDanhSachHinhAnh();
         int currentCount = imageList != null ? imageList.size() : 0;
         return MAX_IMAGE_COUNT - currentCount;
     }
 
-    // TODO: Triển khai loadExistingImages() và createImageView(Uri)
     private void loadExistingImages() {
-        // Nếu tour có ảnh, hiển thị chúng
         List<String> imageList = tour.getDanhSachHinhAnh();
         if (imageList != null) {
             for (String uriString : imageList) {
-                // createImageView(Uri.parse(uriString));
-                // Implement hiển thị ảnh (sử dụng thư viện như Glide/Picasso)
+                // TODO: createImageView(Uri.parse(uriString));
             }
         }
     }
-
-    // --- CẬP NHẬT UI VÀ VALIDATION ---
-
-    /**
-     * Cập nhật các trường UI từ đối tượng Tour
-     */
     private void updateDisplay() {
-        // ... (Giữ nguyên phần cập nhật SEO và Switch) ...
-
         if (tour != null) {
             // SEO
             if (tour.getMoTaSeo() != null) {
@@ -210,8 +194,8 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
             }
 
             // Trạng thái
-            switchPublishStatus.setChecked(tour.isXuatBan());
-            switchFeaturedTour.setChecked(tour.isNoiBat());
+            switchPublishStatus.setChecked(tour.getIsXuatBan());
+            switchFeaturedTour.setChecked(tour.getIsNoiBat()); // ⭐ Đã sửa lỗi logic: dùng getIsNoiBat()
 
             // Hình ảnh
             List<String> imageList = tour.getDanhSachHinhAnh();
@@ -231,7 +215,7 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
     }
 
     /**
-     * ⭐ Thực hiện Thu thập và Validation dữ liệu của Bước 4.
+     * Thực hiện Thu thập và Validation dữ liệu của Bước 4.
      */
     @Override
     public boolean collectDataAndValidate(Tour tour) {
@@ -257,8 +241,8 @@ public class TaoTourHinhAnhFragment extends Fragment implements TaoTourDetailFul
 
         // 2. Gán dữ liệu
         tour.setMoTaSeo(seoDescription);
-        tour.setXuatBan(isPublished);
-        tour.setNoiBat(isFeatured);
+        tour.setIsXuatBan(isPublished);
+        tour.setIsNoiBat(isFeatured);
 
         // Gán hình ảnh chính
         if (imageCount > 0) {

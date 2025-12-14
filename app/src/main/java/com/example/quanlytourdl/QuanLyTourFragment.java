@@ -18,6 +18,9 @@ import android.widget.Toast;
 import com.example.quanlytourdl.adapter.TourAdapter;
 import com.example.quanlytourdl.adapter.ActiveTourAdapter;
 import com.example.quanlytourdl.model.Tour;
+import com.example.quanlytourdl.TourDetailFragment;
+import com.example.quanlytourdl.TaoTourFragment;
+import com.example.quanlytourdl.EditTourFragment; // ⭐ Đảm bảo đã import EditTourFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -102,22 +105,20 @@ public class QuanLyTourFragment extends Fragment implements TourAdapter.OnTourAc
         switchAdapter(currentTourStatus);
         loadTourList(currentTourStatus);
 
-        // ⭐ 5. Xử lý sự kiện click cho FAB (ĐÃ SỬA LỖI ID CONTAINER) ⭐
+        // 5. Xử lý sự kiện click cho FAB
         fabAddTour.setOnClickListener(v -> {
             Fragment createFragment = new TaoTourFragment();
 
             if (getParentFragmentManager() != null) {
                 getParentFragmentManager().beginTransaction()
-                        // ĐÃ SỬA: Sử dụng ID chính xác từ layout của Activity
                         .replace(FRAGMENT_CONTAINER_ID, createFragment)
-                        .addToBackStack(null)
+                        .addToBackStack("TourManagement")
                         .commit();
                 Log.d(TAG, "Đã chuyển sang TaoTourFragment.");
             } else {
                 Toast.makeText(getContext(), "Lỗi: Không thể truy cập Fragment Manager.", Toast.LENGTH_SHORT).show();
             }
         });
-        // ⭐ KẾT THÚC XỬ LÝ FAB ⭐
 
         return view;
     }
@@ -218,19 +219,66 @@ public class QuanLyTourFragment extends Fragment implements TourAdapter.OnTourAc
     // CALLBACKS (IMPLEMENTED INTERFACES)
     // =================================================================
 
+    /**
+     * ⭐ TRIỂN KHAI MỚI: Xử lý sự kiện click nút Cập nhật/Chỉnh sửa Tour.
+     */
     @Override
     public void onUpdateTour(Tour tour) {
-        Toast.makeText(getContext(), "Chức năng: Cập nhật Tour " + tour.getMaTour(), Toast.LENGTH_SHORT).show();
+        if (tour.getMaTour() == null) {
+            Toast.makeText(getContext(), "Lỗi: Không tìm thấy ID Tour để chỉnh sửa.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1. Tạo Fragment Chỉnh sửa Tour, truyền MaTour/tourId
+        Fragment editFragment = EditTourFragment.newInstance(tour.getMaTour());
+
+        // 2. Thực hiện giao dịch Fragment
+        if (getParentFragmentManager() != null) {
+            getParentFragmentManager().beginTransaction()
+                    // Thay thế Fragment hiện tại bằng EditTourFragment
+                    .replace(FRAGMENT_CONTAINER_ID, editFragment)
+                    // Thêm vào Back Stack
+                    .addToBackStack("EditTour")
+                    .commit();
+
+            Log.d(TAG, "Đã chuyển sang EditTourFragment cho Tour ID: " + tour.getMaTour());
+        } else {
+            Toast.makeText(getContext(), "Lỗi hệ thống: Không thể mở màn hình chỉnh sửa Tour.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     public void onApproveReject(String tourId, String tourName, String newStatus, int position) {
+        // Giữ nguyên logic xử lý duyệt/từ chối
         Toast.makeText(getContext(), "Xử lý: Tour " + tourId + " -> " + newStatus, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Xử lý sự kiện click để chuyển sang màn hình chi tiết Tour (TourDetailFragment).
+     */
     @Override
     public void onViewDetails(Tour tour) {
-        Toast.makeText(getContext(), "Xem chi tiết Tour: " + tour.getTenTour(), Toast.LENGTH_SHORT).show();
+        if (tour.getMaTour() == null) {
+            Toast.makeText(getContext(), "Lỗi: Không tìm thấy ID Tour.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1. Tạo Fragment Chi tiết Tour, truyền MaTour/tourId
+        Fragment detailFragment = TourDetailFragment.newInstance(tour.getMaTour());
+
+        // 2. Thực hiện giao dịch Fragment
+        if (getParentFragmentManager() != null) {
+            getParentFragmentManager().beginTransaction()
+                    // Thay thế Fragment hiện tại bằng Fragment Chi tiết
+                    .replace(FRAGMENT_CONTAINER_ID, detailFragment)
+                    // Thêm vào Back Stack để người dùng có thể quay lại
+                    .addToBackStack("TourListManagement")
+                    .commit();
+
+            Log.d(TAG, "Đã chuyển sang TourDetailFragment cho Tour ID: " + tour.getMaTour());
+        } else {
+            Toast.makeText(getContext(), "Lỗi hệ thống: Không thể mở chi tiết Tour.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

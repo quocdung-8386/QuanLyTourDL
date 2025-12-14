@@ -57,7 +57,8 @@ dependencies {
     implementation ("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-firestore:24.11.1")
     implementation ("com.google.android.gms:play-services-auth:21.0.0")
-
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
