@@ -1,11 +1,17 @@
 package com.example.quanlytourdl;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -13,104 +19,114 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ChiTietKhachHangFragment extends Fragment {
 
-    // Khai báo View
-    private ImageView btnBack;
-    private TextView tvName, tvCode, tvDob, tvGender, tvCitizenId, tvPhone, tvEmail, tvAddress, tvNationality;
+    // --- KHAI BÁO VIEW ---
+    private ImageView btnBack, btnCopyCode, imgAvatar;
+    private TextView tvCode, tvNationality;
+
+    // Các trường cho phép chỉnh sửa (EditText)
+    private EditText edtName, edtDob, edtGender, edtCitizenId, edtPhone, edtEmail, edtAddress;
+
     private MaterialButton btnEditProfile;
     private LinearLayout btnActionCall, btnActionMessage, btnActionEmail;
-    private TextView btnViewAllHistory;
 
-    private String customerId;
+    // --- BIẾN LOGIC ---
+    private String fullCustomerId; // ID gốc dùng để query Firebase
+    private boolean isEditing = false; // Trạng thái: false = Xem, true = Sửa
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Lưu ý: Đảm bảo tên layout đúng với file XML của bạn
+        // Đảm bảo tên layout đúng với file XML bạn đã sửa
         View view = inflater.inflate(R.layout.fragment_chi_tiet_khach_hang, container, false);
 
-        // 1. ÁNH XẠ VIEW
         initViews(view);
-
-        // 2. NHẬN DỮ LIỆU TỪ BUNDLE
-        // SỬA LỖI: Truyền biến 'view' vào hàm này
-        loadDataFromBundle(view);
-
-        // 3. XỬ LÝ SỰ KIỆN
+        loadData();
         setupEvents();
 
         return view;
     }
 
     private void initViews(View view) {
+        // Nút điều hướng & Header
         btnBack = view.findViewById(R.id.btnBack);
 
-        // Thông tin Header
-        tvName = view.findViewById(R.id.tvName);
-
-        // Thông tin cá nhân
+        // Avatar & Info cơ bản
+        imgAvatar = view.findViewById(R.id.imgAvatar);
         tvCode = view.findViewById(R.id.tvCode);
-        tvDob = view.findViewById(R.id.tvDob);
-        tvGender = view.findViewById(R.id.tvGender);
-        tvCitizenId = view.findViewById(R.id.tvCitizenId);
+        btnCopyCode = view.findViewById(R.id.btnCopyCode);
+
+        // Các trường nhập liệu (Ánh xạ đúng với ID trong XML)
+        edtName = view.findViewById(R.id.edtName);
+        edtDob = view.findViewById(R.id.edtDob);
+        edtGender = view.findViewById(R.id.edtGender);
+        edtCitizenId = view.findViewById(R.id.edtCitizenId);
+        edtPhone = view.findViewById(R.id.edtPhone);
+        edtEmail = view.findViewById(R.id.edtEmail);
+        edtAddress = view.findViewById(R.id.edtAddress);
+
+        // Trường này chỉ hiển thị, không sửa
         tvNationality = view.findViewById(R.id.tvNationality);
 
-        // Thông tin liên hệ
-        tvPhone = view.findViewById(R.id.tvPhone);
-        tvEmail = view.findViewById(R.id.tvEmail);
-        tvAddress = view.findViewById(R.id.tvAddress);
-
-        // Nút chức năng
+        // Các nút hành động
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        btnViewAllHistory = view.findViewById(R.id.btnViewAllHistory);
-
-        // Các nút hành động nhanh
         btnActionCall = view.findViewById(R.id.btnActionCall);
         btnActionMessage = view.findViewById(R.id.btnActionMessage);
         btnActionEmail = view.findViewById(R.id.btnActionEmail);
     }
 
-    // SỬA LỖI: Thêm tham số (View view) vào hàm
-    private void loadDataFromBundle(View view) {
+    private void loadData() {
         Bundle args = getArguments();
         if (args != null) {
-            customerId = args.getString("id");
+            String rawId = args.getString("id");
 
-            // Set Text an toàn
-            tvCode.setText(customerId != null ? customerId : "---");
-            tvName.setText(args.getString("name", "Tên khách hàng"));
-            tvPhone.setText(args.getString("phone", "---"));
-            tvEmail.setText(args.getString("email", "---"));
-            tvDob.setText(args.getString("dob", "---"));
-            tvAddress.setText(args.getString("address", "---"));
-
-            // Set các trường bổ sung
-            tvCitizenId.setText(args.getString("cccd", "---"));
-            tvNationality.setText("Việt Nam");
-
-            String gender = args.getString("gender");
-            // Cập nhật text hiển thị giới tính
-            if (tvGender != null) tvGender.setText(gender != null ? gender : "---");
-
-            // --- LOGIC HIỂN THỊ ẢNH ---
-            // SỬA LỖI: Dùng view.findViewById thay vì getView().findViewById
-            ImageView imgAvatar = view.findViewById(R.id.imgAvatar);
-
-            if (gender != null) {
-                if (gender.trim().equalsIgnoreCase("Nam")) {
-                    imgAvatar.setImageResource(R.drawable.ic_avatar_male);
-                } else if (gender.trim().equalsIgnoreCase("Nữ")) {
-                    imgAvatar.setImageResource(R.drawable.ic_avatar_female);
-                } else {
-                    imgAvatar.setImageResource(R.drawable.ic_avatar_default); // Nên dùng icon default thay vì launcher
-                }
+            // --- BƯỚC 1: LÀM SẠCH ID TUYỆT ĐỐI ---
+            // replaceAll("\\s+", "") sẽ xóa mọi dấu cách, dấu xuống dòng (\n), tab...
+            if (rawId != null) {
+                fullCustomerId = rawId.replaceAll("\\s+", "");
             } else {
-                imgAvatar.setImageResource(R.drawable.ic_avatar_default);
+                fullCustomerId = "";
+            }
+
+            // --- BƯỚC 2: HIỂN THỊ MÃ KH (Style Ticket) ---
+            if (!fullCustomerId.isEmpty()) {
+                String displayId = fullCustomerId;
+                // Nếu dài quá 8 ký tự thì cắt bớt cho đẹp (VD: #L1ALJQ...)
+                if (fullCustomerId.length() > 8) {
+                    displayId = fullCustomerId.substring(0, 7) + "...";
+                }
+                tvCode.setText("#" + displayId.toUpperCase());
+            } else {
+                tvCode.setText("#UNKNOWN");
+            }
+
+            // --- BƯỚC 3: ĐỔ DỮ LIỆU VÀO VIEW ---
+            edtName.setText(args.getString("name", ""));
+            edtDob.setText(args.getString("dob", ""));
+            edtGender.setText(args.getString("gender", ""));
+            edtCitizenId.setText(args.getString("cccd", ""));
+            edtPhone.setText(args.getString("phone", ""));
+            edtEmail.setText(args.getString("email", ""));
+            edtAddress.setText(args.getString("address", ""));
+
+            // Xử lý Avatar theo giới tính
+            String gender = args.getString("gender", "");
+            if (gender != null && gender.trim().equalsIgnoreCase("Nam")) {
+                imgAvatar.setImageResource(R.drawable.ic_avatar_male);
+            } else if (gender != null && gender.trim().equalsIgnoreCase("Nữ")) {
+                imgAvatar.setImageResource(R.drawable.ic_avatar_female);
+            } else {
+                imgAvatar.setImageResource(R.drawable.ic_launcher_background);
             }
         }
     }
@@ -118,39 +134,140 @@ public class ChiTietKhachHangFragment extends Fragment {
     private void setupEvents() {
         // Nút Back
         btnBack.setOnClickListener(v -> {
-            if (getParentFragmentManager() != null) {
-                getParentFragmentManager().popBackStack();
+            if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack();
+        });
+
+        // Nút Copy Mã KH đầy đủ
+        btnCopyCode.setOnClickListener(v -> {
+            if (fullCustomerId != null && !fullCustomerId.isEmpty()) {
+                ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("ID Khách hàng", fullCustomerId);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getContext(), "Đã sao chép mã: " + fullCustomerId, Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Nút Chỉnh sửa
+        // Nút Chỉnh sửa / Lưu thay đổi
         btnEditProfile.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Chức năng đang phát triển", Toast.LENGTH_SHORT).show();
-        });
-
-        // Nút Xem lịch sử
-        btnViewAllHistory.setOnClickListener(v -> {
-            LichSuDatTourFragment historyFragment = new LichSuDatTourFragment();
-            Bundle bundle = new Bundle();
-            bundle.putString("customer_id", customerId);
-            historyFragment.setArguments(bundle);
-
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.main_content_frame, historyFragment)
-                    .addToBackStack(null)
-                    .commit();
+            if (!isEditing) {
+                // ĐANG XEM -> Chuyển sang SỬA
+                toggleEditMode(true);
+            } else {
+                // ĐANG SỬA -> Thực hiện LƯU
+                saveDataToFirebase();
+            }
         });
 
         // Nút Gọi nhanh
-        if (btnActionCall != null) {
-            btnActionCall.setOnClickListener(v -> {
-                String phoneNumber = tvPhone.getText().toString();
-                if (!phoneNumber.isEmpty()) {
+        btnActionCall.setOnClickListener(v -> {
+            String phone = edtPhone.getText().toString().replaceAll("\\s+", "");
+            if (!phone.isEmpty()) {
+                try {
                     Intent intent = new Intent(Intent.ACTION_DIAL);
-                    intent.setData(Uri.parse("tel:" + phoneNumber));
+                    intent.setData(Uri.parse("tel:" + phone));
                     startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), "Lỗi cuộc gọi", Toast.LENGTH_SHORT).show();
                 }
-            });
+            }
+        });
+    }
+
+    /**
+     * Hàm bật/tắt chế độ chỉnh sửa (Ẩn hiện khung nhập liệu)
+     */
+    private void toggleEditMode(boolean enable) {
+        isEditing = enable;
+
+        // Danh sách các trường cần mở khóa
+        EditText[] fields = {edtName, edtDob, edtGender, edtCitizenId, edtPhone, edtEmail, edtAddress};
+
+        for (EditText field : fields) {
+            if (field == null) continue;
+
+            field.setEnabled(enable); // Mở khóa hoặc khóa
+
+            if (enable) {
+                // CHẾ ĐỘ SỬA: Thêm nền xanh nhạt, padding
+                field.setBackgroundColor(Color.parseColor("#E3F2FD"));
+                field.setPadding(16, 16, 16, 16);
+            } else {
+                // CHẾ ĐỘ XEM: Xóa nền
+                field.setBackground(null);
+                field.setPadding(0, 0, 0, 0);
+            }
         }
+
+        // Cập nhật giao diện nút bấm
+        if (enable) {
+            btnEditProfile.setText("Lưu thay đổi");
+            // Lưu ý: Đảm bảo bạn có icon ic_save hoặc ic_check, nếu không có thể dùng tạm ic_edit
+            btnEditProfile.setIconResource(R.drawable.ic_edit);
+            btnEditProfile.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_700)); // Màu xanh lá
+
+            // Focus vào tên
+            edtName.requestFocus();
+        } else {
+            btnEditProfile.setText("Chỉnh sửa hồ sơ");
+            btnEditProfile.setIconResource(R.drawable.ic_edit);
+            btnEditProfile.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.blue_700)); // Màu xanh dương
+        }
+    }
+
+    /**
+     * Hàm lưu dữ liệu lên Firebase (Đã sửa lỗi NOT_FOUND)
+     */
+    private void saveDataToFirebase() {
+        if (fullCustomerId == null || fullCustomerId.isEmpty()) return;
+
+        // 1. Làm sạch ID (Xóa khoảng trắng, xuống dòng)
+        String cleanId = fullCustomerId.replaceAll("\\s+", "");
+
+        // 2. Map dữ liệu
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("tenKhachHang", edtName.getText().toString().trim());
+        updates.put("sdt", edtPhone.getText().toString().trim());
+        updates.put("email", edtEmail.getText().toString().trim());
+        updates.put("diaChi", edtAddress.getText().toString().trim());
+        updates.put("ngaySinh", edtDob.getText().toString().trim());
+        updates.put("gioiTinh", edtGender.getText().toString().trim());
+        updates.put("cccd", edtCitizenId.getText().toString().trim());
+
+        btnEditProfile.setText("Đang lưu...");
+        btnEditProfile.setEnabled(false);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // --- CHIẾN THUẬT: THỬ SỬA VỚI "KhachHang" TRƯỚC ---
+        db.collection("KhachHang").document(cleanId).update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    // Nếu thành công -> Tên collection đúng là KhachHang
+                    handleUpdateSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    // Nếu thất bại -> Thử tiếp với tên "khachhang" (viết thường)
+                    Log.e("FirebaseTry", "Thất bại với KhachHang, đang thử khachhang...");
+
+                    db.collection("khachhang").document(cleanId).update(updates)
+                            .addOnSuccessListener(aVoid2 -> {
+                                // Nếu thành công -> Tên collection là khachhang
+                                handleUpdateSuccess();
+                            })
+                            .addOnFailureListener(e2 -> {
+                                // Cả 2 đều thua -> Chắc chắn sai ID
+                                String errorMsg = "LỖI: Không tìm thấy ID '" + cleanId + "' ở cả 'KhachHang' lẫn 'khachhang'.\nVui lòng kiểm tra lại ID trên Web.";
+                                Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
+
+                                btnEditProfile.setText("Lưu thay đổi");
+                                btnEditProfile.setEnabled(true);
+                            });
+                });
+    }
+
+    // Hàm phụ xử lý khi thành công
+    private void handleUpdateSuccess() {
+        Toast.makeText(getContext(), "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
+        toggleEditMode(false);
+        btnEditProfile.setEnabled(true);
     }
 }
