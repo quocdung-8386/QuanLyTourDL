@@ -5,9 +5,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlytourdl.adapter.ChiTietAdapter;
 import com.example.quanlytourdl.model.ChiTietItem;
 import com.example.quanlytourdl.model.HoaDon;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -35,16 +37,18 @@ public class ChiTietHoaDonFragment extends Fragment {
     private HoaDon hoaDonData;
     private FirebaseFirestore db;
 
+    // Views
     private ImageView btnBack;
-    // Khai báo đầy đủ các TextView hiển thị thông tin
     private TextView tvInvoiceCode, tvCreatedDate, tvDueDate, tvPaymentMethod, tvStatusDetail;
     private TextView tvCustomerName, tvCustomerDetail;
     private TextView tvBigTotal;
 
-    // Nút chức năng (nếu cần xử lý sự kiện click sau này)
+    // Buttons
     private ImageButton btnPrint, btnPdf;
-    private View btnSendInvoice;
+    private MaterialButton btnSendInvoice; // Nút gửi hóa đơn cũ
+    private MaterialButton btnThanhToan;   // Nút thanh toán mới
 
+    // List & Adapter
     private RecyclerView rvChiTietDonHang;
     private ChiTietAdapter chiTietAdapter;
     private List<ChiTietItem> listChiTiet;
@@ -56,20 +60,14 @@ public class ChiTietHoaDonFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        // Nhận dữ liệu từ màn hình trước truyền qua
+        // Nhận dữ liệu từ Fragment trước
         if (getArguments() != null) {
             hoaDonData = (HoaDon) getArguments().getSerializable("hoa_don_data");
         }
 
         initViews(view);
-
-        // 1. Hiển thị thông tin cơ bản (Mã, Ngày, Hạn, Tổng tiền...)
         displayBasicInfo();
-
-        // 2. Tải thông tin chi tiết khách hàng (SĐT, Địa chỉ) từ Firebase
         loadRealtimeCustomerInfo();
-
-        // 3. Tải danh sách tour/vé chi tiết từ Firebase
         loadOrderDetails();
 
         return view;
@@ -78,79 +76,98 @@ public class ChiTietHoaDonFragment extends Fragment {
     private void initViews(View view) {
         btnBack = view.findViewById(R.id.btnBack);
 
-        // Nhóm thông tin hóa đơn
+        // Thông tin hóa đơn
         tvInvoiceCode = view.findViewById(R.id.tvInvoiceCode);
         tvCreatedDate = view.findViewById(R.id.tvCreatedDate);
-        tvDueDate = view.findViewById(R.id.tvDueDate);           // Mới
-        tvPaymentMethod = view.findViewById(R.id.tvPaymentMethod); // Mới
-
+        tvDueDate = view.findViewById(R.id.tvDueDate);
+        tvPaymentMethod = view.findViewById(R.id.tvPaymentMethod);
         tvStatusDetail = view.findViewById(R.id.tvStatusDetail);
         tvBigTotal = view.findViewById(R.id.tvBigTotal);
 
-        // Nhóm thông tin khách hàng
+        // Thông tin khách hàng
         tvCustomerName = view.findViewById(R.id.tvCustomerName);
         tvCustomerDetail = view.findViewById(R.id.tvCustomerDetail);
 
-        // Nhóm nút bấm
+        // Nút chức năng
         btnPrint = view.findViewById(R.id.btnPrint);
         btnPdf = view.findViewById(R.id.btnPdf);
         btnSendInvoice = view.findViewById(R.id.btnSendInvoice);
+        btnThanhToan = view.findViewById(R.id.btnThanhToan); // Nút thanh toán màu cam
 
-        // RecyclerView danh sách chi tiết
+        // RecyclerView
         rvChiTietDonHang = view.findViewById(R.id.rvChiTietDonHang);
         rvChiTietDonHang.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvChiTietDonHang.setNestedScrollingEnabled(false); // Để scroll mượt trong NestedScrollView
+        rvChiTietDonHang.setNestedScrollingEnabled(false);
 
         listChiTiet = new ArrayList<>();
         chiTietAdapter = new ChiTietAdapter(listChiTiet);
         rvChiTietDonHang.setAdapter(chiTietAdapter);
 
-        // Sự kiện quay lại
+        // --- SỰ KIỆN ---
         btnBack.setOnClickListener(v -> {
             if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack();
         });
+
+        // Xử lý nút thanh toán
+        btnThanhToan.setOnClickListener(v -> xuLyThanhToan());
+
+        // Các nút khác (Demo)
+        btnSendInvoice.setOnClickListener(v -> Toast.makeText(getContext(), "Đang gửi hóa đơn...", Toast.LENGTH_SHORT).show());
+        btnPrint.setOnClickListener(v -> Toast.makeText(getContext(), "Chức năng In đang phát triển", Toast.LENGTH_SHORT).show());
+        btnPdf.setOnClickListener(v -> Toast.makeText(getContext(), "Xuất PDF thành công", Toast.LENGTH_SHORT).show());
     }
 
     private void displayBasicInfo() {
         if (hoaDonData != null) {
-            // --- XỬ LÝ MÃ HÓA ĐƠN ---
+            // Mã hóa đơn ngắn gọn
             String rawId = hoaDonData.getMaHoaDon();
-            // Cắt chuỗi lấy 8 ký tự đầu và in hoa để làm mã ngắn gọn (ví dụ: #A1B2C3D4)
             String shortId = "#" + (rawId.length() > 8 ? rawId.substring(0, 8).toUpperCase() : rawId);
             tvInvoiceCode.setText(shortId);
 
-
-            // --- XỬ LÝ NGÀY GIỜ (REAL-TIME) ---
+            // Ngày tháng
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date today = new Date(); // Lấy thời gian thực tại hiện tại
-
-            // 1. Gán ngày lập là ngày hôm nay
+            Date today = new Date();
             tvCreatedDate.setText(sdf.format(today));
 
-            // 2. Tự động tính hạn thanh toán (Ví dụ: +3 ngày kể từ hôm nay)
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(today);
-            calendar.add(Calendar.DAY_OF_YEAR, 3); // Cộng thêm 3 ngày
+            calendar.add(Calendar.DAY_OF_YEAR, 3);
             tvDueDate.setText(sdf.format(calendar.getTime()));
 
-
-            // --- CÁC THÔNG TIN KHÁC ---
-            tvPaymentMethod.setText("Chuyển khoản"); // Có thể thay đổi tùy logic của bạn
-
+            tvPaymentMethod.setText("Chuyển khoản");
             tvCustomerName.setText(hoaDonData.getTenKhachHang());
-            tvCustomerDetail.setText("Đang tải thông tin liên hệ..."); // Placeholder trước khi load xong
+            tvCustomerDetail.setText("Đang tải...");
 
-            DecimalFormat formatter = new DecimalFormat("#,###");
-            tvBigTotal.setText(formatter.format(hoaDonData.getTongTien()) + "đ");
-
+            updateUIForTotal(hoaDonData.getTongTien());
             updateStatusView(hoaDonData.getTrangThai());
         }
+    }
+
+    private void xuLyThanhToan() {
+        if (hoaDonData == null) return;
+
+        // Nếu đã thanh toán (status = 1) thì báo lỗi
+        if (hoaDonData.getTrangThai() == 1) {
+            Toast.makeText(getContext(), "Hóa đơn này đã được thanh toán!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Cập nhật Firebase
+        db.collection("HoaDon").document(hoaDonData.getMaHoaDon())
+                .update("trangThai", 1) // 1: Đã thanh toán
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Xác nhận thanh toán thành công!", Toast.LENGTH_SHORT).show();
+                    hoaDonData.setTrangThai(1);
+                    updateStatusView(1); // Cập nhật giao diện ngay
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void loadRealtimeCustomerInfo() {
         if (hoaDonData == null || hoaDonData.getTenKhachHang() == null) return;
 
-        // Tìm trong collection "khachhang" dựa vào tên
         db.collection("khachhang")
                 .whereEqualTo("ten", hoaDonData.getTenKhachHang())
                 .limit(1)
@@ -158,72 +175,107 @@ public class ChiTietHoaDonFragment extends Fragment {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         QueryDocumentSnapshot doc = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-
                         String sdt = doc.getString("sdt");
                         String diaChi = doc.getString("diaChi");
-
-                        // Kiểm tra null để hiển thị đẹp hơn
-                        String sdtHienThi = (sdt != null && !sdt.isEmpty()) ? sdt : "Không có SĐT";
-                        String diaChiHienThi = (diaChi != null && !diaChi.isEmpty()) ? diaChi : "Địa chỉ chưa cập nhật";
-
-                        tvCustomerDetail.setText(sdtHienThi + " • " + diaChiHienThi);
+                        String detail = (sdt != null ? sdt : "No phone") + " • " + (diaChi != null ? diaChi : "No address");
+                        tvCustomerDetail.setText(detail);
                     } else {
-                        tvCustomerDetail.setText("Khách vãng lai • Chưa có hồ sơ");
+                        tvCustomerDetail.setText("Khách vãng lai");
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("CustomerInfo", "Lỗi lấy thông tin khách: " + e.getMessage());
-                    tvCustomerDetail.setText("Lỗi tải thông tin");
                 });
-    }
-
-    private void updateStatusView(int status) {
-        // Cập nhật màu sắc và text trạng thái dựa trên mã status (1, 2, 3...)
-        switch (status) {
-            case 1: // Đã thanh toán
-                tvStatusDetail.setText("ĐÃ THANH TOÁN");
-                tvStatusDetail.setTextColor(ContextCompat.getColor(getContext(), R.color.status_paid_text));
-                // Lưu ý: Đảm bảo bạn có định nghĩa màu trong colors.xml hoặc dùng Color.parseColor("#10B981")
-                tvStatusDetail.setBackgroundResource(R.drawable.bg_status_paid_pill); // Đảm bảo drawable này tồn tại
-                break;
-            case 2: // Đang chờ
-                tvStatusDetail.setText("ĐANG CHỜ");
-                tvStatusDetail.setTextColor(ContextCompat.getColor(getContext(), R.color.status_pending_text));
-                tvStatusDetail.setBackgroundResource(R.drawable.bg_status_pending);
-                break;
-            case 3: // Đã hủy / Quá hạn
-                tvStatusDetail.setText("ĐÃ HỦY");
-                tvStatusDetail.setTextColor(ContextCompat.getColor(getContext(), R.color.status_overdue_text));
-                tvStatusDetail.setBackgroundResource(R.drawable.bg_status_overdue);
-                break;
-            default:
-                tvStatusDetail.setText("TRẠNG THÁI KHÁC");
-                break;
-        }
     }
 
     private void loadOrderDetails() {
         if (hoaDonData == null) return;
 
-        // Lấy danh sách chi tiết tour/vé dựa trên mã đơn hàng gốc
         db.collection("ChiTietDonHang")
                 .whereEqualTo("maDonHang", hoaDonData.getMaHoaDon())
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         listChiTiet.clear();
+                        double calculatedTotal = 0;
+
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             try {
                                 ChiTietItem item = document.toObject(ChiTietItem.class);
                                 listChiTiet.add(item);
+
+                                // Chuyển đổi String số lượng sang int để nhân được
+                                String strSoLuong = item.getSoLuong();
+                                int intSoLuong = 0;
+                                try {
+                                    if (strSoLuong != null && !strSoLuong.trim().isEmpty()) {
+                                        intSoLuong = Integer.parseInt(strSoLuong);
+                                    }
+                                } catch (NumberFormatException e) {
+                                    intSoLuong = 0; // Nếu dữ liệu lỗi thì coi như bằng 0
+                                }
+
+                                // TÍNH TỔNG TIỀN: Giá (double) x Số Lượng (int)
+                                calculatedTotal += (item.getGiaTien() * intSoLuong);
+
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                         chiTietAdapter.notifyDataSetChanged();
+
+                        // Cập nhật lại tổng tiền hiển thị theo danh sách chi tiết thực tế
+                        updateUIForTotal(calculatedTotal);
+
                     } else {
                         Log.e("OrderDetails", "Error getting details", task.getException());
                     }
                 });
+    }
+
+    private void updateUIForTotal(double totalAmount) {
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String moneyString = formatter.format(totalAmount) + "đ";
+
+        // 1. Cập nhật số to trên cùng
+        tvBigTotal.setText(moneyString);
+
+        // 2. Cập nhật chữ trên nút thanh toán (Nếu chưa thanh toán)
+        if (hoaDonData.getTrangThai() != 1) {
+            btnThanhToan.setText("Thanh toán • " + moneyString);
+        }
+    }
+
+    private void updateStatusView(int status) {
+        switch (status) {
+            case 1: // Đã thanh toán
+                tvStatusDetail.setText("ĐÃ THANH TOÁN");
+                tvStatusDetail.setTextColor(ContextCompat.getColor(getContext(), R.color.status_paid_text));
+                tvStatusDetail.setBackgroundResource(R.drawable.bg_status_paid_pill);
+
+                // Khóa nút thanh toán và đổi màu xám
+                btnThanhToan.setText("ĐÃ THANH TOÁN");
+                btnThanhToan.setBackgroundColor(ContextCompat.getColor(getContext(), android.R.color.darker_gray));
+                btnThanhToan.setEnabled(false);
+                break;
+            case 2: // Đang chờ
+                tvStatusDetail.setText("ĐANG CHỜ");
+                tvStatusDetail.setTextColor(ContextCompat.getColor(getContext(), R.color.status_pending_text));
+                tvStatusDetail.setBackgroundResource(R.drawable.bg_status_pending);
+
+                // Mở khóa nút
+                btnThanhToan.setEnabled(true);
+                // Bạn cần định nghĩa màu R.color.orange_primary hoặc dùng Color.parseColor("#F97316")
+                btnThanhToan.setBackgroundColor(android.graphics.Color.parseColor("#F97316"));
+                break;
+            case 3: // Đã hủy
+                tvStatusDetail.setText("ĐÃ HỦY");
+                tvStatusDetail.setTextColor(ContextCompat.getColor(getContext(), R.color.status_overdue_text));
+                tvStatusDetail.setBackgroundResource(R.drawable.bg_status_overdue);
+
+                btnThanhToan.setText("ĐƠN ĐÃ HỦY");
+                btnThanhToan.setEnabled(false);
+                break;
+            default:
+                tvStatusDetail.setText("KHÔNG XÁC ĐỊNH");
+                break;
+        }
     }
 }
