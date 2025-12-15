@@ -5,10 +5,12 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu; // Thêm thư viện PopupMenu
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,8 +30,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.Collator; // Thêm thư viện xử lý tiếng Việt
 import java.util.ArrayList;
+import java.util.Collections; // Thêm thư viện sắp xếp
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class DanhSachKhachHangFragment extends Fragment {
 
@@ -53,7 +59,7 @@ public class DanhSachKhachHangFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         khachHangRef = db.collection("khachhang");
 
-        // LẮNG NGHE XÓA (Giữ nguyên logic này)
+        // LẮNG NGHE XÓA (Giữ nguyên logic cũ)
         getParentFragmentManager().setFragmentResultListener("delete_customer_request", this, new FragmentResultListener() {
             @Override
             public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
@@ -68,8 +74,6 @@ public class DanhSachKhachHangFragment extends Fragment {
                 }
             }
         });
-
-        // LƯU Ý: Đã xóa phần lắng nghe "add_customer_request" vì màn hình Tạo Hồ Sơ đã tự lưu vào Firestore.
     }
 
     @Nullable
@@ -114,12 +118,60 @@ public class DanhSachKhachHangFragment extends Fragment {
             }
         });
 
-        btnFilter.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Tính năng lọc đang phát triển", Toast.LENGTH_SHORT).show()
-        );
+        // --- CẬP NHẬT: Thêm logic hiển thị Menu Lọc ---
+        btnFilter.setOnClickListener(v -> showSortMenu());
 
         return view;
     }
+
+    // --- MỚI: Hàm hiển thị Menu chọn A-Z ---
+    private void showSortMenu() {
+        PopupMenu popup = new PopupMenu(getContext(), btnFilter);
+        // Thêm item: ID Group, ID Item, Order, Title
+        popup.getMenu().add(0, 1, 0, "Sắp xếp tên: A -> Z");
+        popup.getMenu().add(0, 2, 1, "Sắp xếp tên: Z -> A");
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case 1:
+                        sortData(true); // A->Z
+                        return true;
+                    case 2:
+                        sortData(false); // Z->A
+                        return true;
+                }
+                return false;
+            }
+        });
+        popup.show();
+    }
+
+    // --- MỚI: Hàm xử lý logic sắp xếp tiếng Việt ---
+    private void sortData(boolean ascending) {
+        // Collator hỗ trợ so sánh dấu tiếng Việt chuẩn (a, ă, â...)
+        Collator collator = Collator.getInstance(new Locale("vi", "VN"));
+
+        Collections.sort(listKhachHang, new Comparator<KhachHang>() {
+            @Override
+            public int compare(KhachHang o1, KhachHang o2) {
+                String name1 = o1.getTen() != null ? o1.getTen() : "";
+                String name2 = o2.getTen() != null ? o2.getTen() : "";
+
+                if (ascending) {
+                    return collator.compare(name1, name2); // A -> Z
+                } else {
+                    return collator.compare(name2, name1); // Z -> A
+                }
+            }
+        });
+
+        adapter.notifyDataSetChanged();
+        Toast.makeText(getContext(), ascending ? "Đã xếp A-Z" : "Đã xếp Z-A", Toast.LENGTH_SHORT).show();
+    }
+
+    // --- GIỮ NGUYÊN CODE CŨ BÊN DƯỚI ---
 
     private void setupSearch() {
         if (edtSearch == null) return;
@@ -157,7 +209,6 @@ public class DanhSachKhachHangFragment extends Fragment {
     }
 
     private void getDataFromFirestore() {
-        // addSnapshotListener giúp tự động cập nhật list khi có thay đổi (Thêm/Sửa/Xóa) trên DB
         khachHangRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
@@ -193,16 +244,11 @@ public class DanhSachKhachHangFragment extends Fragment {
         ChiTietKhachHangFragment fragmentChiTiet = new ChiTietKhachHangFragment();
         Bundle bundle = new Bundle();
 
-        // Truyền ID quan trọng nhất để màn hình kia có thể fetch lại hoặc update
         bundle.putString("id", kh.getId());
-
-        // Truyền dữ liệu hiển thị nhanh
         bundle.putString("name", kh.getTen());
         bundle.putString("phone", kh.getSdt());
         bundle.putString("dob", kh.getNgaySinh());
         bundle.putString("email", kh.getEmail());
-
-        // Truyền các trường bổ sung (Phải khớp với Model mới)
         bundle.putString("address", kh.getDiaChi());
         bundle.putString("gender", kh.getGioiTinh());
         bundle.putString("cccd", kh.getCccd());
@@ -213,7 +259,6 @@ public class DanhSachKhachHangFragment extends Fragment {
     }
 
     private void moManHinhXoa(KhachHang kh) {
-        // Giả sử bạn có XoaKhachHangFragment (Dialog Fragment)
         XoaKhachHangFragment fragmentXoa = new XoaKhachHangFragment();
         Bundle bundle = new Bundle();
         bundle.putString("name", kh.getTen());
