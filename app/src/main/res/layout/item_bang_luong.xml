@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_salary_period"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bảng lương tháng 07 năm 2024"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_paid"
+                android:paddingStart="12dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="4dp"
+                android:text="Đã thanh toán"
+                android:textColor="#155724"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tv_salary_period"
+                app:layout_constraintBottom_toBottomOf="@id/tv_salary_period"/>
+
+            <TextView
+                android:id="@+id/tv_luong_co_ban_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Lương cơ bản"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_salary_period" />
+
+            <TextView
+                android:id="@+id/tv_luong_co_ban"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15.000.000 VNĐ"
+                android:textColor="@android:color/black"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tv_luong_co_ban_label"
+                app:layout_constraintBottom_toBottomOf="@id/tv_luong_co_ban_label"/>
+
+            <TextView
+                android:id="@+id/tv_tong_phu_cap_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tổng phụ cấp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_luong_co_ban_label" />
+
+            <TextView
+                android:id="@+id/tv_tong_phu_cap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2.500.000 VNĐ"
+                android:textColor="@android:color/black"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tv_tong_phu_cap_label"
+                app:layout_constraintBottom_toBottomOf="@id/tv_tong_phu_cap_label"/>
+
+            <TextView
+                android:id="@+id/tv_thuong_hoa_hong_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Thưởng &amp; Hoa hồng"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_tong_phu_cap_label" />
+
+            <TextView
+                android:id="@+id/tv_thuong_hoa_hong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+ 1.000.000 VNĐ"
+                android:textColor="#28A745"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tv_thuong_hoa_hong_label"
+                app:layout_constraintBottom_toBottomOf="@id/tv_thuong_hoa_hong_label"/>
+
+            <TextView
+                android:id="@+id/tv_phat_khau_tru_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Phạt &amp; Khấu trừ"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_thuong_hoa_hong_label" />
+
+            <TextView
+                android:id="@+id/tv_phat_khau_tru"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="- 500.000 VNĐ"
+                android:textColor="#DC3545"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tv_phat_khau_tru_label"
+                app:layout_constraintBottom_toBottomOf="@id/tv_phat_khau_tru_label"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#E1F5FE"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tổng thu nhập"
+                android:textColor="#03A9F4"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_tong_thu_nhap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18.000.000 VNĐ"
+                android:textColor="#03A9F4"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -11,4 +11,20 @@
         <item>Thỏa thuận chấm dứt</item>
         <item>Khác</item>
     </string-array>
+    <string-array name="ky_luong_array">
+        <item>Tháng 07, 2024</item>
+        <item>Tháng 06, 2024</item>
+        <item>Tháng 05, 2024</item>
+    </string-array>
+    <string-array name="phong_ban_array">
+        <item>Tất cả phòng ban</item>
+        <item>Kinh doanh</item>
+        <item>CSKH</item>
+        <item>Chọn phòng ban</item>
+    </string-array>
+    <string-array name="vai_tro_array">
+        <item>Chọn vai trò</item>
+        <item>Quản lý</item>
+        <item>Nhân viên</item>
+    </string-array>
 </resources>
