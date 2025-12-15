@@ -201,7 +201,7 @@ public class QuanLyDonHangFragment extends Fragment {
         btnHoanTien.setOnClickListener(v -> chuyenFragment(new DanhSachHoanTienFragment()));
 
         // 6. Nút Đối chiếu (Admin)
-        btnDoiChieu.setOnClickListener(v -> hienThiThongBao("Truy cập công cụ Đối chiếu"));
+        btnDoiChieu.setOnClickListener(v -> chuyenFragment(new DataReconciliationFragment()));
         // 7. Nút quay lại màn hình chính
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
