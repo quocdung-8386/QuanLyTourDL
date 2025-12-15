@@ -5,29 +5,23 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.quanlytourdl.adapter.ChiTietAdapter;
 import com.example.quanlytourdl.model.ChiTietItem;
 import com.example.quanlytourdl.model.HoaDon;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -40,15 +34,8 @@ public class ChiTietHoaDonFragment extends Fragment {
     // Views
     private ImageView btnBack;
     private TextView tvInvoiceCode, tvCreatedDate, tvDueDate, tvPaymentMethod, tvStatusDetail;
-    private TextView tvCustomerName, tvCustomerDetail;
-    private TextView tvBigTotal;
-
-    // Buttons
-    private ImageButton btnPrint, btnPdf;
-    private MaterialButton btnSendInvoice;
+    private TextView tvCustomerName, tvCustomerDetail, tvBigTotal;
     private MaterialButton btnThanhToan;
-
-    // List & Adapter
     private RecyclerView rvChiTietDonHang;
     private ChiTietAdapter chiTietAdapter;
     private List<ChiTietItem> listChiTiet;
@@ -57,7 +44,6 @@ public class ChiTietHoaDonFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chi_tiet_hoa_don, container, false);
-
         db = FirebaseFirestore.getInstance();
 
         if (getArguments() != null) {
@@ -66,9 +52,6 @@ public class ChiTietHoaDonFragment extends Fragment {
 
         initViews(view);
         displayBasicInfo();
-        loadRealtimeCustomerInfo();
-
-        // Gọi hàm load dữ liệu
         loadOrderDetails();
 
         return view;
@@ -84,15 +67,10 @@ public class ChiTietHoaDonFragment extends Fragment {
         tvBigTotal = view.findViewById(R.id.tvBigTotal);
         tvCustomerName = view.findViewById(R.id.tvCustomerName);
         tvCustomerDetail = view.findViewById(R.id.tvCustomerDetail);
-        btnPrint = view.findViewById(R.id.btnPrint);
-        btnPdf = view.findViewById(R.id.btnPdf);
-        btnSendInvoice = view.findViewById(R.id.btnSendInvoice);
         btnThanhToan = view.findViewById(R.id.btnThanhToan);
 
         rvChiTietDonHang = view.findViewById(R.id.rvChiTietDonHang);
         rvChiTietDonHang.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvChiTietDonHang.setNestedScrollingEnabled(false);
-
         listChiTiet = new ArrayList<>();
         chiTietAdapter = new ChiTietAdapter(listChiTiet);
         rvChiTietDonHang.setAdapter(chiTietAdapter);
@@ -101,12 +79,40 @@ public class ChiTietHoaDonFragment extends Fragment {
             if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack();
         });
 
-        btnThanhToan.setOnClickListener(v -> xuLyThanhToan());
+        // SỰ KIỆN: Chuyển sang màn hình thanh toán
+        btnThanhToan.setOnClickListener(v -> chuyenSangManHinhThanhToan());
+    }
 
-        // Các nút demo
-        btnSendInvoice.setOnClickListener(v -> Toast.makeText(getContext(), "Đang gửi...", Toast.LENGTH_SHORT).show());
-        btnPrint.setOnClickListener(v -> Toast.makeText(getContext(), "Chức năng In đang phát triển", Toast.LENGTH_SHORT).show());
-        btnPdf.setOnClickListener(v -> Toast.makeText(getContext(), "Xuất PDF thành công", Toast.LENGTH_SHORT).show());
+    private void chuyenSangManHinhThanhToan() {
+        if (hoaDonData == null) return;
+
+        // Kiểm tra nếu đã thanh toán thì không cho bấm
+        if (hoaDonData.getTrangThai() == 1) {
+            Toast.makeText(getContext(), "Đơn hàng này đã được thanh toán!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FragmentThanhToan fragmentThanhToan = new FragmentThanhToan();
+        Bundle bundle = new Bundle();
+
+        // Truyền dữ liệu cần thiết sang Fragment Thanh Toán
+        bundle.putString("maHoaDonHienTai", hoaDonData.getMaHoaDon()); // Quan trọng: Mã đơn để update
+        bundle.putString("tenTour", hoaDonData.getTenTour());
+        bundle.putDouble("giaTour", hoaDonData.getTongTien()); // Giá tour lúc này là tổng tiền hóa đơn
+        bundle.putString("ngayKhoiHanh", tvCreatedDate.getText().toString());
+
+        // Đánh dấu để FragmentThanhToan biết đây là thanh toán hóa đơn cũ
+        bundle.putBoolean("isThanhToanHoaDonCu", true);
+
+        fragmentThanhToan.setArguments(bundle);
+
+        View containerView = (View) getView().getParent();
+        int containerId = containerView.getId(); // Lấy ID thực tế của nó
+
+        getParentFragmentManager().beginTransaction()
+                .replace(containerId, fragmentThanhToan) // Dùng ID vừa lấy được
+                .addToBackStack(null)
+                .commit();
     }
 
     private void displayBasicInfo() {
@@ -114,62 +120,23 @@ public class ChiTietHoaDonFragment extends Fragment {
             String rawId = hoaDonData.getMaHoaDon();
             String shortId = "#" + (rawId.length() > 8 ? rawId.substring(0, 8).toUpperCase() : rawId);
             tvInvoiceCode.setText(shortId);
-
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date today = new Date(); // Thực tế nên lấy ngày tạo từ hoaDonData nếu có
-            tvCreatedDate.setText(sdf.format(today));
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(today);
-            calendar.add(Calendar.DAY_OF_YEAR, 3);
-            tvDueDate.setText(sdf.format(calendar.getTime()));
-
-            tvPaymentMethod.setText("Chuyển khoản");
             tvCustomerName.setText(hoaDonData.getTenKhachHang());
-            tvCustomerDetail.setText("Đang tải...");
 
-            updateUIForTotal(hoaDonData.getTongTien());
+            // Format tiền
+            DecimalFormat formatter = new DecimalFormat("#,###");
+            String moneyString = formatter.format(hoaDonData.getTongTien()) + "đ";
+            tvBigTotal.setText(moneyString);
+
+            // Cập nhật trạng thái hiển thị
             updateStatusView(hoaDonData.getTrangThai());
+
+            // Nếu chưa thanh toán thì nút hiển thị số tiền cần trả
+            if (hoaDonData.getTrangThai() != 1) {
+                btnThanhToan.setText("Thanh toán • " + moneyString);
+            }
         }
     }
 
-    private void xuLyThanhToan() {
-        if (hoaDonData == null) return;
-        if (hoaDonData.getTrangThai() == 1) {
-            Toast.makeText(getContext(), "Hóa đơn này đã được thanh toán!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        db.collection("HoaDon").document(hoaDonData.getMaHoaDon())
-                .update("trangThai", 1)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Thanh toán thành công!", Toast.LENGTH_SHORT).show();
-                    hoaDonData.setTrangThai(1);
-                    updateStatusView(1);
-                })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-
-    private void loadRealtimeCustomerInfo() {
-        if (hoaDonData == null || hoaDonData.getTenKhachHang() == null) return;
-
-        db.collection("khachhang")
-                .whereEqualTo("ten", hoaDonData.getTenKhachHang())
-                .limit(1)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        QueryDocumentSnapshot doc = (QueryDocumentSnapshot) queryDocumentSnapshots.getDocuments().get(0);
-                        String sdt = doc.getString("sdt");
-                        String diaChi = doc.getString("diaChi");
-                        tvCustomerDetail.setText((sdt != null ? sdt : "No phone") + " • " + (diaChi != null ? diaChi : "No address"));
-                    } else {
-                        tvCustomerDetail.setText("Khách vãng lai");
-                    }
-                });
-    }
-
-    // --- PHẦN ĐÃ ĐƯỢC SỬA LẠI ĐỂ HIỂN THỊ ĐÚNG DỮ LIỆU ---
     private void loadOrderDetails() {
         if (hoaDonData == null) return;
 
@@ -186,7 +153,8 @@ public class ChiTietHoaDonFragment extends Fragment {
                         Long slNguoiLon = documentSnapshot.getLong("soLuongNguoiLon");
                         Long slTreEm = documentSnapshot.getLong("soLuongTreEm");
                         Double tongTien = documentSnapshot.getDouble("tongTien");
-
+                        String ngayDi = documentSnapshot.getString("ngayKhoiHanh"); // Hoặc "ngayDi" tùy db bạn
+                        String maTour = documentSnapshot.getString("maTour");
                         // Xử lý null pointer
                         long slNL = (slNguoiLon != null) ? slNguoiLon : 0;
                         long slTE = (slTreEm != null) ? slTreEm : 0;
@@ -216,6 +184,7 @@ public class ChiTietHoaDonFragment extends Fragment {
                         // Cập nhật lại tổng tiền chính xác từ Firestore
                         if (tongTien != null) {
                             updateUIForTotal(tongTien);
+                            hoaDonData.setTongTien(tongTien);
                         }
                     } else {
                         // Trường hợp không tìm thấy đơn (có thể do xóa nhầm trên db)
