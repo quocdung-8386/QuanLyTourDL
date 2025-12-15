@@ -18,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -27,6 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import com.example.quanlytourdl.R;
 import com.example.quanlytourdl.model.Tour;
+// Các fragment con (TourServiceFragment, TourReviewFragment, TourItineraryFragment)
 import com.example.quanlytourdl.TourServiceFragment;
 import com.example.quanlytourdl.TourReviewFragment;
 import com.example.quanlytourdl.TourItineraryFragment;
@@ -50,12 +53,11 @@ public class TourDetailFragment extends Fragment {
     private ImageView imgTourHeader;
     private TextView tvTourTitle, tvTourSubtitle, tvTourLocation, tvTourRating;
     private TabLayout tabLayout;
-    // ĐÃ XÓA: private Button btnViewStatistics;
     private Button btnEditTour;
     private Button btnDeleteTour;
     private FrameLayout fragmentContainer;
     private LinearLayout keyMetricsContainer;
-    private View loadingOverlay;
+    private View loadingOverlay; // Giữ nguyên, giả định ID R.id.loading_overlay tồn tại
 
     // Data & Firebase
     private Tour currentTour;
@@ -100,7 +102,7 @@ public class TourDetailFragment extends Fragment {
         btnDeleteTour = view.findViewById(R.id.btn_delete_tour);
         fragmentContainer = view.findViewById(R.id.fragment_container);
         keyMetricsContainer = view.findViewById(R.id.key_metrics_container);
-        //loadingOverlay = view.findViewById(R.id.loading_overlay); // Đảm bảo ID này tồn tại
+        //loadingOverlay = view.findViewById(R.id.loading_overlay); // Khôi phục lại việc ánh xạ
 
         // 2. Thiết lập Toolbar
         setupToolbar();
@@ -110,11 +112,17 @@ public class TourDetailFragment extends Fragment {
         fragmentContainer.setVisibility(View.GONE);
 
         // 4. Tải dữ liệu Tour từ Firebase
-        if (tourId != null) {
+        if (tourId != null && !tourId.isEmpty()) {
             loadTourData(tourId, view);
         } else {
             Toast.makeText(getContext(), "Lỗi: Không có ID Tour.", Toast.LENGTH_LONG).show();
-            if (getActivity() != null) getActivity().onBackPressed();
+            // ⭐ GIẢI PHÁP SỬA LỖI FATAL EXCEPTION ⭐
+            // Hoãn việc gọi onBackPressed() để FragmentManager hoàn tất giao dịch tạo Fragment hiện tại.
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
+            });
         }
 
         // 5. Xử lý sự kiện click
@@ -146,22 +154,34 @@ public class TourDetailFragment extends Fragment {
                                     setupTabLayout();
                                 } else {
                                     Toast.makeText(getContext(), "Lỗi mapping dữ liệu Tour.", Toast.LENGTH_LONG).show();
-                                    if (getActivity() != null) getActivity().onBackPressed();
+                                    // Sửa lỗi: Gọi onBackPressed an toàn
+                                    new Handler(Looper.getMainLooper()).post(() -> {
+                                        if (getActivity() != null) getActivity().onBackPressed();
+                                    });
                                 }
                             } catch (Exception e) {
                                 Log.e(TAG, "Lỗi khi chuyển đổi đối tượng Tour", e);
                                 Toast.makeText(getContext(), "Lỗi cấu trúc dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                if (getActivity() != null) getActivity().onBackPressed();
+                                // Sửa lỗi: Gọi onBackPressed an toàn
+                                new Handler(Looper.getMainLooper()).post(() -> {
+                                    if (getActivity() != null) getActivity().onBackPressed();
+                                });
                             }
                         } else {
                             Log.d(TAG, "Không tìm thấy document Tour ID: " + id);
                             Toast.makeText(getContext(), "Không tìm thấy Tour: " + id, Toast.LENGTH_LONG).show();
-                            if (getActivity() != null) getActivity().onBackPressed();
+                            // Sửa lỗi: Gọi onBackPressed an toàn
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                if (getActivity() != null) getActivity().onBackPressed();
+                            });
                         }
                     } else {
                         Log.e(TAG, "Lỗi kết nối Firebase.", task.getException());
                         Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                        if (getActivity() != null) getActivity().onBackPressed();
+                        // Sửa lỗi: Gọi onBackPressed an toàn
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            if (getActivity() != null) getActivity().onBackPressed();
+                        });
                     }
                 });
     }
@@ -188,6 +208,7 @@ public class TourDetailFragment extends Fragment {
         collapsingToolbar.setTitle(tour.getTenTour());
 
         // Load ảnh (Placeholder)
+        // Bạn nên thay thế R.drawable.tour_placeholder_danang bằng thư viện load ảnh (Glide/Picasso) và link URL của tour.
         imgTourHeader.setImageResource(R.drawable.tour_placeholder_danang);
 
         // Thông tin cơ bản
@@ -341,9 +362,12 @@ public class TourDetailFragment extends Fragment {
                     Toast.makeText(getContext(), "Tour " + tourId + " đã được xóa thành công.", Toast.LENGTH_LONG).show();
 
                     // Quay lại màn hình trước đó (Danh sách Tour)
-                    if (getActivity() != null) {
-                        getActivity().onBackPressed();
-                    }
+                    // ⭐ Sửa lỗi: Gọi onBackPressed an toàn
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        if (getActivity() != null) {
+                            getActivity().onBackPressed();
+                        }
+                    });
                 })
                 .addOnFailureListener(e -> {
                     if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
