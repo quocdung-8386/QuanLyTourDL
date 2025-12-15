@@ -218,49 +218,55 @@ public class ChiTietKhachHangFragment extends Fragment {
      * Hàm lưu dữ liệu lên Firebase (Đã sửa lỗi NOT_FOUND)
      */
     private void saveDataToFirebase() {
-        if (fullCustomerId == null || fullCustomerId.isEmpty()) return;
+        if (fullCustomerId == null || fullCustomerId.isEmpty()) {
+            Toast.makeText(getContext(), "Lỗi: Không tìm thấy ID khách hàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // 1. Làm sạch ID (Xóa khoảng trắng, xuống dòng)
+        // Làm sạch ID
         String cleanId = fullCustomerId.replaceAll("\\s+", "");
 
-        // 2. Map dữ liệu
+        // --- SỬA QUAN TRỌNG: ĐỒNG BỘ TÊN FIELD VỚI MODEL ---
+        // Kiểm tra kỹ file KhachHang.java của bạn xem biến tên là gì.
+        // Thông thường Model đặt là 'ten', 'sdt' thì trên Firebase cũng phải là 'ten', 'sdt'.
+        // Nếu bạn dùng 'tenKhachHang' ở đây mà Model lại get("ten") thì nó sẽ không khớp.
+
         Map<String, Object> updates = new HashMap<>();
-        updates.put("tenKhachHang", edtName.getText().toString().trim());
+        updates.put("ten", edtName.getText().toString().trim());       // Sửa "tenKhachHang" -> "ten" (hoặc tên field chính xác trên Firebase)
         updates.put("sdt", edtPhone.getText().toString().trim());
         updates.put("email", edtEmail.getText().toString().trim());
         updates.put("diaChi", edtAddress.getText().toString().trim());
         updates.put("ngaySinh", edtDob.getText().toString().trim());
         updates.put("gioiTinh", edtGender.getText().toString().trim());
         updates.put("cccd", edtCitizenId.getText().toString().trim());
+        // updates.put("quocTich", ...); // Nếu có sửa quốc tịch
 
         btnEditProfile.setText("Đang lưu...");
         btnEditProfile.setEnabled(false);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // --- CHIẾN THUẬT: THỬ SỬA VỚI "KhachHang" TRƯỚC ---
-        db.collection("KhachHang").document(cleanId).update(updates)
+        // --- SỬA QUAN TRỌNG: CHỈ DÙNG 1 TÊN COLLECTION DUY NHẤT ---
+        // Bên danh sách dùng "khachhang" (thường) thì ở đây BẮT BUỘC phải dùng "khachhang".
+        // Bỏ logic try/catch lung tung để tránh lưu nhầm nơi.
+
+        db.collection("khachhang").document(cleanId).update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    // Nếu thành công -> Tên collection đúng là KhachHang
-                    handleUpdateSuccess();
+                    Toast.makeText(getContext(), "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
+
+                    // Tắt chế độ sửa
+                    toggleEditMode(false);
+                    btnEditProfile.setEnabled(true);
+
+                    // Cập nhật lại giao diện UI hiện tại luôn để người dùng thấy ngay
+                    // (Dù List bên ngoài tự cập nhật, nhưng màn hình này cũng cần hiển thị cái mới)
+                    // Các EditText đã hiển thị cái mới rồi nên không cần set lại text.
                 })
                 .addOnFailureListener(e -> {
-                    // Nếu thất bại -> Thử tiếp với tên "khachhang" (viết thường)
-                    Log.e("FirebaseTry", "Thất bại với KhachHang, đang thử khachhang...");
-
-                    db.collection("khachhang").document(cleanId).update(updates)
-                            .addOnSuccessListener(aVoid2 -> {
-                                // Nếu thành công -> Tên collection là khachhang
-                                handleUpdateSuccess();
-                            })
-                            .addOnFailureListener(e2 -> {
-                                // Cả 2 đều thua -> Chắc chắn sai ID
-                                String errorMsg = "LỖI: Không tìm thấy ID '" + cleanId + "' ở cả 'KhachHang' lẫn 'khachhang'.\nVui lòng kiểm tra lại ID trên Web.";
-                                Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
-
-                                btnEditProfile.setText("Lưu thay đổi");
-                                btnEditProfile.setEnabled(true);
-                            });
+                    Log.e("UpdateError", "Lỗi update: " + e.getMessage());
+                    Toast.makeText(getContext(), "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    btnEditProfile.setText("Lưu thay đổi");
+                    btnEditProfile.setEnabled(true);
                 });
     }
 
