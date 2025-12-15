@@ -3,13 +3,15 @@ package com.example.quanlytourdl.model;
 import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.PropertyName;
 
+import java.io.Serializable;
+
 /**
  * Model class đại diện cho Hợp Đồng.
  * Đã điều chỉnh để lưu trữ:
  * 1. Mã Hợp đồng Tự tạo (maHopDong) - Được ánh xạ từ field trong Firestore.
  * 2. ID Document Firebase (documentId) - Được @Exclude vì nó là ID, không phải field.
  */
-public class HopDong {
+public class HopDong  implements Serializable {
 
     // 1. Mã Hợp đồng tự tạo (Ví dụ: HD-2025-A1B2C3).
     // Trường này được ánh xạ tự động từ field "maHopDong" trong Firestore.

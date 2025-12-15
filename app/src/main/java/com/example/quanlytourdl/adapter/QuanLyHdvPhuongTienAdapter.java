@@ -1,8 +1,10 @@
 package com.example.quanlytourdl.adapter;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,15 +23,24 @@ import java.util.List;
 
 /**
  * Adapter chung để hiển thị danh sách Hướng dẫn viên hoặc Phương tiện.
- * Cấu trúc ViewHolder đã được cập nhật để khớp với item_common_list.xml mới.
  */
 public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPhuongTienAdapter.ItemViewHolder> {
 
-    private final List<Object> dataList = new ArrayList<>();
-    private final boolean isGuideList; // true nếu đang hiển thị HDV, false nếu hiển thị PT
+    // ⭐ 1. CẬP NHẬT: ĐỊNH NGHĨA INTERFACE BAO GỒM VIEW DETAILS
+    public interface OnItemActionListener {
+        void onEditItem(Object item);
+        void onDeleteItem(Object item);
+        void onViewDetails(Object item); // ⭐ PHƯƠNG THỨC MỚI CHO SỰ KIỆN CLICK ITEM
+    }
 
-    public QuanLyHdvPhuongTienAdapter(boolean isGuideList) {
+    private final List<Object> dataList = new ArrayList<>();
+    private final boolean isGuideList;
+    private final OnItemActionListener listener;
+
+    // 2. CONSTRUCTOR (GIỮ NGUYÊN)
+    public QuanLyHdvPhuongTienAdapter(boolean isGuideList, OnItemActionListener listener) {
         this.isGuideList = isGuideList;
+        this.listener = listener;
     }
 
     public void updateData(List<?> newData) {
@@ -41,7 +52,6 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Giả định item_hdv_card.xml đã được định nghĩa
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hdv_card, parent, false);
         return new ItemViewHolder(view);
     }
@@ -56,8 +66,6 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
                 Guide guide = (Guide) item;
                 holder.imgAvatar.setImageResource(R.drawable.ic_hdv_placeholder);
 
-                // SỬA LỖI TIỀM NĂNG: Thay getTen() bằng getFullName() (tên trường Firestore là fullName)
-                // và sử dụng Mã HDV cho chi tiết
                 holder.textName.setText(guide.getFullName());
                 holder.textIdDetail.setText("Mã HDV: " + guide.getGuideCode());
 
@@ -72,20 +80,23 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
                     setStatusStyle(holder.textStatusBadge, "Default");
                 }
 
-                // Xử lý sự kiện click item
+                // ⭐ CẬP NHẬT: Xử lý sự kiện click item (Xem Chi tiết)
                 holder.itemView.setOnClickListener(v -> {
-                    Toast.makeText(v.getContext(), "Chi tiết HDV: " + guide.getFullName(), Toast.LENGTH_SHORT).show();
-                    // Mở Fragment chi tiết HDV
+                    if (listener != null) {
+                        listener.onViewDetails(guide);
+                    }
                 });
+
+                // GÁN LISTENER CHO NÚT TÙY CHỌN (3 chấm)
                 holder.btnMoreOptions.setOnClickListener(v -> {
-                    Toast.makeText(v.getContext(), "Tùy chọn cho HDV: " + guide.getFullName(), Toast.LENGTH_SHORT).show();
+                    showPopupMenu(v, guide);
                 });
             }
         } else {
             // Hiển thị dữ liệu Phương tiện
             if (item instanceof Vehicle) {
                 Vehicle vehicle = (Vehicle) item;
-                holder.imgAvatar.setImageResource(R.drawable.ic_phuongtien_placeholder); // Ảnh mặc định cho PT (Cần định nghĩa icon này)
+                holder.imgAvatar.setImageResource(R.drawable.ic_phuongtien_placeholder);
                 holder.textName.setText(vehicle.getBienSoXe());
                 holder.textIdDetail.setText("Loại: " + vehicle.getLoaiPhuongTien() + " | " + vehicle.getSoChoNgoi() + " chỗ");
 
@@ -101,13 +112,16 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
                 }
 
 
-                // Xử lý sự kiện click item
+                // ⭐ CẬP NHẬT: Xử lý sự kiện click item (Xem Chi tiết)
                 holder.itemView.setOnClickListener(v -> {
-                    Toast.makeText(v.getContext(), "Chi tiết PT: " + vehicle.getBienSoXe(), Toast.LENGTH_SHORT).show();
-                    // Mở Fragment chi tiết PT
+                    if (listener != null) {
+                        listener.onViewDetails(vehicle);
+                    }
                 });
+
+                // GÁN LISTENER CHO NÚT TÙY CHỌN (3 chấm)
                 holder.btnMoreOptions.setOnClickListener(v -> {
-                    Toast.makeText(v.getContext(), "Tùy chọn cho PT: " + vehicle.getBienSoXe(), Toast.LENGTH_SHORT).show();
+                    showPopupMenu(v, vehicle);
                 });
             }
         }
@@ -118,11 +132,35 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
         return dataList.size();
     }
 
+    // 3. PHƯƠNG THỨC HIỂN THỊ POPUP MENU (Chỉ Chỉnh sửa/Xóa)
+    private void showPopupMenu(View anchorView, Object item) {
+        if (listener == null) {
+            Toast.makeText(anchorView.getContext(), "Listener chưa được thiết lập.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PopupMenu popup = new PopupMenu(anchorView.getContext(), anchorView);
+
+        // Thêm tùy chọn "Chỉnh sửa"
+        popup.getMenu().add("Chỉnh sửa").setOnMenuItemClickListener(menuItem -> {
+            listener.onEditItem(item);
+            return true;
+        });
+
+        // Thêm tùy chọn "Xóa"
+        popup.getMenu().add("Xóa").setOnMenuItemClickListener(menuItem -> {
+            listener.onDeleteItem(item);
+            return true;
+        });
+
+        popup.show();
+    }
+
     /**
      * Hàm giả lập thiết lập màu sắc cho trạng thái dựa trên chuỗi trạng thái.
-     * Cần đảm bảo các drawable bg_status_... và color... được định nghĩa.
      */
     private void setStatusStyle(TextView statusBadge, String status) {
+        // ... (Giữ nguyên logic setStatusStyle) ...
         // Đảm bảo status là chữ thường hoặc dùng hàm equalsIgnoreCase nếu cần
         switch (status) {
             case "Sẵn sàng": // HDV
@@ -159,10 +197,10 @@ public class QuanLyHdvPhuongTienAdapter extends RecyclerView.Adapter<QuanLyHdvPh
 
 
     /**
-     * ViewHolder (Đã cập nhật ID)
+     * ViewHolder (Giữ nguyên)
      */
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
-        ShapeableImageView imgAvatar; // Sử dụng ShapeableImageView
+        ShapeableImageView imgAvatar;
         TextView textName;
         TextView textIdDetail;
         TextView textStatusBadge;

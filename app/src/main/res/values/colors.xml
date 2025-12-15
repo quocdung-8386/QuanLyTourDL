@@ -51,4 +51,5 @@
     <color name="status_overdue_text">#DC2626</color>
     <color name="icon_blue_bg">#E0F2FE</color>
     <color name="icon_blue_tint">#0EA5E9</color>
+    <color name="colorAccent">#D81B60</color>
 </resources>

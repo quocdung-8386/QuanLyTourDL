@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <TextView style="@style/DetailSectionHeader"
+        android:layout_marginTop="0dp"
+        android:text="Thông tin cơ bản" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_id" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_full_name" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_guide_code" />
+
+    <TextView style="@style/DetailSectionHeader"
+        android:text="Thông tin Liên hệ" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_sdt" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_email" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_trang_thai" />
+
+    <TextView style="@style/DetailSectionHeader"
+        android:text="Kinh nghiệm &amp; Chuyên môn" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_experience_years" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_rating" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Ngôn ngữ sử dụng:"
+        android:textColor="#333333"
+        android:textSize="14sp" />
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_languages_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:chipSpacingHorizontal="8dp" />
+
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView style="@style/DetailSectionHeader"
+        android:layout_marginTop="0dp"
+        android:text="Thông tin Đăng ký" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_bien_so_xe" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_loai_phuong_tien" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_hang_xe" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_so_cho_ngoi" />
+
+    <TextView style="@style/DetailSectionHeader"
+        android:text="Tình trạng &amp; Phân công" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_tinh_trang_bao_duong" />
+    <include layout="@layout/item_detail_row" android:id="@+id/row_driver_name" />
+
+</LinearLayout>
