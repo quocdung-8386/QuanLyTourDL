@@ -54,7 +54,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:paddingBottom="100dp"
+        android:paddingBottom="160dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerContainer">
 
@@ -94,9 +94,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_status_paid_pill"
-                    android:drawableStart="@drawable/ic_check_circle"
-                    android:drawablePadding="6dp"
-                    android:drawableTint="#10B981"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="6dp"
                     android:text="TRẠNG THÁI"
@@ -247,7 +244,6 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </LinearLayout>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -350,41 +346,61 @@
         android:layout_height="wrap_content"
         android:background="#FFFFFF"
         android:elevation="16dp"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <ImageButton
-            android:id="@+id/btnPrint"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_button_outline_gray"
-            android:src="@drawable/ic_print"
-            app:tint="#1F2937" />
-
-        <ImageButton
-            android:id="@+id/btnPdf"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_button_outline_gray"
-            android:src="@drawable/ic_document"
-            app:tint="#1F2937" />
-
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSendInvoice"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:backgroundTint="#2563EB"
-            android:text="Gửi hóa đơn"
+            android:id="@+id/btnThanhToan"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#F97316"
+            android:text="Thanh toán ngay"
             android:textColor="#FFFFFF"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            app:cornerRadius="8dp"
-            app:icon="@drawable/ic_send"
+            app:cornerRadius="10dp"
+            app:icon="@drawable/ic_check_circle"
             app:iconGravity="textStart" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnPrint"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_button_outline_gray"
+                android:src="@drawable/ic_print"
+                app:tint="#1F2937" />
+
+            <ImageButton
+                android:id="@+id/btnPdf"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_button_outline_gray"
+                android:src="@drawable/ic_document"
+                app:tint="#1F2937" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSendInvoice"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:backgroundTint="#2563EB"
+                android:text="Gửi hóa đơn"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_send"
+                app:iconGravity="textStart" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
