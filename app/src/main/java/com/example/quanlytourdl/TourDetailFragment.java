@@ -100,7 +100,7 @@ public class TourDetailFragment extends Fragment {
         tabLayout = view.findViewById(R.id.tab_layout);
         btnEditTour = view.findViewById(R.id.btn_edit_tour);
         btnDeleteTour = view.findViewById(R.id.btn_delete_tour);
-        fragmentContainer = view.findViewById(R.id.fragment_container);
+        fragmentContainer = view.findViewById(R.id.main_content_frame);
         keyMetricsContainer = view.findViewById(R.id.key_metrics_container);
         //loadingOverlay = view.findViewById(R.id.loading_overlay); // Khôi phục lại việc ánh xạ
 
@@ -301,7 +301,7 @@ public class TourDetailFragment extends Fragment {
         FragmentManager childFragmentManager = getChildFragmentManager();
         FragmentTransaction transaction = childFragmentManager.beginTransaction();
 
-        transaction.replace(R.id.fragment_container, fragment);
+        transaction.replace(R.id.main_content_frame, fragment);
         transaction.commitAllowingStateLoss();
     }
 

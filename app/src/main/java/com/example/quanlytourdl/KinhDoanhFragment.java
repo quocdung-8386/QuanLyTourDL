@@ -261,20 +261,13 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
     // --- HÀM HỖ TRỢ CHUYỂN FRAGMENT ---
 
     private void performFragmentTransaction(Fragment targetFragment, String logMessage) {
-        if (getParentFragmentManager() != null) {
-            FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
-
-            if (frameId != 0) {
-                transaction.replace(frameId, targetFragment);
-            } else {
-                // Fallback nếu không tìm thấy ID động, sử dụng ID cứng giả định
-                transaction.replace(R.id.fragment_container, targetFragment);
-            }
-
-            transaction.addToBackStack(null);
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.commit();
+        if (isAdded() && getParentFragmentManager() != null) {
+            getParentFragmentManager().beginTransaction()
+                    // Luôn sử dụng ID chính xác đã khai báo trong activity_main.xml
+                    .replace(R.id.main_content_frame, targetFragment)
+                    .addToBackStack(null)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit();
             Log.d(TAG, logMessage);
         }
     }

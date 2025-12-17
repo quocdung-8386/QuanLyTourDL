@@ -49,7 +49,7 @@ public class QuanLyNhanSuFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-                transaction.replace(R.id.fragment_container, new TaoTaiKhoanNhanVienFragment());
+                transaction.replace(R.id.main_content_frame, new TaoTaiKhoanNhanVienFragment());
                 transaction.addToBackStack(null);
                 transaction.commit();
             }

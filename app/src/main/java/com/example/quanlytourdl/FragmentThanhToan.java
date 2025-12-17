@@ -190,7 +190,7 @@ public class FragmentThanhToan extends Fragment {
         fragmentSuccess.setArguments(bundle);
 
         // --- SỬA LỖI Ở ĐÂY ---
-        // Thay vì dùng R.id.fragment_container, ta lấy ID của view đang chứa Fragment hiện tại
+        // Thay vì dùng R.id.main_content_frame, ta lấy ID của view đang chứa Fragment hiện tại
         if (getView() != null && getParentFragmentManager() != null) {
             View containerView = (View) getView().getParent();
             int containerId = containerView.getId(); // Lấy ID thực tế (Dynamic ID)

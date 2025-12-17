@@ -2,16 +2,21 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:fitsSystemWindows="true"
+    tools:context=".MainActivity">
 
+    <!-- CONTAINER CHỨA FRAGMENT (ID CHUẨN DUY NHẤT) -->
     <FrameLayout
         android:id="@+id/main_content_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottom_navigation" />
+        android:layout_above="@id/bottom_navigation" />
 
+    <!-- BOTTOM NAVIGATION -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
@@ -20,5 +25,8 @@
         android:background="?android:attr/windowBackground"
         app:elevation="16dp"
         app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_selector"
+        app:itemTextColor="@color/bottom_nav_selector" />
+
 </RelativeLayout>
