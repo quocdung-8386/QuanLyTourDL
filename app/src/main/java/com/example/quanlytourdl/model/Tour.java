@@ -1,15 +1,17 @@
 package com.example.quanlytourdl.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Lớp mô hình Tour du lịch. Đã bổ sung các trường Phân công Tài nguyên.
  */
-public class Tour {
+public class Tour implements Serializable {
     private String maTour;
     private String tenTour;
-    private String loaiTour;
+    private String loaiTour; // Ví dụ: "Trong nước" hoặc "Quốc tế"
     private String diemKhoiHanh;
     private String diemDen;
     private Date ngayKhoiHanh;
@@ -56,8 +58,8 @@ public class Tour {
     // Constructor rỗng bắt buộc cho Firestore
     public Tour() {}
 
-    // ⭐ CONSTRUCTOR ĐẦY ĐỦ THAM SỐ (BẠN NÊN CẬP NHẬT TRƯỜNG MỚI NẾU SỬ DỤNG)
-    public Tour(String maTour, String tenTour, String loaiTour, String diemKhoiHanh, String diemDen, Date ngayKhoiHanh, Date ngayKetThuc, int soNgay, int soDem, String moTa, int soLuongKhachToiDa, int soLuongKhachHienTai, float rating, long giaNguoiLon, long giaTreEm, long giaEmBe, double giaNuocNgoai, long tongGiaVon, long giaVonPerPax, double tySuatLoiNhuan, String dichVuBaoGom, String dichVuKhongBaoGom, String lichTrinhChiTiet, String hinhAnhChinhUrl, List<String> danhSachHinhAnh, String moTaSeo, boolean isXuatBan, boolean isNoiBat, String nguoiTao, Date ngayTao, String status) {
+    // ⭐ CẬP NHẬT CONSTRUCTOR ĐẦY ĐỦ THAM SỐ VỚI CÁC TRƯỜNG PHÂN CÔNG TÀI NGUYÊN MỚI ⭐
+    public Tour(String maTour, String tenTour, String loaiTour, String diemKhoiHanh, String diemDen, Date ngayKhoiHanh, Date ngayKetThuc, int soNgay, int soDem, String moTa, int soLuongKhachToiDa, int soLuongKhachHienTai, float rating, long giaNguoiLon, long giaTreEm, long giaEmBe, double giaNuocNgoai, long tongGiaVon, long giaVonPerPax, double tySuatLoiNhuan, String dichVuBaoGom, String dichVuKhongBaoGom, String lichTrinhChiTiet, String hinhAnhChinhUrl, List<String> danhSachHinhAnh, String moTaSeo, boolean isXuatBan, boolean isNoiBat, String nguoiTao, Date ngayTao, String status, String assignedGuideId, String assignedGuideName, String assignedVehicleId, String assignedVehicleLicensePlate) {
         this.maTour = maTour;
         this.tenTour = tenTour;
         this.loaiTour = loaiTour;
@@ -89,6 +91,11 @@ public class Tour {
         this.nguoiTao = nguoiTao;
         this.ngayTao = ngayTao;
         this.status = status;
+        // ⭐ Thêm các trường mới
+        this.assignedGuideId = assignedGuideId;
+        this.assignedGuideName = assignedGuideName;
+        this.assignedVehicleId = assignedVehicleId;
+        this.assignedVehicleLicensePlate = assignedVehicleLicensePlate;
     }
 
     // --------------------------------------------------------------------------------
@@ -103,6 +110,16 @@ public class Tour {
 
     public String getLoaiTour() { return loaiTour; }
     public void setLoaiTour(String loaiTour) { this.loaiTour = loaiTour; }
+
+    // ⭐ PHƯƠNG THỨC TIỆN ÍCH CHO VIỆC LỌC TOUR NỘI ĐỊA
+    /**
+     * Kiểm tra xem tour có phải là tour trong nước hay không (dựa trên trường loaiTour).
+     * @return true nếu loaiTour là "Trong nước" (không phân biệt chữ hoa/thường).
+     */
+    public boolean isDomestic() {
+        return loaiTour != null && loaiTour.toLowerCase(Locale.getDefault()).contains("trong nước");
+    }
+    // ⭐ PHƯƠNG THỨC NÀY KHẮC PHỤC LỖI CANNOT RESOLVE METHOD isDomestic()
 
     public String getDiemKhoiHanh() { return diemKhoiHanh; }
     public void setDiemKhoiHanh(String diemKhoiHanh) { this.diemKhoiHanh = diemKhoiHanh; }
@@ -187,19 +204,14 @@ public class Tour {
     public void setMoTaSeo(String moTaSeo) { this.moTaSeo = moTaSeo; }
 
     // --------------------------------------------------------------------------------
-    // ⭐ ĐÃ SỬA LỖI MAPPING FIREBASE CHO isXuatBan & isNoiBat
-    //    (Đã thay đổi isXxx() thành getIsXxx() và setXxx() thành setIsXxx())
+    // Getters and Setters cho các trường Boolean (Đã được sửa tên)
     // --------------------------------------------------------------------------------
 
-    // public boolean isXuatBan() { return isXuatBan; } // Getter cũ
-    // public void setXuatBan(boolean xuatBan) { isXuatBan = xuatBan; } // Setter cũ
-    public boolean getIsXuatBan() { return isXuatBan; } // Getter mới
-    public void setIsXuatBan(boolean xuatBan) { this.isXuatBan = xuatBan; } // Setter mới
+    public boolean getIsXuatBan() { return isXuatBan; }
+    public void setIsXuatBan(boolean xuatBan) { this.isXuatBan = xuatBan; }
 
-    // public boolean isNoiBat() { return isNoiBat; } // Getter cũ
-    // public void setNoiBat(boolean noiBat) { isNoiBat = noiBat; } // Setter cũ
-    public boolean getIsNoiBat() { return isNoiBat; } // Getter mới
-    public void setIsNoiBat(boolean noiBat) { this.isNoiBat = noiBat; } // Setter mới
+    public boolean getIsNoiBat() { return isNoiBat; }
+    public void setIsNoiBat(boolean noiBat) { this.isNoiBat = noiBat; }
 
 
     // --------------------------------------------------------------------------------

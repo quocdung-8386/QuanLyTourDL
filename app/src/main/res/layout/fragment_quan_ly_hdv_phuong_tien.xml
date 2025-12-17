@@ -8,11 +8,12 @@
     tools:context=".QuanLyHdvPhuongTienFragment">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/white"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:elevation="0dp"
-        android:background="@android:color/white">
+        app:elevation="0dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -37,28 +38,7 @@
                 android:layout_marginStart="48dp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/text_title_main"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Quản lý HDV &amp; Phương tiện"
-                    android:textColor="@android:color/black"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/btn_menu_drawer_ql"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:background="@android:color/transparent"
-                android:contentDescription="Menu"
-                android:src="@drawable/ic_menu"
-                app:tint="@android:color/black" />
-
         </RelativeLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -110,14 +90,14 @@
                             android:textColor="#333333"
                             android:textSize="14sp"/>
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/text_good_review"  android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="85%"
                             android:textColor="?attr/colorPrimary"
                             android:textSize="28sp"
                             android:textStyle="bold"/>
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/text_review_count"  android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="350 đánh giá"
                             android:textColor="@android:color/darker_gray"
@@ -145,14 +125,14 @@
                             android:textColor="#333333"
                             android:textSize="14sp"/>
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/text_upcoming_expiry" android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="4"
                             android:textColor="#FF9900"
                             android:textSize="28sp"
                             android:textStyle="bold"/>
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/text_upcoming_expiry_unit" android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="giấy tờ"
                             android:textColor="@android:color/darker_gray"
@@ -286,5 +266,16 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <TextView
+        android:id="@+id/text_title_main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quản lý HDV &amp; Phương tiện"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_anchor="@+id/appBarLayout"
+        app:layout_anchorGravity="center" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

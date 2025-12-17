@@ -1,6 +1,13 @@
 package com.example.quanlytourdl.model;
 
-public class Vehicle {
+import java.io.Serializable; // ⭐ IMPORT MỚI
+
+// ⭐ Vehicle implements Serializable
+public class Vehicle implements Serializable {
+
+    // ⭐ Thêm serialVersionUID
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private String bienSoXe;
     private String loaiPhuongTien;

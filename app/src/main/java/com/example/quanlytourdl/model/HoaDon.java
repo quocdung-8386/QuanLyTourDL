@@ -42,6 +42,7 @@ public class HoaDon implements Serializable {
     public String getNgayTao() { return ngayTao; }
     public String getTenKhachHang() { return tenKhachHang; }
     public double getTongTien() { return tongTien; }
+
     public int getTrangThai() { return trangThai; }
     public String getTenTour() { return tenTour; }
 }

@@ -36,38 +36,30 @@ import java.util.Locale;
 
 public class DanhSachHoaDonFragment extends Fragment {
 
-    // --- Khai báo View ---
     private RecyclerView rvHoaDon;
     private HoaDonAdapter adapter;
-    private List<HoaDon> listHoaDonOriginal; // Danh sách gốc (chứa tất cả dữ liệu từ DB)
-    private List<HoaDon> listHoaDonDisplay;  // Danh sách hiển thị (đã qua lọc)
+    private List<HoaDon> listHoaDonOriginal;
+    private List<HoaDon> listHoaDonDisplay;
 
     private ImageView btnBack, btnAdd;
     private EditText edtSearch;
     private ImageButton btnFilter;
-
-    // Các nút trạng thái (Chips)
     private AppCompatButton btnFilterAll, btnFilterPaid, btnFilterUnpaid;
 
-    // Biến lưu trạng thái lọc hiện tại: 0=Tất cả, 1=Đã thanh toán, 2=Chưa thanh toán
     private int currentStatusMode = 0;
-
     private FirebaseFirestore db;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_danh_sach_hoa_don, container, false);
-
         db = FirebaseFirestore.getInstance();
         initViews(view);
 
-        // Thiết lập RecyclerView và Adapter
         rvHoaDon.setLayoutManager(new LinearLayoutManager(getContext()));
         listHoaDonOriginal = new ArrayList<>();
         listHoaDonDisplay = new ArrayList<>();
 
-        // Adapter liên kết với listHoaDonDisplay
         adapter = new HoaDonAdapter(getContext(), listHoaDonDisplay, new HoaDonAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(HoaDon hoaDon) {
@@ -76,69 +68,78 @@ public class DanhSachHoaDonFragment extends Fragment {
         });
         rvHoaDon.setAdapter(adapter);
 
-        loadDataFromFirestore();
+        // Lưu ý: Đã bỏ loadDataFromFirestore() ở đây và chuyển sang onResume
         setupEvents();
 
         return view;
+    }
+
+    // --- SỬA 1: Thêm onResume để tự động cập nhật lại danh sách khi quay về ---
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadDataFromFirestore();
     }
 
     private void initViews(View view) {
         rvHoaDon = view.findViewById(R.id.rvHoaDon);
         btnBack = view.findViewById(R.id.btnBack);
         btnAdd = view.findViewById(R.id.btnAdd);
-
         edtSearch = view.findViewById(R.id.edtSearch);
         btnFilter = view.findViewById(R.id.btnFilter);
-
-        // Ánh xạ các nút lọc (Đảm bảo ID trong XML đã có)
         btnFilterAll = view.findViewById(R.id.btnFilterAll);
         btnFilterPaid = view.findViewById(R.id.btnFilterPaid);
         btnFilterUnpaid = view.findViewById(R.id.btnFilterUnpaid);
     }
 
-    // --- HÀM TẢI DỮ LIỆU TỪ FIREBASE ---
-    // Thay thế toàn bộ hàm loadDataFromFirestore cũ bằng hàm này
     private void loadDataFromFirestore() {
-        db.collection("DonHang") // 1. Kiểm tra kỹ tên Collection trên Firebase có phải là "DonHang" không?
+        db.collection("DonHang")
                 .orderBy("ngayTao", Query.Direction.DESCENDING)
-                // .limit(5) // Tạm thời bỏ limit để test xem có dữ liệu không
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         listHoaDonOriginal.clear();
-
-                        // Debug: Kiểm tra xem lấy được bao nhiêu dòng
-                        Log.d("DEBUG_APP", "Số lượng đơn tìm thấy: " + task.getResult().size());
-
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             try {
                                 HoaDon hd = new HoaDon();
                                 hd.setMaHoaDon(document.getId());
 
-                                // Map dữ liệu an toàn
                                 if (document.contains("tenKhachHang"))
                                     hd.setTenKhachHang(document.getString("tenKhachHang"));
 
-                                // Lưu ý: Nếu Firestore lưu số nguyên (vd: 500000), dùng getDouble vẫn được
                                 if (document.contains("tongTien"))
                                     hd.setTongTien(document.getDouble("tongTien"));
 
-                                // Xử lý Ngày tháng (Timestamp)
                                 if (document.contains("ngayTao")) {
-                                    Timestamp timestamp = document.getTimestamp("ngayTao");
-                                    if (timestamp != null) {
-                                        Date date = timestamp.toDate();
+                                    // Xử lý cả trường hợp String và Timestamp cho ngày tạo
+                                    Object rawDate = document.get("ngayTao");
+                                    if (rawDate instanceof Timestamp) {
+                                        Date date = ((Timestamp) rawDate).toDate();
                                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                                         hd.setNgayTao(sdf.format(date));
+                                    } else if (rawDate instanceof String) {
+                                        hd.setNgayTao((String) rawDate);
                                     } else {
                                         hd.setNgayTao("---");
                                     }
                                 }
 
-                                // Xử lý trạng thái (Sửa tên hàm cho đúng với bên dưới)
+                                // --- SỬA 2: Logic đọc trạng thái (QUAN TRỌNG) ---
+                                // Xử lý để đọc được cả số 1 và chữ "DA_THANH_TOAN"
                                 if (document.contains("trangThai")) {
-                                    String statusStr = document.getString("trangThai");
-                                    hd.setTrangThai(convertStatusStringToInt(statusStr));
+                                    Object rawStatus = document.get("trangThai");
+                                    int statusInt = 2; // Mặc định chờ
+
+                                    if (rawStatus instanceof Number) {
+                                        // Nếu là số (1, 2, 3) do FragmentThanhToan lưu
+                                        statusInt = ((Number) rawStatus).intValue();
+                                    } else if (rawStatus instanceof String) {
+                                        // Nếu là chữ (dữ liệu cũ)
+                                        statusInt = convertStatusStringToInt((String) rawStatus);
+                                    }
+                                    hd.setTrangThai(statusInt);
+                                } else {
+                                    hd.setTrangThai(2); // Không có trường này thì mặc định chờ
                                 }
 
                                 listHoaDonOriginal.add(hd);
@@ -146,30 +147,24 @@ public class DanhSachHoaDonFragment extends Fragment {
                                 Log.e("DEBUG_APP", "Lỗi parse data: " + e.getMessage());
                             }
                         }
-
-                        // QUAN TRỌNG NHẤT: Phải gọi hàm này để đổ dữ liệu sang list hiển thị
                         filterAndDisplayData(edtSearch.getText().toString());
-
                     } else {
-                        Log.e("DEBUG_APP", "Lỗi tải dữ liệu: ", task.getException());
-                        Toast.makeText(getContext(), "Lỗi tải dữ liệu Firestore", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    // Helper: Chuyển trạng thái String -> Int
     private int convertStatusStringToInt(String status) {
         if ("DA_THANH_TOAN".equals(status)) return 1;
         if ("CHO_XU_LY".equals(status)) return 2;
         if ("HUY".equals(status)) return 3;
-        return 2; // Mặc định là chờ
+        return 2;
     }
 
     private void setupEvents() {
         btnBack.setOnClickListener(v -> { if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack(); });
 
         btnAdd.setOnClickListener(v -> {
-            // Mở fragment tạo đơn
             int containerId = ((ViewGroup) getView().getParent()).getId();
             getParentFragmentManager().beginTransaction()
                     .replace(containerId, new TaoDonHangFragment())
@@ -177,71 +172,52 @@ public class DanhSachHoaDonFragment extends Fragment {
                     .commit();
         });
 
-        // 1. Sự kiện Tìm kiếm
         edtSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Mỗi khi gõ phím, gọi hàm lọc
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterAndDisplayData(s.toString());
             }
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
-        // 2. Sự kiện Click nút Lọc
         btnFilterAll.setOnClickListener(v -> updateFilterMode(0, btnFilterAll));
         btnFilterPaid.setOnClickListener(v -> updateFilterMode(1, btnFilterPaid));
         btnFilterUnpaid.setOnClickListener(v -> updateFilterMode(2, btnFilterUnpaid));
     }
 
-    // Hàm cập nhật chế độ lọc và đổi màu nút
     private void updateFilterMode(int mode, AppCompatButton selectedBtn) {
         this.currentStatusMode = mode;
-
-        // Reset màu tất cả nút về mặc định (Xám/Trắng)
         resetButtonStyle(btnFilterAll);
         resetButtonStyle(btnFilterPaid);
         resetButtonStyle(btnFilterUnpaid);
 
-        // Đổi màu nút được chọn thành Xanh dương
         selectedBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#0EA5E9")));
         selectedBtn.setTextColor(Color.WHITE);
-
-        // Gọi lại hàm lọc dữ liệu
         filterAndDisplayData(edtSearch.getText().toString());
     }
 
     private void resetButtonStyle(AppCompatButton btn) {
-        btn.setBackgroundTintList(null); // Xóa tint để hiện drawable gốc
-        btn.setBackgroundResource(R.drawable.bg_search_input); // Viền xám nền trắng
-        btn.setTextColor(Color.parseColor("#4B5563")); // Chữ xám đậm
+        btn.setBackgroundTintList(null);
+        btn.setBackgroundResource(R.drawable.bg_search_input);
+        btn.setTextColor(Color.parseColor("#4B5563"));
     }
 
-    // --- LOGIC LỌC TRUNG TÂM ---
-    // Kết hợp cả từ khóa tìm kiếm VÀ trạng thái nút bấm
     private void filterAndDisplayData(String keyword) {
         listHoaDonDisplay.clear();
         String key = keyword.toLowerCase().trim();
 
         for (HoaDon item : listHoaDonOriginal) {
-            // 1. Kiểm tra từ khóa (Mã hoặc Tên)
             boolean matchKey = key.isEmpty() ||
                     (item.getMaHoaDon().toLowerCase().contains(key)) ||
                     (item.getTenKhachHang().toLowerCase().contains(key));
 
-            // 2. Kiểm tra trạng thái (Dựa vào nút đang chọn)
             boolean matchStatus = false;
-            if (currentStatusMode == 0) {
-                matchStatus = true; // "Tất cả" -> Lấy hết
-            } else if (currentStatusMode == 1) {
-                matchStatus = (item.getTrangThai() == 1); // Chỉ lấy Đã thanh toán
-            } else if (currentStatusMode == 2) {
-                matchStatus = (item.getTrangThai() != 1); // Lấy Chờ xử lý hoặc Hủy
-            }
+            // Mode 1: Đã thanh toán (status == 1)
+            // Mode 2: Chưa thanh toán (status != 1)
+            if (currentStatusMode == 0) matchStatus = true;
+            else if (currentStatusMode == 1) matchStatus = (item.getTrangThai() == 1);
+            else if (currentStatusMode == 2) matchStatus = (item.getTrangThai() != 1);
 
-            // Nếu thỏa mãn CẢ HAI điều kiện -> Thêm vào list hiển thị
             if (matchKey && matchStatus) {
                 listHoaDonDisplay.add(item);
             }

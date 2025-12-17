@@ -1,8 +1,14 @@
 package com.example.quanlytourdl.model;
 
+import java.io.Serializable; // ⭐ IMPORT MỚI
 import java.util.List;
 
-public class Guide {
+// ⭐ Guide implements Serializable
+public class Guide implements Serializable {
+
+    // ⭐ Thêm serialVersionUID để đảm bảo tính tương thích khi deserialization
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private String fullName;
     private String guideCode;
@@ -15,7 +21,7 @@ public class Guide {
     private double rating = 0.0;        // Điểm đánh giá trung bình (Mặc định 0.0)
     private int experienceYears = 0;    // Số năm kinh nghiệm
 
-    // Thuộc tính Transient (Chỉ dùng trong UI/Adapter)
+    // Thuộc tính Transient (Không cần tuần tự hóa, nhưng không gây lỗi)
     private boolean isAvailable = false; // Trạng thái sẵn sàng (Trống/Vướng lịch)
     private boolean isSelected = false;  // Trạng thái được chọn trong RecyclerView
 
