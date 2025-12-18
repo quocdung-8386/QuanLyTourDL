@@ -1,57 +1,59 @@
 package com.example.quanlytourdl.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlytourdl.R;
 import com.example.quanlytourdl.model.NhaCungCap;
-// Đã xóa imports FirebaseFirestore và DocumentReference vì logic xóa đã chuyển sang Fragment
-// import com.google.firebase.firestore.FirebaseFirestore;
-// import com.google.firebase.firestore.DocumentReference;
 
 import java.util.List;
 
 public class NhaCungCapAdapter extends RecyclerView.Adapter<NhaCungCapAdapter.ViewHolder> {
 
-    private static final String TAG = "NhaCungCapAdapter";
     private final Context context;
     private final List<NhaCungCap> nhaCungCapList;
-    // Đã xóa db object
+    private final OnItemActionListener actionListener;
 
-    // ***************************************************************
-    // THAY ĐỔI 1: KHAI BÁO INTERFACE (THÊM onDeleteClick)
-    // ***************************************************************
     public interface OnItemActionListener {
-        void onEditClick(NhaCungCap nhaCungCap);
-        void onViewClick(NhaCungCap nhaCungCap);
-        void onDeleteClick(NhaCungCap nhaCungCap); // THÊM HÀM XỬ LÝ XÓA
-
-        // PHƯƠNG THỨC MỚI (hoặc được khôi phục) cho việc CHẤM DỨT HỢP ĐỒNG (Chỉ khi CÓ hợp đồng active)
-        // Giả định Adapter gọi phương thức này nếu ncc.getMaHopDongActive() != null
+        void onEditClick(NhaCungCap ncc);
+        void onViewClick(NhaCungCap ncc);
+        void onDeleteClick(NhaCungCap ncc);
         void onTerminateContract(NhaCungCap ncc);
     }
 
-    private final OnItemActionListener actionListener;
-
-    public NhaCungCapAdapter(Context context, List<NhaCungCap> nhaCungCapList, OnItemActionListener actionListener) {
+    public NhaCungCapAdapter(Context context, List<NhaCungCap> list, OnItemActionListener listener) {
         this.context = context;
-        this.nhaCungCapList = nhaCungCapList;
-        // Đã xóa this.db = FirebaseFirestore.getInstance();
-        this.actionListener = actionListener; // Gán listener
+        this.nhaCungCapList = list;
+        this.actionListener = listener;
     }
 
-    // Constructor cũ (giữ lại nếu cần, nhưng nên dùng constructor mới)
-    public NhaCungCapAdapter(Context context, List<NhaCungCap> nhaCungCapList) {
-        this(context, nhaCungCapList, null);
+    // Tối ưu danh sách bằng DiffUtil (Chống lag khi cập nhật)
+    public void updateList(List<NhaCungCap> newList) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() { return nhaCungCapList.size(); }
+            @Override
+            public int getNewListSize() { return newList.size(); }
+            @Override
+            public boolean areItemsTheSame(int oldPos, int newPos) {
+                return nhaCungCapList.get(oldPos).getMaNhaCungCap().equals(newList.get(newPos).getMaNhaCungCap());
+            }
+            @Override
+            public boolean areContentsTheSame(int oldPos, int newPos) {
+                return nhaCungCapList.get(oldPos).equals(newList.get(newPos));
+            }
+        });
+        nhaCungCapList.clear();
+        nhaCungCapList.addAll(newList);
+        diffResult.dispatchUpdatesTo(this);
     }
 
     @NonNull
@@ -65,48 +67,15 @@ public class NhaCungCapAdapter extends RecyclerView.Adapter<NhaCungCapAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         NhaCungCap ncc = nhaCungCapList.get(position);
 
-        // 1. Ánh xạ dữ liệu
         holder.textProviderName.setText(ncc.getTenNhaCungCap());
         holder.textProviderId.setText("ID: " + ncc.getMaNhaCungCap());
-        holder.textPhoneNumber.setText(ncc.getSoDienThoai());
-
-        // 2. Cài đặt trạng thái
+        holder.textPhoneNumber.setText(ncc.getSoDienThoai() != null ? ncc.getSoDienThoai() : "N/A");
         holder.textStatus.setText("Hoạt động");
 
-        // 3. Xử lý sự kiện click
-
-        // Nút Xem chi tiết
-        holder.iconView.setOnClickListener(v -> {
-            // ***************************************************************
-            // GỌI CALLBACK VIEW
-            // ***************************************************************
-            if (actionListener != null) {
-                actionListener.onViewClick(ncc);
-            } else {
-                Toast.makeText(context, "Xem chi tiết: " + ncc.getTenNhaCungCap(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Nút Sửa
-        holder.iconEdit.setOnClickListener(v -> {
-            // ***************************************************************
-            // GỌI CALLBACK EDIT (QUAN TRỌNG NHẤT)
-            // ***************************************************************
-            if (actionListener != null) {
-                actionListener.onEditClick(ncc);
-            } else {
-                Toast.makeText(context, "Sửa: " + ncc.getTenNhaCungCap() + " (Listener is null)", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Nút Xóa
-        holder.iconDelete.setOnClickListener(v -> {
-            if (actionListener != null) {
-                actionListener.onDeleteClick(ncc);
-            } else {
-                Toast.makeText(context, "Không thể xóa: Listener is null", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Gán sự kiện click
+        holder.iconView.setOnClickListener(v -> actionListener.onViewClick(ncc));
+        holder.iconEdit.setOnClickListener(v -> actionListener.onEditClick(ncc));
+        holder.iconDelete.setOnClickListener(v -> actionListener.onDeleteClick(ncc));
     }
 
     @Override
@@ -114,20 +83,12 @@ public class NhaCungCapAdapter extends RecyclerView.Adapter<NhaCungCapAdapter.Vi
         return nhaCungCapList.size();
     }
 
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
-        TextView textProviderName;
-        TextView textStatus;
-        TextView textProviderId;
-        TextView textPhoneNumber;
-        ImageView iconEdit;
-        ImageView iconView;
-        ImageView iconDelete;
+        TextView textProviderName, textStatus, textProviderId, textPhoneNumber;
+        ImageView iconEdit, iconView, iconDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-
             textProviderName = itemView.findViewById(R.id.text_provider_name);
             textStatus = itemView.findViewById(R.id.text_status);
             textProviderId = itemView.findViewById(R.id.text_provider_id);

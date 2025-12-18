@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/white"
+        android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back">
 
@@ -21,53 +22,74 @@
             android:layout_gravity="center"
             android:text="Lương &amp; Thưởng/Phạt"
             android:textColor="@android:color/black"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <ImageView
+            android:id="@+id/iv_export_pdf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:padding="16dp"
-            android:src="@android:drawable/ic_menu_search" />
-
+            android:layout_marginEnd="16dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_save"
+            android:contentDescription="Xuất báo cáo"
+            app:tint="#673AB7"/>
     </androidx.appcompat.widget.Toolbar>
 
-    <Spinner
-        android:id="@+id/spinner_phong_ban"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:id="@+id/layout_filter"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="@drawable/spinner_bg"
+        android:orientation="horizontal"
         android:padding="12dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintEnd_toStartOf="@+id/btn_export" />
+        android:background="#FFFFFF"
+        android:layout_marginTop="1dp"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-    <Button
-        android:id="@+id/btn_export"
-        style="?android:attr/borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/bg_light_blue_button"
-        android:drawableStart="@drawable/ic_download"
-        android:drawablePadding="8dp"
-        android:text="Xuất Báo cáo"
-        android:textAllCaps="false"
-        android:textColor="#007BFF"
-        app:layout_constraintBottom_toBottomOf="@+id/spinner_phong_ban"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/spinner_phong_ban" />
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@drawable/spinner_bg"
+            android:hint="Tìm tên nhân viên..."
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="14sp"
+            android:layout_marginEnd="8dp"
+            android:inputType="textPersonName"/>
+
+        <Spinner
+            android:id="@+id/sp_department_filter"
+            android:layout_width="150dp"
+            android:layout_height="48dp"
+            android:background="@drawable/spinner_bg"
+            android:padding="4dp"/>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_luong_thuong_phat"
-        android:layout_width="0dp"
+        android:id="@+id/rv_list"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="80dp"
+        android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_phong_ban" />
+        app:layout_constraintTop_toBottomOf="@+id/layout_filter" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="#673AB7"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="Tạo mới" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

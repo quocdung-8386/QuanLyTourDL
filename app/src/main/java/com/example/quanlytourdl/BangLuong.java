@@ -1,77 +1,55 @@
 package com.example.quanlytourdl;
 
-public class BangLuong {
-    private String salaryPeriod;
-    private boolean isPaid;
-    private String luongCoBan;
-    private String tongPhuCap;
-    private String thuongHoaHong;
-    private String phatKhauTru;
-    private String tongThuNhap;
+import java.io.Serializable;
 
-    public BangLuong(String salaryPeriod, boolean isPaid, String luongCoBan, String tongPhuCap, String thuongHoaHong, String phatKhauTru, String tongThuNhap) {
+public class BangLuong implements Serializable {
+    private String id;              // ID Document từ Firestore
+    private String salaryPeriod;    // Kỳ lương
+    private boolean paid;           // ĐỔI TÊN BIẾN: isPaid -> paid (để khớp với Firestore)
+    private double luongCoBan;
+    private double tongPhuCap;
+    private double thuongHoaHong;
+    private double phatKhauTru;
+
+    public BangLuong() {
+        // Constructor rỗng bắt buộc cho Firebase
+    }
+
+    public BangLuong(String id, String salaryPeriod, boolean paid, double luongCoBan, double tongPhuCap, double thuongHoaHong, double phatKhauTru) {
+        this.id = id;
         this.salaryPeriod = salaryPeriod;
-        this.isPaid = isPaid;
+        this.paid = paid; // Lưu ý chỗ này
         this.luongCoBan = luongCoBan;
         this.tongPhuCap = tongPhuCap;
         this.thuongHoaHong = thuongHoaHong;
         this.phatKhauTru = phatKhauTru;
-        this.tongThuNhap = tongThuNhap;
     }
 
-    public String getSalaryPeriod() {
-        return salaryPeriod;
+    // Hàm tự động tính Tổng thu nhập
+    public double getTongThuNhap() {
+        return luongCoBan + tongPhuCap + thuongHoaHong - phatKhauTru;
     }
 
-    public void setSalaryPeriod(String salaryPeriod) {
-        this.salaryPeriod = salaryPeriod;
-    }
+    // --- Getters và Setters ---
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public boolean isPaid() {
-        return isPaid;
-    }
+    public String getSalaryPeriod() { return salaryPeriod; }
+    public void setSalaryPeriod(String salaryPeriod) { this.salaryPeriod = salaryPeriod; }
 
-    public void setPaid(boolean paid) {
-        isPaid = paid;
-    }
+    // Getter cho boolean thường đặt là isPaid(), nhưng biến nội bộ là 'paid'
+    public boolean isPaid() { return paid; }
+    public void setPaid(boolean paid) { this.paid = paid; }
 
-    public String getLuongCoBan() {
-        return luongCoBan;
-    }
+    public double getLuongCoBan() { return luongCoBan; }
+    public void setLuongCoBan(double luongCoBan) { this.luongCoBan = luongCoBan; }
 
-    public void setLuongCoBan(String luongCoBan) {
-        this.luongCoBan = luongCoBan;
-    }
+    public double getTongPhuCap() { return tongPhuCap; }
+    public void setTongPhuCap(double tongPhuCap) { this.tongPhuCap = tongPhuCap; }
 
-    public String getTongPhuCap() {
-        return tongPhuCap;
-    }
+    public double getThuongHoaHong() { return thuongHoaHong; }
+    public void setThuongHoaHong(double thuongHoaHong) { this.thuongHoaHong = thuongHoaHong; }
 
-    public void setTongPhuCap(String tongPhuCap) {
-        this.tongPhuCap = tongPhuCap;
-    }
-
-    public String getThuongHoaHong() {
-        return thuongHoaHong;
-    }
-
-    public void setThuongHoaHong(String thuongHoaHong) {
-        this.thuongHoaHong = thuongHoaHong;
-    }
-
-    public String getPhatKhauTru() {
-        return phatKhauTru;
-    }
-
-    public void setPhatKhauTru(String phatKhauTru) {
-        this.phatKhauTru = phatKhauTru;
-    }
-
-    public String getTongThuNhap() {
-        return tongThuNhap;
-    }
-
-    public void setTongThuNhap(String tongThuNhap) {
-        this.tongThuNhap = tongThuNhap;
-    }
+    public double getPhatKhauTru() { return phatKhauTru; }
+    public void setPhatKhauTru(double phatKhauTru) { this.phatKhauTru = phatKhauTru; }
 }

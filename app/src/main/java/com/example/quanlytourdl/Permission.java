@@ -11,7 +11,7 @@ public class Permission {
         this.isEnabled = isEnabled;
     }
 
-    public String getName() {
+    public String fullName() {
         return name;
     }
 

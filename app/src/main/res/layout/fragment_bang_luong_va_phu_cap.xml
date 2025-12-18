@@ -25,11 +25,13 @@
             android:textStyle="bold" />
 
         <ImageView
+            android:id="@+id/iv_download"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:padding="16dp"
-            android:src="@drawable/ic_download" />
+            android:src="@drawable/ic_download"
+            android:contentDescription="Tải xuống" />
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -65,5 +67,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/spinner_ky_luong" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_salary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_plus"
+        app:backgroundTint="#6200EE"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="Thêm bảng lương" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
