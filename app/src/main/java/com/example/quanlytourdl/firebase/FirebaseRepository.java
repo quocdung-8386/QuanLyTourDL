@@ -6,17 +6,18 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.quanlytourdl.model.NhaCungCap; // ⭐ QUAN TRỌNG: Thêm Import Model mới
 import com.example.quanlytourdl.model.Tour;
-// SỬ DỤNG CÁC CLASS CỦA FIRESTORE
-import com.google.android.gms.tasks.Task; // ⭐ ĐÃ IMPORT: Dùng để trả về Task
-import com.google.android.gms.tasks.Tasks; // ⭐ ĐÃ IMPORT: Dùng để trả về Task thất bại
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.Timestamp; // ⭐ Dùng cho ngày đánh giá
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,142 +28,118 @@ import java.util.HashMap;
 public class FirebaseRepository {
 
     private static final String TAG = "FirebaseRepository";
-    private final String ALL_TOURS_COLLECTION = "Tours";
 
+    // Tên các Collection
+    private final String ALL_TOURS_COLLECTION = "Tours";
+    private final String SUPPLIER_COLLECTION = "NhaCungCap"; // ⭐ Mới
+
+    // Các trường dữ liệu
     private static final String FIELD_STATUS = "status";
     private static final String FIELD_VEHICLE = "phuongTien";
     private static final String FIELD_HDV = "maHDV";
 
-    private static final String STATUS_PENDING = "CHO_PHE_DUYET";
-    public static final String STATUS_APPROVED = "DANG_MO_BAN";
-    public static final String STATUS_REJECTED = "DA_TU_CHOI";
-
-    private static final List<String> STATUSES_AWAITING_ASSIGNMENT = Arrays.asList(
-            STATUS_APPROVED,
-            "DANG_CHO_PHAN_CONG"
-    );
+    // Các trường đánh giá hiệu suất (Khớp với model NhaCungCap)
+    private static final String FIELD_PERF_SCORE = "diemHieuSuat";
+    private static final String FIELD_PERF_COMMENT = "nhanXetHieuSuat";
+    private static final String FIELD_PERF_DATE = "ngayDanhGia";
 
     private final FirebaseFirestore db;
     private final CollectionReference toursCollectionRef;
+    private final CollectionReference suppliersCollectionRef; // ⭐ Mới
 
     public FirebaseRepository() {
         db = FirebaseFirestore.getInstance();
         toursCollectionRef = db.collection(ALL_TOURS_COLLECTION);
-        Log.d(TAG, "Đã tham chiếu đến Collection: " + ALL_TOURS_COLLECTION);
+        suppliersCollectionRef = db.collection(SUPPLIER_COLLECTION);
+        Log.d(TAG, "Đã khởi tạo FirebaseRepository.");
     }
 
     // =========================================================================
-    // PHƯƠNG THỨC LẤY TOUR CHỜ GÁN
+    // PHẦN XỬ LÝ NHÀ CUNG CẤP (SUPPLIERS) ⭐ MỚI
     // =========================================================================
 
-    public LiveData<List<Tour>> getToursChoGan() {
-        MutableLiveData<List<Tour>> toursLiveData = new MutableLiveData<>();
+    /**
+     * Lấy thông tin chi tiết một Nhà Cung Cấp theo ID.
+     */
+    public LiveData<NhaCungCap> getSupplierById(String nccId) {
+        MutableLiveData<NhaCungCap> supplierLiveData = new MutableLiveData<>();
 
-        Query query = toursCollectionRef
-                .whereIn(FIELD_STATUS, STATUSES_AWAITING_ASSIGNMENT)
-                .whereEqualTo(FIELD_VEHICLE, null);
+        if (nccId == null || nccId.isEmpty()) return supplierLiveData;
 
-        query.addSnapshotListener(new com.google.firebase.firestore.EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Lỗi lắng nghe dữ liệu Tour chờ gán:", e);
-                    toursLiveData.setValue(null);
-                    return;
-                }
+        suppliersCollectionRef.document(nccId).addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Lỗi khi lấy thông tin NCC:", e);
+                return;
+            }
 
-                if (snapshots != null) {
-                    List<Tour> tourList = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : snapshots) {
-                        try {
-                            Tour tour = document.toObject(Tour.class);
-                            tour.setMaTour(document.getId());
-                            tourList.add(tour);
-                        } catch (Exception ex) {
-                            Log.e(TAG, "LỖI ÁNH XẠ (MAPPING) Tour Document ID " + document.getId() + ": " + ex.getMessage());
-                        }
-                    }
-                    toursLiveData.setValue(tourList);
-                    Log.d(TAG, "Hoàn tất tải dữ liệu Tour chờ gán. Tổng số Tour hiển thị: " + tourList.size());
+            if (snapshot != null && snapshot.exists()) {
+                NhaCungCap ncc = snapshot.toObject(NhaCungCap.class);
+                if (ncc != null) {
+                    ncc.setMaNhaCungCap(snapshot.getId());
+                    supplierLiveData.setValue(ncc);
                 }
             }
         });
-        return toursLiveData;
+        return supplierLiveData;
     }
 
+    /**
+     * Cập nhật đánh giá hiệu suất cho Nhà cung cấp.
+     */
+    public Task<Void> updateSupplierPerformance(String nccId, float score, String comment) {
+        if (nccId == null || nccId.isEmpty()) {
+            return Tasks.forException(new IllegalArgumentException("ID Nhà cung cấp rỗng."));
+        }
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(FIELD_PERF_SCORE, score);
+        updates.put(FIELD_PERF_COMMENT, comment);
+        updates.put(FIELD_PERF_DATE, Timestamp.now()); // Lưu thời điểm đánh giá hiện tại
+
+        return suppliersCollectionRef.document(nccId).update(updates);
+    }
 
     // =========================================================================
-    // PHƯƠNG THỨC LẤY TOUR CHỜ PHÊ DUYỆT
+    // PHẦN XỬ LÝ TOUR (GIỮ NGUYÊN VÀ TỐI ƯU)
     // =========================================================================
 
     public LiveData<List<Tour>> getToursChoPheDuyet() {
         MutableLiveData<List<Tour>> toursLiveData = new MutableLiveData<>();
 
-        Query query = toursCollectionRef.whereEqualTo(FIELD_STATUS, STATUS_PENDING);
+        toursCollectionRef.whereEqualTo(FIELD_STATUS, "CHO_PHE_DUYET")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.w(TAG, "Lỗi lắng nghe dữ liệu Tour chờ duyệt:", e);
+                        toursLiveData.setValue(null);
+                        return;
+                    }
 
-        query.addSnapshotListener(new com.google.firebase.firestore.EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Lỗi lắng nghe dữ liệu Tour chờ duyệt:", e);
-                    toursLiveData.setValue(null);
-                    return;
-                }
-
-                if (snapshots != null) {
-                    List<Tour> tourList = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : snapshots) {
-                        try {
+                    if (snapshots != null) {
+                        List<Tour> tourList = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : snapshots) {
                             Tour tour = document.toObject(Tour.class);
                             tour.setMaTour(document.getId());
                             tourList.add(tour);
-                        } catch (Exception ex) {
-                            Log.e(TAG, "LỖI ÁNH XẠ (MAPPING) Tour Document ID " + document.getId() + ": " + ex.getMessage());
                         }
+                        toursLiveData.setValue(tourList);
                     }
-                    toursLiveData.setValue(tourList);
-                    Log.d(TAG, "Hoàn tất tải dữ liệu Tour chờ duyệt. Tổng số Tour hiển thị: " + tourList.size());
-                }
-            }
-        });
+                });
         return toursLiveData;
     }
 
-    // =========================================================================
-    // PHƯƠNG THỨC CẬP NHẬT TRẠNG THÁI (TRẢ VỀ TASK)
-    // =========================================================================
-
-    /**
-     * Cập nhật trạng thái phê duyệt của Tour.
-     * ⭐ TRẢ VỀ Task<Void> (ĐÃ SỬA LỖI)
-     */
     public Task<Void> updateTourStatus(String maTour, String newStatus) {
         if (maTour == null || maTour.isEmpty()) {
-            Log.e(TAG, "Mã tour rỗng, không thể cập nhật.");
-            // Trả về một Task thất bại
             return Tasks.forException(new IllegalArgumentException("Mã Tour rỗng."));
         }
 
         Map<String, Object> updates = new HashMap<>();
         updates.put(FIELD_STATUS, newStatus);
 
-        // Nếu hủy duyệt/từ chối, xóa các trường phân công
-        if (newStatus.equals(STATUS_PENDING) || newStatus.equals(STATUS_REJECTED)) {
-            updates.put(FIELD_VEHICLE, null);
-            updates.put(FIELD_HDV, null);
-        }
-
         return toursCollectionRef.document(maTour).update(updates);
     }
 
-    // =========================================================================
-    // PHƯƠNG THỨC DỌN DẸP LISTENER
-    // =========================================================================
-
-    /**
-     * Phương thức dọn dẹp listener.
-     */
     public void removeTourListener() {
-        Log.w(TAG, "Phương thức removeTourListener() hiện không gỡ bỏ bất kỳ Listener toàn cục nào.");
+        // Có thể bổ sung quản lý ListenerRegistration tại đây nếu cần thiết
+        Log.d(TAG, "Cleanup listeners called.");
     }
 }

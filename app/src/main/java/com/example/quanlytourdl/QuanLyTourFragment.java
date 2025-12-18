@@ -68,7 +68,6 @@ public class QuanLyTourFragment extends Fragment implements TourAdapter.OnTourAc
         toolbar = view.findViewById(R.id.toolbar_kinh_doanh);
         tabLayout = view.findViewById(R.id.tab_layout_tour_status);
         recyclerView = view.findViewById(R.id.recycler_tour_list);
-        btnOptionsMenu = view.findViewById(R.id.btn_options_menu);
         fabAddTour = view.findViewById(R.id.fab_add_tour);
 
         // 2. XỬ LÝ NÚT BACK TÙY CHỈNH (Navigation Icon)

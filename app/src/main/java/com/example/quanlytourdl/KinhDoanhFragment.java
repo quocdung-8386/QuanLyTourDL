@@ -44,6 +44,7 @@ import com.example.quanlytourdl.QuanLyHdvPhuongTienFragment;
 import com.example.quanlytourdl.DanhSachKhachHangFragment;
 import com.example.quanlytourdl.QuanLyDonHangFragment;
 import com.example.quanlytourdl.DetailFragment;
+import com.example.quanlytourdl.DanhGiaNhaCungCapFragment; // ⭐ ĐÃ THÊM IMPORT
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
@@ -326,7 +327,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
     }
 
     /**
-     * ⭐ CẬP NHẬT: Triển khai onViewClick để mở DetailFragment, sử dụng phương thức
+     * ⭐ CẬP NHẬT: Tri triển khai onViewClick để mở DetailFragment, sử dụng phương thức
      * newInstance(NhaCungCap) giả định đã được thêm vào DetailFragment.
      */
     @Override
@@ -463,6 +464,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
             actionContract.setOnClickListener(v -> openQuanLyHopDongFragment());
         }
 
+        // ⭐ ĐÃ CẬP NHẬT: Xử lý click Đánh giá hiệu suất
         if (actionPerformance != null) {
             if (icAssessmentId != 0) {
                 ImageView icon = actionPerformance.findViewById(R.id.action_icon);
@@ -470,7 +472,7 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
             }
             TextView title = actionPerformance.findViewById(R.id.action_title);
             if (title != null) title.setText("Đánh giá hiệu suất");
-            actionPerformance.setOnClickListener(v -> Toast.makeText(requireContext(), "Tới Đánh giá hiệu suất", Toast.LENGTH_SHORT).show());
+            actionPerformance.setOnClickListener(v -> showSupplierSelectionForEvaluation());
         }
 
         if (actionFilter != null) {
@@ -483,6 +485,38 @@ public class KinhDoanhFragment extends Fragment implements NhaCungCapAdapter.OnI
             // ⭐ CẬP NHẬT: Mở dialog chọn lọc Loại Dịch Vụ
             actionFilter.setOnClickListener(v -> showServiceTypeFilterDialog());
         }
+    }
+
+    /**
+     * ⭐ HÀM MỚI: Hiển thị Dialog để chọn Nhà cung cấp cần đánh giá
+     */
+    private void showSupplierSelectionForEvaluation() {
+        if (fullNhaCungCapList == null || fullNhaCungCapList.isEmpty()) {
+            Toast.makeText(requireContext(), "Danh sách nhà cung cấp trống.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] supplierNames = new String[fullNhaCungCapList.size()];
+        for (int i = 0; i < fullNhaCungCapList.size(); i++) {
+            supplierNames[i] = fullNhaCungCapList.get(i).getTenNhaCungCap();
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Chọn nhà cung cấp để đánh giá")
+                .setItems(supplierNames, (dialog, which) -> {
+                    String selectedId = fullNhaCungCapList.get(which).getMaNhaCungCap();
+                    openEvaluationFragment(selectedId);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    /**
+     * ⭐ HÀM MỚI: Chuyển sang Fragment Đánh giá
+     */
+    private void openEvaluationFragment(String nccId) {
+        Fragment evalFragment = DanhGiaNhaCungCapFragment.newInstance(nccId);
+        performFragmentTransaction(evalFragment, "Mở màn hình đánh giá cho NCC: " + nccId);
     }
 
     // ⭐ HÀM MỚI: HIỂN THỊ DIALOG LỌC THEO LOẠI DỊCH VỤ

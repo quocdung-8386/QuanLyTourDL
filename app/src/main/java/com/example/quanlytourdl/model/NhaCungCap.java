@@ -1,14 +1,13 @@
 package com.example.quanlytourdl.model;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 import java.io.Serializable;
 
 public class NhaCungCap implements Serializable {
 
-    // Thuộc tính này được @Exclude để không lưu vào Firestore,
-    // nhưng được dùng để lưu trữ Document ID khi đọc từ Firestore.
     @Exclude
-    private String maNhaCungCap;
+    private String maNhaCungCap; // Document ID từ Firestore
 
     private String tenNhaCungCap;
     private String diaChi;
@@ -16,23 +15,27 @@ public class NhaCungCap implements Serializable {
     private String email;
     private String nguoiLienHe;
     private String loaiDichVu;
-    private String maHopDong; // ID của hợp đồng đang hoạt động (maHopDongActive)
+    private String maHopDong;
     private String maNguoiDungTao;
     private String trangThaiHopDong;
     private String maHopDongGanNhat;
 
+    // ⭐ CÁC TRƯỜNG MỚI CHO ĐÁNH GIÁ HIỆU SUẤT
+    private float diemHieuSuat;      // Điểm trung bình (ví dụ: 4.5)
+    private String nhanXetHieuSuat; // Nội dung nhận xét gần nhất
+    private Timestamp ngayDanhGia;  // Ngày thực hiện đánh giá gần nhất
 
     // Constructor mặc định (BẮT BUỘC cho Firebase)
     public NhaCungCap() {
     }
 
     /**
-     * Constructor đầy đủ cho NhaCungCap
-     * Lưu ý: maNhaCungCap KHÔNG được truyền vào đây vì nó được quản lý bởi Firestore
+     * Constructor đầy đủ (Không bao gồm maNhaCungCap vì là Document ID)
      */
     public NhaCungCap(String tenNhaCungCap, String diaChi, String soDienThoai, String email,
                       String nguoiLienHe, String loaiDichVu, String maHopDong, String maNguoiDungTao,
-                      String trangThaiHopDong, String maHopDongGanNhat) {
+                      String trangThaiHopDong, String maHopDongGanNhat, float diemHieuSuat,
+                      String nhanXetHieuSuat, Timestamp ngayDanhGia) {
         this.tenNhaCungCap = tenNhaCungCap;
         this.diaChi = diaChi;
         this.soDienThoai = soDienThoai;
@@ -43,6 +46,9 @@ public class NhaCungCap implements Serializable {
         this.maNguoiDungTao = maNguoiDungTao;
         this.trangThaiHopDong = trangThaiHopDong;
         this.maHopDongGanNhat = maHopDongGanNhat;
+        this.diemHieuSuat = diemHieuSuat;
+        this.nhanXetHieuSuat = nhanXetHieuSuat;
+        this.ngayDanhGia = ngayDanhGia;
     }
 
     // --- Getters và Setters ---
@@ -134,5 +140,30 @@ public class NhaCungCap implements Serializable {
 
     public void setMaHopDongGanNhat(String maHopDongGanNhat) {
         this.maHopDongGanNhat = maHopDongGanNhat;
+    }
+
+    // ⭐ GETTER/SETTER CHO CÁC TRƯỜNG MỚI
+    public float getDiemHieuSuat() {
+        return diemHieuSuat;
+    }
+
+    public void setDiemHieuSuat(float diemHieuSuat) {
+        this.diemHieuSuat = diemHieuSuat;
+    }
+
+    public String getNhanXetHieuSuat() {
+        return nhanXetHieuSuat;
+    }
+
+    public void setNhanXetHieuSuat(String nhanXetHieuSuat) {
+        this.nhanXetHieuSuat = nhanXetHieuSuat;
+    }
+
+    public Timestamp getNgayDanhGia() {
+        return ngayDanhGia;
+    }
+
+    public void setNgayDanhGia(Timestamp ngayDanhGia) {
+        this.ngayDanhGia = ngayDanhGia;
     }
 }
