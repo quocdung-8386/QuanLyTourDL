@@ -378,13 +378,14 @@
                 android:src="@drawable/ic_print"
                 app:tint="#1F2937" />
 
-            <ImageButton
-                android:id="@+id/btnPdf"
+            <ImageView
+                android:id="@+id/btnExportPDF"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_button_outline_gray"
                 android:src="@drawable/ic_document"
+                android:contentDescription="Xuất PDF"
                 app:tint="#1F2937" />
 
             <com.google.android.material.button.MaterialButton
