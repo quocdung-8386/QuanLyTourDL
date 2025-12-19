@@ -34,6 +34,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
@@ -76,6 +77,8 @@ public class DashboardFragment extends Fragment {
     private PieChart pieChartCustomers, pieChartDebt;
     private CardView cardRevenue, cardTours, cardPerformance;
     private GridLayout gridCustomersDebt;
+    private FloatingActionButton fabChatbot;
+    private CardView chatBubble;
 
     private FirebaseFirestore db;
     private CollectionReference donHangRef, khachHangRef, congNoRef, payrollsRef, rewardRef;
@@ -130,7 +133,17 @@ public class DashboardFragment extends Fragment {
         cardTours = view.findViewById(R.id.cardTours);
         gridCustomersDebt = view.findViewById(R.id.gridCustomersDebt);
         cardPerformance = view.findViewById(R.id.cardPerformance);
+        // --- ÁNH XẠ CHATBOT MỚI ---
+        fabChatbot = view.findViewById(R.id.fabChatbot);
+        chatBubble = view.findViewById(R.id.chatBubble);
+        chatBubble.setOnClickListener(v -> openChatbotScreen());
 
+        // Hiệu ứng: Ẩn bong bóng chat sau 5 giây để đỡ rối mắt (Tùy chọn)
+        view.postDelayed(() -> {
+            if (chatBubble != null) {
+                chatBubble.animate().alpha(0f).setDuration(500).withEndAction(() -> chatBubble.setVisibility(View.GONE));
+            }
+        }, 3000);
         // ĐỔI TỪ CSV SANG PDF TẠI ĐÂY
         if (iconDownload != null) iconDownload.setOnClickListener(v -> exportDataToPdf());
     }
@@ -149,7 +162,12 @@ public class DashboardFragment extends Fragment {
         perfX.setLabelRotationAngle(-45f);
         barChartPerformance.setExtraBottomOffset(60f);
     }
-
+    private void openChatbotScreen() {
+        Toast.makeText(getContext(), "Đang mở Chatbot AI...", Toast.LENGTH_SHORT).show();
+        // TODO: Chuyển sang Activity/Fragment Chatbot của bạn tại đây
+        // Intent intent = new Intent(getActivity(), ChatbotActivity.class);
+        // startActivity(intent);
+    }
     private void loadAllDataRealtime() {
         for (ListenerRegistration lr : activeListeners) lr.remove();
         activeListeners.clear();
