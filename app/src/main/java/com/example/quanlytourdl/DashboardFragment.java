@@ -34,6 +34,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
@@ -41,10 +42,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-// iText7 PDF Imports
+// Các import cho iText7 PDF
 import com.itextpdf.kernel.colors.ColorConstants;
-import com.itextpdf.kernel.font.PdfFont;
-import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -53,7 +52,6 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
-import com.itextpdf.io.font.constants.StandardFonts;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -73,11 +71,14 @@ public class DashboardFragment extends Fragment {
 
     private TextView textMonthFilter;
     private TabLayout tabLayout;
+    private NestedScrollView nestedScrollView;
     private LineChart lineChartRevenue;
     private BarChart barChartTours, barChartPerformance;
     private PieChart pieChartCustomers, pieChartDebt;
     private CardView cardRevenue, cardTours, cardPerformance;
     private GridLayout gridCustomersDebt;
+    private FloatingActionButton fabChatbot;
+    private CardView chatBubble;
 
     private FirebaseFirestore db;
     private CollectionReference donHangRef, khachHangRef, congNoRef, payrollsRef, rewardRef;
@@ -122,6 +123,7 @@ public class DashboardFragment extends Fragment {
         textMonthFilter = view.findViewById(R.id.text_month_filter);
         ImageView iconDownload = view.findViewById(R.id.icon_download);
         tabLayout = view.findViewById(R.id.tabLayout);
+        nestedScrollView = view.findViewById(R.id.nestedScrollView);
         lineChartRevenue = view.findViewById(R.id.lineChartRevenue);
         barChartTours = view.findViewById(R.id.barChartTours);
         pieChartCustomers = view.findViewById(R.id.pieChartCustomers);
@@ -131,7 +133,18 @@ public class DashboardFragment extends Fragment {
         cardTours = view.findViewById(R.id.cardTours);
         gridCustomersDebt = view.findViewById(R.id.gridCustomersDebt);
         cardPerformance = view.findViewById(R.id.cardPerformance);
+        // --- ÁNH XẠ CHATBOT MỚI ---
+        fabChatbot = view.findViewById(R.id.fabChatbot);
+        chatBubble = view.findViewById(R.id.chatBubble);
+        chatBubble.setOnClickListener(v -> openChatbotScreen());
 
+        // Hiệu ứng: Ẩn bong bóng chat sau 5 giây để đỡ rối mắt (Tùy chọn)
+        view.postDelayed(() -> {
+            if (chatBubble != null) {
+                chatBubble.animate().alpha(0f).setDuration(500).withEndAction(() -> chatBubble.setVisibility(View.GONE));
+            }
+        }, 3000);
+        // ĐỔI TỪ CSV SANG PDF TẠI ĐÂY
         if (iconDownload != null) iconDownload.setOnClickListener(v -> exportDataToPdf());
     }
 
@@ -149,9 +162,13 @@ public class DashboardFragment extends Fragment {
         perfX.setLabelRotationAngle(-45f);
         barChartPerformance.setExtraBottomOffset(60f);
     }
-
+    private void openChatbotScreen() {
+        Toast.makeText(getContext(), "Đang mở Chatbot AI...", Toast.LENGTH_SHORT).show();
+        // TODO: Chuyển sang Activity/Fragment Chatbot của bạn tại đây
+        // Intent intent = new Intent(getActivity(), ChatbotActivity.class);
+        // startActivity(intent);
+    }
     private void loadAllDataRealtime() {
-        // Gỡ bỏ listeners cũ để tránh rò rỉ bộ nhớ
         for (ListenerRegistration lr : activeListeners) lr.remove();
         activeListeners.clear();
 
@@ -180,12 +197,11 @@ public class DashboardFragment extends Fragment {
                         String status = String.valueOf(doc.get("trangThai"));
                         if (total != null) {
                             monthlyRev += total;
-                            dataToExport.add(new String[]{"DOANH THU", "Đơn: " + doc.getId().substring(0, 6), currencyFormat.format(total), "Thành công"});
+                            dataToExport.add(new String[]{"DOANH THU", "Đơn: " + doc.getId().substring(0,6), currencyFormat.format(total), "Thành công"});
                             Timestamp ts = doc.getTimestamp("ngayTao");
                             if (ts != null) dailyRev.computeIfAbsent(dayFormat.format(ts.toDate()), k -> new AtomicLong(0)).addAndGet(total);
                         }
-                        if ("CHO_XU_LY".equalsIgnoreCase(status) || "0".equals(status)) choDuyet++;
-                        else dangXuLy++;
+                        if ("CHO_XU_LY".equalsIgnoreCase(status) || "0".equals(status)) choDuyet++; else dangXuLy++;
                     }
                     totalRevenue = monthlyRev;
                     updateRevenueAndProfitChart(dailyRev);
@@ -213,9 +229,7 @@ public class DashboardFragment extends Fragment {
             int m = 0, c = 0, v = 0;
             for (QueryDocumentSnapshot doc : value) {
                 String loai = doc.getString("loaiKhach");
-                if ("Mới".equalsIgnoreCase(loai)) m++;
-                else if ("VIP".equalsIgnoreCase(loai)) v++;
-                else c++;
+                if ("Mới".equalsIgnoreCase(loai)) m++; else if ("VIP".equalsIgnoreCase(loai)) v++; else c++;
             }
             updateCustomerPie(m, c, v);
         }));
@@ -326,87 +340,76 @@ public class DashboardFragment extends Fragment {
 
     private void updateDebtPieChart(double thu, double tra) {
         List<PieEntry> entries = new ArrayList<>();
-        if (thu > 0) entries.add(new PieEntry((float) (thu / 1_000_000), "Thu"));
-        if (tra > 0) entries.add(new PieEntry((float) (tra / 1_000_000), "Trả"));
+        if (thu > 0) entries.add(new PieEntry((float)(thu/1_000_000), "Thu"));
+        if (tra > 0) entries.add(new PieEntry((float)(tra/1_000_000), "Trả"));
         PieDataSet set = new PieDataSet(entries, "");
         set.setColors(Color.parseColor("#10B981"), Color.parseColor("#EF4444"));
         pieChartDebt.setData(new PieData(set));
         pieChartDebt.invalidate();
     }
 
+    // HÀM XUẤT PDF MỚI
     private void exportDataToPdf() {
         if (dataToExport.size() <= 1) {
-            Toast.makeText(getContext(), "Không có dữ liệu!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không có dữ liệu để xuất!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(getContext(), "Đang tạo PDF...", Toast.LENGTH_SHORT).show();
+        String fileName = "BaoCao_" + System.currentTimeMillis() + ".pdf";
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
 
-        // Xử lý trong luồng riêng để tránh "Channel is unrecoverably broken"
-        new Thread(() -> {
-            try {
-                String fileName = "BaoCao_" + System.currentTimeMillis() + ".pdf";
-                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+        try {
+            PdfWriter writer = new PdfWriter(new FileOutputStream(file));
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
 
-                try (FileOutputStream fos = new FileOutputStream(file)) {
-                    PdfWriter writer = new PdfWriter(fos);
-                    PdfDocument pdf = new PdfDocument(writer);
-                    Document document = new Document(pdf);
+            // Tiêu đề
+            document.add(new Paragraph("BÁO CÁO THỐNG KÊ DOANH NGHIỆP")
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontSize(18)
+                    .setBold());
+            document.add(new Paragraph("Tháng báo cáo: " + monthYearFormat.format(currentFilterDate.getTime()))
+                    .setTextAlignment(TextAlignment.CENTER));
+            document.add(new Paragraph("\n"));
 
-                    // Sử dụng font tiêu chuẩn (Hỗ trợ tiếng Việt cơ bản trong iText7)
-                    PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-                    PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+            // Tạo bảng 4 cột
+            Table table = new Table(UnitValue.createPercentArray(new float[]{2, 3, 3, 2}));
+            table.setWidth(UnitValue.createPercentValue(100));
 
-                    // Tiêu đề
-                    document.add(new Paragraph("BAO CAO THONG KE DOANH NGHIEP")
-                            .setTextAlignment(TextAlignment.CENTER)
-                            .setFont(fontBold)
-                            .setFontSize(18));
+            // Thêm Header
+            for (String header : dataToExport.get(0)) {
+                table.addHeaderCell(new Cell().add(new Paragraph(header).setBold())
+                        .setBackgroundColor(ColorConstants.LIGHT_GRAY)
+                        .setTextAlignment(TextAlignment.CENTER));
+            }
 
-                    document.add(new Paragraph("Thang bao cao: " + monthYearFormat.format(currentFilterDate.getTime()))
-                            .setTextAlignment(TextAlignment.CENTER)
-                            .setFont(font));
-
-                    document.add(new Paragraph("\n"));
-
-                    // Bảng dữ liệu
-                    Table table = new Table(UnitValue.createPercentArray(new float[]{2, 3, 3, 2}));
-                    table.setWidth(UnitValue.createPercentValue(100));
-
-                    for (String header : dataToExport.get(0)) {
-                        table.addHeaderCell(new Cell().add(new Paragraph(header).setFont(fontBold))
-                                .setBackgroundColor(ColorConstants.LIGHT_GRAY)
-                                .setTextAlignment(TextAlignment.CENTER));
-                    }
-
-                    for (int i = 1; i < dataToExport.size(); i++) {
-                        for (String cellContent : dataToExport.get(i)) {
-                            table.addCell(new Cell().add(new Paragraph(cellContent != null ? cellContent : "").setFont(font))
-                                    .setTextAlignment(TextAlignment.CENTER));
-                        }
-                    }
-
-                    document.add(table);
-                    document.add(new Paragraph("\n"));
-                    document.add(new Paragraph("TONG DOANH THU: " + currencyFormat.format(totalRevenue)).setFont(fontBold));
-                    document.add(new Paragraph("TONG CHI PHI: " + currencyFormat.format(totalExpense)).setFont(fontBold));
-                    document.add(new Paragraph("LOI NHUAN RONG: " + currencyFormat.format(totalRevenue - totalExpense)).setFont(fontBold));
-
-                    document.close();
-
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() ->
-                                Toast.makeText(getContext(), "PDF đã được lưu vào thư mục Downloads!", Toast.LENGTH_LONG).show());
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Lỗi PDF: " + e.getMessage());
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Lỗi hệ thống khi tạo PDF!", Toast.LENGTH_SHORT).show());
+            // Thêm dữ liệu
+            for (int i = 1; i < dataToExport.size(); i++) {
+                for (String cellContent : dataToExport.get(i)) {
+                    table.addCell(new Cell().add(new Paragraph(cellContent))
+                            .setTextAlignment(TextAlignment.CENTER));
                 }
             }
-        }).start();
+
+            document.add(table);
+
+            // Tổng kết cuối
+            document.add(new Paragraph("\n"));
+            document.add(new Paragraph("TỔNG DOANH THU: " + currencyFormat.format(totalRevenue)).setBold());
+            document.add(new Paragraph("TỔNG CHI PHÍ: " + currencyFormat.format(totalExpense)).setBold());
+            long finalProfit = totalRevenue - totalExpense;
+            document.add(new Paragraph("LỢI NHUẬN RÒNG: " + currencyFormat.format(finalProfit))
+                    .setBold()
+                    .setFontSize(14)
+                    .setFontColor(finalProfit >= 0 ? ColorConstants.GREEN : ColorConstants.RED));
+
+            document.close();
+            Toast.makeText(getContext(), "Đã xuất PDF thành công vào thư mục Downloads!", Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            Log.e(TAG, "Lỗi xuất PDF: " + e.getMessage());
+            Toast.makeText(getContext(), "Lỗi khi tạo file PDF!", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupFilterLogic() {
@@ -438,7 +441,6 @@ public class DashboardFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        // Gỡ bỏ tất cả listeners để tránh rò rỉ tài nguyên (System Server log: Resource failed to close)
         for (ListenerRegistration lr : activeListeners) lr.remove();
         super.onDestroy();
     }

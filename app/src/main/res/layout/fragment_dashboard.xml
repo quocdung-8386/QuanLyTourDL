@@ -53,7 +53,6 @@
                     android:layout_centerVertical="true"/>
 
             </RelativeLayout>
-
         </androidx.appcompat.widget.Toolbar>
 
         <com.google.android.material.tabs.TabLayout
@@ -66,33 +65,12 @@
             app:tabTextColor="@android:color/darker_gray"
             app:tabIndicatorColor="?attr/colorPrimary"
             app:tabIndicatorHeight="2dp">
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tổng quan" />
-            <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Doanh thu &amp; Lợi nhuận" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tour/Đặt chỗ" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hiệu suất NV" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Khách hàng" />
-
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tổng quan" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Doanh thu &amp; Lợi nhuận" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tour/Đặt chỗ" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hiệu suất NV" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Khách hàng" />
         </com.google.android.material.tabs.TabLayout>
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -105,36 +83,32 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardRevenue"
+            android:padding="8dp"
+            android:paddingBottom="100dp"> <androidx.cardview.widget.CardView
+            android:id="@+id/cardRevenue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="8dp">
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Doanh thu &amp; Lợi nhuận"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="@android:color/black"/>
-
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/lineChartRevenue"
-                        android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:layout_marginTop="16dp" />
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                    android:text="Doanh thu &amp; Lợi nhuận"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/lineChartRevenue"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="16dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardTours"
@@ -142,13 +116,11 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 app:cardCornerRadius="8dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -156,13 +128,11 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="@android:color/black"/>
-
                     <com.github.mikephil.charting.charts.BarChart
                         android:id="@+id/barChartTours"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:layout_marginTop="16dp" />
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -175,19 +145,16 @@
                 android:useDefaultMargins="true"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp">
-
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_columnWeight="1"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="8dp">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -195,28 +162,23 @@
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/black"/>
-
                         <com.github.mikephil.charting.charts.PieChart
                             android:id="@+id/pieChartCustomers"
                             android:layout_width="match_parent"
                             android:layout_height="180dp"
                             android:layout_marginTop="8dp"/>
-
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
-
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_columnWeight="1"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="8dp">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -224,13 +186,11 @@
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/black"/>
-
                         <com.github.mikephil.charting.charts.PieChart
                             android:id="@+id/pieChartDebt"
                             android:layout_width="match_parent"
                             android:layout_height="180dp"
                             android:layout_marginTop="8dp"/>
-
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
             </GridLayout>
@@ -240,15 +200,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                android:layout_marginBottom="60dp">
-
+                app:cardCornerRadius="8dp">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -256,17 +213,60 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="@android:color/black"/>
-
                     <com.github.mikephil.charting.charts.BarChart
                         android:id="@+id/barChartPerformance"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:layout_marginTop="16dp" />
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/chatBubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@android:color/white"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tôi có thể giúp gì cho bạn?"
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:padding="12dp"
+                android:maxWidth="200dp"/>
+        </androidx.cardview.widget.CardView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabChatbot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/icon_chat"
+            app:backgroundTint="#2196F3"
+            app:tint="@android:color/white"
+            app:elevation="6dp"
+            app:fabSize="normal"
+            android:contentDescription="Chatbot AI" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
