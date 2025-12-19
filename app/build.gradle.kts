@@ -36,7 +36,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-
+    implementation("com.itextpdf:itext7-core:7.1.15")
     implementation ("androidx.recyclerview:recyclerview:1.4.0")
     // Giữ nguyên: Cardview (1.0.0 là phiên bản cuối cùng)
     implementation ("androidx.cardview:cardview:1.0.0")

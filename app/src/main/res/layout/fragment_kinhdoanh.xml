@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#F4F6F8">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar_kinhdoanh"
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
             android:background="@android:color/white"
-            app:contentInsetStart="0dp"
-            app:layout_scrollFlags="scroll|enterAlways">
+            app:elevation="0.5dp">
 
-            <RelativeLayout
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar_kinhdoanh"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:contentInsetStart="0dp"> <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingStart="8dp"
                 android:paddingEnd="16dp">
 
                 <ImageButton
@@ -30,21 +30,21 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_centerVertical="true"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Mở Menu"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_menu"
-                    app:tint="@android:color/black" />
+                    android:padding="12dp"
+                    app:tint="#333333" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
-                    android:layout_marginStart="8dp"
                     android:layout_toEndOf="@id/btn_menu_drawer"
+                    android:layout_marginStart="4dp"
                     android:text="Nhà Cung Cấp"
-                    android:textColor="@android:color/black"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textSize="19sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A202C"/>
 
                 <ImageView
                     android:id="@+id/icon_notification"
@@ -52,106 +52,101 @@
                     android:layout_height="24dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:contentDescription="Thông báo"
                     android:src="@drawable/ic_notification"
-                    app:tint="@android:color/black" />
-
+                    app:tint="#4A5568" />
             </RelativeLayout>
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
 
-        </androidx.appcompat.widget.Toolbar>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <EditText
-                android:id="@+id/edit_search_provider"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_rounded_search"
-                android:drawableStart="@drawable/ic_search"
-                android:drawablePadding="8dp"
-                android:hint="Tìm kiếm nhà cung cấp..."
-                android:inputType="text"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:textSize="14sp" />
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <include layout="@layout/item_quick_action"
-                    android:id="@+id/action_contract"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <EditText
+                        android:id="@+id/edit_search_provider"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_search_input"
+                        android:hint="Tìm kiếm nhà cung cấp..."
+                        android:paddingStart="16dp"
+                        android:drawableStart="@drawable/ic_search"
+                        android:drawablePadding="10dp"
+                        android:textSize="14sp" />
+                    <ImageButton
+                        android:id="@+id/action_filter"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_filter_list"
+                        app:tint="#718096" />
+                </LinearLayout>
 
-                <include layout="@layout/item_quick_action"
-                    android:id="@+id/action_performance"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:layout_marginTop="20dp"
+                    android:weightSum="3">
+                    <include layout="@layout/item_quick_action" android:id="@+id/action_contract" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+                    <include layout="@layout/item_quick_action" android:id="@+id/action_performance" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+                    <include layout="@layout/item_quick_action" android:id="@+id/action_debt" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+                </LinearLayout>
 
-                <include layout="@layout/item_quick_action"
-                    android:id="@+id/action_filter"
-                    android:layout_width="0dp"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:layout_marginTop="24dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Danh sách nhà cung cấp"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:textColor="#2D3748"/>
+                    <TextView
+                        android:id="@+id/text_provider_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="3 kết quả"
+                        android:textColor="#718096"
+                        android:textSize="13sp"/>
+                </RelativeLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_providers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_provider_card" />
 
             </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Danh sách nhà cung cấp"
-                android:textColor="@android:color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_provider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:src="@drawable/ic_add"
+            app:backgroundTint="#0061C1"
+            app:tint="@android:color/white"
+            app:fabSize="normal" />
 
-            <TextView
-                android:id="@+id/text_provider_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="3 kết quả"
-                android:textSize="14sp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_providers"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="3"
-                tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_provider_card" />
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_provider"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="Thêm nhà cung cấp"
-        android:src="@drawable/ic_add"
-        app:backgroundTint="?attr/colorPrimary"
-        app:tint="@android:color/white" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet"
+    android:padding="20dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <View
+            android:id="@+id/viewHandle"
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="#D1D5DB"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Tạo Công nợ mới"
+            android:textColor="#1A202C"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/viewHandle"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close"
+            app:layout_constraintTop_toTopOf="@id/tvTitle"
+            app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/lbNcc"
+            style="@style/LabelStyle"
+            android:text="Nhà cung cấp *"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Spinner
+            android:id="@+id/spinnerNcc"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_rounded_edittext"
+            app:layout_constraintTop_toBottomOf="@id/lbNcc" />
+
+        <TextView
+            android:id="@+id/lbMoney"
+            style="@style/LabelStyle"
+            android:text="Số tiền cần trả *"
+            app:layout_constraintTop_toBottomOf="@id/spinnerNcc"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layoutMoney"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_rounded_edittext"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            app:layout_constraintTop_toBottomOf="@id/lbMoney">
+            <EditText
+                android:id="@+id/edtAmount"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="0"
+                android:inputType="number" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VND"
+                android:textColor="#718096" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/lbContent"
+            style="@style/LabelStyle"
+            android:text="Nội dung công nợ *"
+            app:layout_constraintTop_toBottomOf="@id/layoutMoney"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <EditText
+            android:id="@+id/edtContent"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_rounded_edittext"
+            android:gravity="top"
+            android:hint="Nhập chi tiết về khoản nợ này..."
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/lbContent" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
+
+        <TextView
+            android:id="@+id/lbDate"
+            style="@style/LabelStyle"
+            android:text="Ngày đáo hạn"
+            app:layout_constraintTop_toBottomOf="@id/edtContent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <EditText
+            android:id="@+id/edtDueDate"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_rounded_edittext"
+            android:drawableEnd="@drawable/ic_calendar_small"
+            android:focusable="false"
+            android:hint="mm/dd/yyyy"
+            android:paddingHorizontal="12dp"
+            app:layout_constraintEnd_toStartOf="@id/guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/lbDate" />
+
+        <TextView
+            android:id="@+id/lbStatus"
+            style="@style/LabelStyle"
+            android:text="Trạng thái"
+            app:layout_constraintTop_toBottomOf="@id/edtContent"
+            app:layout_constraintStart_toStartOf="@id/guideline" />
+
+        <TextView
+            android:id="@+id/tvStatusTag"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_status_pending"
+            android:gravity="center"
+            android:text="● Chờ duyệt"
+            android:textColor="#D97706"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline"
+            app:layout_constraintTop_toBottomOf="@id/lbStatus" />
+
+        <TextView
+            android:id="@+id/lbCode"
+            style="@style/LabelStyle"
+            android:text="Mã Hợp đồng/Đơn hàng (Tùy chọn)"
+            app:layout_constraintTop_toBottomOf="@id/edtDueDate"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Spinner
+            android:id="@+id/spinnerContractCode"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_rounded_edittext"
+            app:layout_constraintTop_toBottomOf="@id/lbCode" />
+
+        <TextView
+            android:id="@+id/lbAttach"
+            style="@style/LabelStyle"
+            android:text="Chứng từ đính kèm"
+            app:layout_constraintTop_toBottomOf="@id/spinnerContractCode"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/btnUpload"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_dash_border"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/lbAttach">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_upload"
+                app:tint="#3182CE" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tải lên file hoặc ảnh"
+                android:textColor="#3182CE"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hỗ trợ: PDF, JPG, PNG (Max 5MB)"
+                android:textColor="#718096"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnUpload">
+            <Button
+                android:id="@+id/btnCancel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Hủy bỏ"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp" />
+            <Button
+                android:id="@+id/btnCreate"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#2563EB"
+                android:text="Tạo mới"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
