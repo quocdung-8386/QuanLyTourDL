@@ -40,7 +40,6 @@ public class QuanLyTourFragment extends Fragment implements TourAdapter.OnTourAc
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private RecyclerView recyclerView;
-    private ImageButton btnOptionsMenu;
     private FloatingActionButton fabAddTour;
 
     private FirebaseFirestore db;

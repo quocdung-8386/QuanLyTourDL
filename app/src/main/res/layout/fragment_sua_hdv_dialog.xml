@@ -51,7 +51,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
 
             <TextView
                 android:id="@+id/tv_guide_id_static"
@@ -59,15 +60,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:textStyle="italic"
-                android:textColor="@color/gray_700"
-                tools:text="ID: 6d5e1f7a (Không thể chỉnh sửa)" />
+                android:textColor="#757575"
+                tools:text="Mã hệ thống: 6d5e1f7a (Không thể sửa)" />
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Tên đầy đủ">
+                android:hint="Tên đầy đủ"
+                app:startIconDrawable="@drawable/ic_person">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_full_name"
                     android:layout_width="match_parent"
@@ -75,17 +77,54 @@
                     android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:hint="Mã HDV">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_guide_code"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapCharacters" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Giới tính">
+                    <AutoCompleteTextView
+                        android:id="@+id/actv_gender"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Mã HDV">
+                android:hint="Ngày sinh"
+                app:startIconDrawable="@drawable/ic_calendar">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_guide_code"
+                    android:id="@+id/et_birth_date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapCharacters" />
+                    android:focusable="false"
+                    android:clickable="true" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -93,7 +132,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Email">
+                android:hint="Số điện thoại"
+                app:startIconDrawable="@drawable/ic_phone">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_sdt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:maxLength="10" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Email"
+                app:startIconDrawable="@drawable/ic_email">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_email"
                     android:layout_width="match_parent"
@@ -106,28 +161,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Số điện thoại">
+                android:hint="Địa chỉ thường trú">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_sdt"
+                    android:id="@+id/et_address"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="phone"
-                    android:maxLength="10" />
+                    android:inputType="textPostalAddress" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_trang_thai"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:hint="Trạng thái làm việc">
+                android:hint="Trạng thái phê duyệt">
                 <AutoCompleteTextView
                     android:id="@+id/actv_trang_thai"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none"
-                    tools:text="ACTIVE" />
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -150,8 +202,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:maxLength="2"
-                    tools:text="5" />
+                    android:maxLength="2" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -169,14 +220,13 @@
                 app:chipSpacingHorizontal="8dp"
                 app:chipSpacingVertical="8dp">
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_add_language"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Thêm ngôn ngữ khác..."
+                    android:text="Thêm ngôn ngữ..."
                     android:checkable="false"
-                    app:chipBackgroundColor="#F0F0F0"
-                    app:chipStrokeWidth="1dp"
-                    app:chipStrokeColor="#CCCCCC"
-                    android:id="@+id/chip_add_language"/>
+                    app:chipIcon="@drawable/ic_add"
+                    app:chipBackgroundColor="#F5F5F5"/>
             </com.google.android.material.chip.ChipGroup>
 
             <LinearLayout
@@ -184,25 +234,24 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingVertical="8dp"
-                android:layout_marginBottom="40dp">
+                android:padding="12dp"
+                android:background="#FFF9C4"
+                android:layout_marginBottom="20dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Đánh giá trung bình:"
-                    android:textSize="16sp"
-                    android:textColor="#333333" />
+                    android:text="Đánh giá từ khách hàng:"
+                    android:textColor="#5D4037" />
 
                 <TextView
                     android:id="@+id/tv_rating"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/orange_700"
+                    android:textColor="#FBC02D"
                     tools:text="4.8" />
 
                 <ImageView
@@ -210,8 +259,7 @@
                     android:layout_height="20dp"
                     android:layout_marginStart="4dp"
                     android:src="@drawable/ic_star_small"
-                    app:tint="@color/orange_700"
-                    android:contentDescription="Sao đánh giá" />
+                    app:tint="#FBC02D" />
             </LinearLayout>
 
         </LinearLayout>
@@ -221,11 +269,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:padding="16dp"
         android:background="@android:color/white"
-        android:paddingTop="12dp"
-        android:paddingBottom="16dp"
-        android:paddingHorizontal="16dp"
-        android:elevation="8dp">
+        android:elevation="16dp">
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_reset_hdv"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -234,19 +281,16 @@
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:text="Đặt lại"
-            android:textAllCaps="false"
             app:cornerRadius="8dp"
-            app:strokeColor="#DDDDDD"
-            android:textColor="#666666"/>
+            android:textColor="#757575"
+            app:strokeColor="#DDDDDD"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_hdv"
             android:layout_width="0dp"
             android:layout_height="56dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            android:layout_weight="1.5"
             android:text="Lưu thay đổi"
-            android:textAllCaps="false"
             android:textSize="16sp"
             android:textStyle="bold"
             app:cornerRadius="8dp"/>

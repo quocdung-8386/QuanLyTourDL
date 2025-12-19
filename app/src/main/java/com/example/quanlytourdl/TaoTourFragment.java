@@ -67,13 +67,6 @@ public class TaoTourFragment extends Fragment {
             }
         });
 
-        // 🍔 Nút MENU 3 GẠCH
-        btnMenuDrawer.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Mở Navigation Drawer hoặc Menu Tùy chọn", Toast.LENGTH_SHORT).show();
-            // TODO: Xử lý logic mở Navigation Drawer hoặc hiển thị Overflow Menu
-        });
-
-
         // 1. Nút Bắt đầu tạo Tour -> CHUYỂN ĐẾN TaoTourDetailFullFragment (Fragment đa bước)
         btnStartCreateTour.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Chuyển đến màn hình nhập chi tiết Tour đa bước", Toast.LENGTH_SHORT).show();

@@ -4,21 +4,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <TextView style="@style/DetailSectionHeader"
+    <TextView
+        style="@style/DetailSectionHeader"
         android:layout_marginTop="0dp"
-        android:text="Thông tin Đăng ký" />
+        android:text="Thông tin Đăng ký"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp"/>
 
     <include layout="@layout/item_detail_row" android:id="@+id/row_bien_so_xe" />
     <include layout="@layout/item_detail_row" android:id="@+id/row_loai_phuong_tien" />
     <include layout="@layout/item_detail_row" android:id="@+id/row_hang_xe" />
     <include layout="@layout/item_detail_row" android:id="@+id/row_so_cho_ngoi" />
 
-    <TextView style="@style/DetailSectionHeader"
-        android:text="Tình trạng &amp; Phân công" />
+    <TextView
+        style="@style/DetailSectionHeader"
+        android:layout_marginTop="16dp"
+        android:text="Tình trạng &amp; Phân công"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp"/>
 
     <include layout="@layout/item_detail_row" android:id="@+id/row_tinh_trang_bao_duong" />
-    <include layout="@layout/item_detail_row" android:id="@+id/row_driver_name" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_ten_tai_xe" />
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_sdt_tai_xe" />
 
 </LinearLayout>

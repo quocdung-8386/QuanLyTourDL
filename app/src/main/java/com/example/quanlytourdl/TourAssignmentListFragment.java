@@ -24,7 +24,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
-import java.util.Arrays; // Cần thiết cho List.of()
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,20 +42,17 @@ public class TourAssignmentListFragment extends Fragment
     private TabLayout tabLayout;
     private ImageButton btnBack;
 
-    // Data & Firebase
+    // Firebase
     private FirebaseFirestore db;
     private TourAssignmentAdapter adapter;
-    private final List<Tour> allTourList = new ArrayList<>(); // Danh sách gốc
-    private final List<Tour> currentDisplayedList = new ArrayList<>(); // Danh sách đang hiển thị
+    private final List<Tour> allTourList = new ArrayList<>();
+    private final List<Tour> currentDisplayedList = new ArrayList<>();
 
-    // ⭐ LƯU Ý: Đảm bảo đường dẫn này đúng. Nếu bạn lưu trực tiếp trong collection 'Tours',
-    // hãy thay đổi thành "Tours".
+    // Các hằng số khớp với dữ liệu Firestore thực tế của bạn
     private static final String TOURS_COLLECTION_PATH = "Tours";
-
-    // ⭐ Hằng số Trạng thái Tour: Đảm bảo khớp với DB
-    private static final String STATUS_AWAITING_ASSIGNMENT = "DANG_CHO_PHAN_CONG";
+    private static final String STATUS_OPEN = "DANG_MO_BAN";
+    private static final String STATUS_AWAITING = "DANG_CHO_PHAN_CONG";
     private static final String STATUS_ASSIGNED = "DA_GAN_NHAN_VIEN";
-
 
     public static TourAssignmentListFragment newInstance() {
         return new TourAssignmentListFragment();
@@ -70,20 +67,14 @@ public class TourAssignmentListFragment extends Fragment
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Sử dụng R.layout.fragment_tour_assignment_list
         View view = inflater.inflate(R.layout.fragment_tour_assignment_list, container, false);
-
         mapViews(view);
         setupToolbar();
         setupRecyclerView();
         setupTabLayout();
-
-        loadToursForAssignment();
-
         return view;
     }
 
-    // --- 1. Ánh xạ View (Mapping) ---
     private void mapViews(View view) {
         btnBack = view.findViewById(R.id.btn_back_assignment_list);
         tabLayout = view.findViewById(R.id.tab_layout_assignment);
@@ -96,7 +87,6 @@ public class TourAssignmentListFragment extends Fragment
         btnBack.setOnClickListener(v -> {
             if (getActivity() != null) getActivity().onBackPressed();
         });
-        // Logic cho btn_notification_assignment (nếu có) có thể được thêm vào đây
     }
 
     private void setupRecyclerView() {
@@ -105,120 +95,86 @@ public class TourAssignmentListFragment extends Fragment
         recyclerView.setAdapter(adapter);
     }
 
-    // --- 2. Xử lý Tab ---
     private void setupTabLayout() {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 filterToursByTab(tab.getPosition());
             }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
+            @Override public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
-
-        // Đảm bảo tab đầu tiên được chọn và lọc dữ liệu ban đầu
-        if (tabLayout.getTabCount() > 0) {
-            // Lấy lại tab đầu tiên, đảm bảo logic filter chạy đúng sau khi load data
-            TabLayout.Tab firstTab = tabLayout.getTabAt(0);
-            if (firstTab != null) {
-                tabLayout.selectTab(firstTab);
-                // KHÔNG cần gọi filterToursByTab(0) ở đây vì nó sẽ được gọi trong listener
-                // khi loadToursForAssignment hoàn thành.
-            }
-        }
     }
 
-    /**
-     * Lọc danh sách tour đã tải về (allTourList) dựa trên tab được chọn.
-     * @param position 0 cho Chờ Phân công, 1 cho Đã Phân công (Giả định Tab 0, 1)
-     */
     private void filterToursByTab(int position) {
         currentDisplayedList.clear();
+        Log.d(TAG, "Filtering for tab position: " + position + ". Total items in allTourList: " + allTourList.size());
 
-        // Xác định trạng thái mục tiêu
-        String targetStatus;
         if (position == 0) {
-            targetStatus = STATUS_AWAITING_ASSIGNMENT;
             emptyStateTextView.setText("Không có chuyến tour nào đang chờ phân công.");
+            for (Tour tour : allTourList) {
+                String s = tour.getStatus();
+                if (STATUS_OPEN.equals(s) || STATUS_AWAITING.equals(s)) {
+                    currentDisplayedList.add(tour);
+                }
+            }
         } else {
-            targetStatus = STATUS_ASSIGNED;
             emptyStateTextView.setText("Không có chuyến tour nào đã được gán.");
-        }
-
-        // Lọc danh sách
-        for (Tour tour : allTourList) {
-            if (tour.getStatus() != null && tour.getStatus().equals(targetStatus)) {
-                currentDisplayedList.add(tour);
+            for (Tour tour : allTourList) {
+                if (STATUS_ASSIGNED.equals(tour.getStatus())) {
+                    currentDisplayedList.add(tour);
+                }
             }
         }
 
-        // Cập nhật giao diện
+        Log.d(TAG, "Items after filter: " + currentDisplayedList.size());
         adapter.updateList(currentDisplayedList);
         updateEmptyState();
     }
 
-    // --- 3. Tải Dữ liệu ---
-
     private void loadToursForAssignment() {
+        if (!isAdded()) return;
         showLoading(true);
 
-        // TẢI TẤT CẢ các tour có trạng thái CHỜ GÁN HOẶC ĐÃ GÁN
-        // Sử dụng Arrays.asList cho tính tương thích
-        List<String> statusesToLoad = Arrays.asList(STATUS_AWAITING_ASSIGNMENT, STATUS_ASSIGNED);
+        List<String> statusesToLoad = Arrays.asList(STATUS_OPEN, STATUS_AWAITING, STATUS_ASSIGNED);
 
-        Query query = db.collection(TOURS_COLLECTION_PATH)
+        // Sử dụng Index đã tạo (status + ngayKhoiHanh)
+        db.collection(TOURS_COLLECTION_PATH)
                 .whereIn("status", statusesToLoad)
-                .orderBy("ngayKhoiHanh", Query.Direction.ASCENDING);
-
-        query.get()
+                .orderBy("ngayKhoiHanh", Query.Direction.ASCENDING)
+                .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     allTourList.clear();
+                    Log.d(TAG, "Firebase success. Found docs: " + queryDocumentSnapshots.size());
+
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         try {
                             Tour tour = document.toObject(Tour.class);
                             tour.setMaTour(document.getId());
-
-                            // Đảm bảo lấy các trường phân công (chống lỗi null pointer khi lấy dữ liệu)
-                            tour.setAssignedGuideName(document.getString("assignedGuideName"));
-                            tour.setAssignedVehicleLicensePlate(document.getString("assignedVehicleLicensePlate"));
-
-                            // Có thể thêm assignedGuideId và assignedVehicleId nếu cần
-
                             allTourList.add(tour);
                         } catch (Exception e) {
-                            Log.e(TAG, "Lỗi mapping Tour: " + document.getId(), e);
+                            Log.e(TAG, "Mapping error for ID: " + document.getId(), e);
                         }
                     }
 
-                    // Sau khi tải, lọc lại danh sách hiển thị theo tab hiện tại
-                    // Đảm bảo tabLayout.getSelectedTabPosition() không trả về -1
-                    int currentTab = tabLayout.getSelectedTabPosition();
-                    if (currentTab != -1) {
-                        filterToursByTab(currentTab);
-                    } else {
-                        // Trường hợp không có tab nào được chọn (hiếm)
-                        filterToursByTab(0);
+                    if (isAdded()) {
+                        int currentTab = tabLayout.getSelectedTabPosition();
+                        filterToursByTab(currentTab != -1 ? currentTab : 0);
+                        showLoading(false);
                     }
-
-                    showLoading(false);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Lỗi tải danh sách Tour", e);
-                    Toast.makeText(getContext(), "Không thể tải danh sách Tour.", Toast.LENGTH_SHORT).show();
-                    showLoading(false);
+                    Log.e(TAG, "Firebase error: " + e.getMessage());
+                    if (isAdded()) {
+                        showLoading(false);
+                        Toast.makeText(getContext(), "Không thể tải dữ liệu!", Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 
-    // --- 4. Trạng thái Hiển thị ---
-
     private void showLoading(boolean isLoading) {
-        progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        if (!isLoading) {
-            updateEmptyState();
+        if (progressBar != null) {
+            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -226,21 +182,11 @@ public class TourAssignmentListFragment extends Fragment
         boolean isEmpty = currentDisplayedList.isEmpty();
         recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         emptyStateTextView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-
-        // Nội dung Empty State đã được cập nhật trong filterToursByTab
     }
 
-    // --- 5. Xử lý sự kiện click (AssignmentListener) ---
     @Override
     public void onAssignTourClick(Tour tour) {
-        if (tour.getMaTour() == null) {
-            Toast.makeText(getContext(), "Không tìm thấy ID Tour.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Mở Bottom Sheet Phân công Tài nguyên
-        // Lưu ý: Cần đảm bảo AssignResourceBottomSheetFragment tồn tại
-        // và bạn đã xử lý việc tải lại dữ liệu trong BottomSheet khi phân công xong.
+        if (tour.getMaTour() == null) return;
         AssignResourceBottomSheetFragment bottomSheet = AssignResourceBottomSheetFragment.newInstance(tour.getMaTour());
         bottomSheet.show(getParentFragmentManager(), "AssignmentBottomSheet");
     }
@@ -248,8 +194,6 @@ public class TourAssignmentListFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        // Tải lại dữ liệu mỗi khi Fragment được hiển thị trở lại
-        // Điều này đảm bảo khi người dùng đóng Bottom Sheet Phân công, danh sách sẽ được cập nhật.
         loadToursForAssignment();
     }
 }

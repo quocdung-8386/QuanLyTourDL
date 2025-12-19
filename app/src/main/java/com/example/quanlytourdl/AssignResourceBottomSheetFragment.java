@@ -1,6 +1,5 @@
 package com.example.quanlytourdl;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,15 +18,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlytourdl.adapter.ResourceAdapter;
 import com.example.quanlytourdl.model.Guide;
 import com.example.quanlytourdl.model.Vehicle;
-import com.example.quanlytourdl.model.Tour; // Cần model Tour để lấy thông tin chi tiết
+import com.example.quanlytourdl.model.Tour;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.tabs.TabLayout;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -39,33 +37,28 @@ public class AssignResourceBottomSheetFragment extends BottomSheetDialogFragment
     private static final String TAG = "AssignResourceBS";
     private static final String ARG_TOUR_ID = "tour_id";
 
+    private static final String COLLECTION_TOURS = "Tours";
+    private static final String COLLECTION_GUIDES = "tour_guides";
+    private static final String COLLECTION_VEHICLES = "phuongtien";
+
     private String tourId;
     private FirebaseFirestore db;
+    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy", new Locale("vi", "VN"));
 
-    // --- UI Components ---
     private ImageButton btnCloseSheet;
     private TabLayout tabLayout;
-    private RecyclerView recyclerResourceList;
-    private RecyclerView recyclerConflictingList;
+    private RecyclerView recyclerResourceList, recyclerConflictingList;
     private TextView tvTourSummary, tvSelectedResource;
     private Button btnSaveAndContinue, btnCancelAssignment;
 
-    // --- Data & State ---
-    private ResourceAdapter adapterSuggested;
-    private ResourceAdapter adapterConflicting;
-    private final List<Object> suggestedList = new ArrayList<>();
-    private final List<Object> conflictingList = new ArrayList<>();
+    private ResourceAdapter adapterSuggested, adapterConflicting;
 
-    private Object selectedResource; // Tài nguyên đang được chọn
-    private String currentAssignmentType = "GUIDE"; // "GUIDE" hoặc "VEHICLE"
-    private Tour currentTourDetails; // Chi tiết Tour đang gán
+    // Sử dụng List mới trong loadResources để tránh lỗi tham chiếu khi Adapter đang xử lý
+    private List<Object> suggestedList = new ArrayList<>();
+    private List<Object> conflictingList = new ArrayList<>();
 
-    // --- Firestore Path ---
-    private static final String APP_ID = "QLTDL_AppId_Placeholder";
-    private static final String TOURS_COLLECTION_PATH = String.format("artifacts/%s/public/data/tours", APP_ID);
-    private static final String GUIDES_COLLECTION_PATH = "guides"; // Giả định path cho HDV
-    private static final String VEHICLES_COLLECTION_PATH = "vehicles"; // Giả định path cho Xe
-
+    private Object selectedResource;
+    private String currentAssignmentType = "GUIDE";
 
     public static AssignResourceBottomSheetFragment newInstance(String tourId) {
         AssignResourceBottomSheetFragment fragment = new AssignResourceBottomSheetFragment();
@@ -78,16 +71,9 @@ public class AssignResourceBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            tourId = getArguments().getString(ARG_TOUR_ID);
-        }
+        if (getArguments() != null) tourId = getArguments().getString(ARG_TOUR_ID);
         db = FirebaseFirestore.getInstance();
-        // Cấu hình BottomSheet thành full width
-        setStyle(BottomSheetDialogFragment.STYLE_NORMAL, R.style.BottomSheetDialogThemFull);
     }
-
-    // Đảm bảo Bottom Sheet có chiều cao phù hợp (nếu cần)
-    // Cần phải set height trong onResume hoặc onStart nếu sử dụng style mặc định
 
     @Nullable
     @Override
@@ -98,16 +84,10 @@ public class AssignResourceBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         mapViews(view);
         setupAdapters();
-
-        btnCloseSheet.setOnClickListener(v -> dismiss());
-        btnCancelAssignment.setOnClickListener(v -> dismiss());
-        btnSaveAndContinue.setOnClickListener(v -> handleSaveAndContinue());
-
-        setupTabs();
-        loadTourDetails(tourId); // Bắt đầu load thông tin Tour
+        setupListeners();
+        loadTourDetails();
     }
 
     private void mapViews(View view) {
@@ -122,219 +102,145 @@ public class AssignResourceBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     private void setupAdapters() {
-        if (getContext() != null) {
-            adapterSuggested = new ResourceAdapter(getContext(), suggestedList, this);
-            recyclerResourceList.setLayoutManager(new LinearLayoutManager(getContext()));
-            recyclerResourceList.setAdapter(adapterSuggested);
+        // Khởi tạo adapter với list rỗng ban đầu
+        adapterSuggested = new ResourceAdapter(getContext(), new ArrayList<>(), this);
+        recyclerResourceList.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerResourceList.setAdapter(adapterSuggested);
 
-            adapterConflicting = new ResourceAdapter(getContext(), conflictingList, this);
-            recyclerConflictingList.setLayoutManager(new LinearLayoutManager(getContext()));
-            recyclerConflictingList.setAdapter(adapterConflicting);
-        }
+        adapterConflicting = new ResourceAdapter(getContext(), new ArrayList<>(), this);
+        recyclerConflictingList.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerConflictingList.setAdapter(adapterConflicting);
     }
 
-    private void setupTabs() {
+    private void setupListeners() {
+        btnCloseSheet.setOnClickListener(v -> dismiss());
+        btnCancelAssignment.setOnClickListener(v -> dismiss());
+        btnSaveAndContinue.setOnClickListener(v -> handleSaveAndContinue());
+
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                if (tab.getPosition() == 0) {
-                    currentAssignmentType = "GUIDE";
-                } else {
-                    currentAssignmentType = "VEHICLE";
-                }
-                // Reset lựa chọn và hiển thị
-                selectedResource = null;
-                tvSelectedResource.setText("Đã chọn: Chưa chọn");
-                btnSaveAndContinue.setText(currentAssignmentType.equals("GUIDE") ? "Lưu & Tiếp tục (Xe)" : "Lưu & Hoàn tất");
-
+                currentAssignmentType = (tab.getPosition() == 0) ? "GUIDE" : "VEHICLE";
+                resetSelection();
                 loadResources(currentAssignmentType);
             }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) { }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-                onTabSelected(tab);
-            }
+            @Override public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
-
-        // Tab đầu tiên sẽ được chọn và kích hoạt loadResources trong onViewCreated
     }
 
-    /**
-     * Tải thông tin chi tiết của Tour hiện tại.
-     */
-    private void loadTourDetails(String id) {
-        db.collection(TOURS_COLLECTION_PATH).document(id).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        currentTourDetails = documentSnapshot.toObject(Tour.class);
-                        currentTourDetails.setMaTour(documentSnapshot.getId()); // Đảm bảo ID được set
+    private void resetSelection() {
+        selectedResource = null;
+        tvSelectedResource.setText("Đã chọn: Chưa chọn");
+        btnSaveAndContinue.setText(currentAssignmentType.equals("GUIDE") ? "Lưu & Tiếp tục (Xe)" : "Lưu & Hoàn tất");
+    }
 
-                        // Cập nhật UI thông tin Tour
-                        String summary = String.format(Locale.getDefault(),
-                                "%s (#%s)\n%s - %s",
-                                currentTourDetails.getTenTour(),
-                                currentTourDetails.getMaTour(),
-                                currentTourDetails.getNgayKhoiHanh(), // Giả định có field này
-                                currentTourDetails.getNgayKetThuc() // Giả định có field này
-                        );
-                        tvTourSummary.setText(summary);
-
-                        // Kích hoạt tab đầu tiên để load HDV
-                        tabLayout.getTabAt(0).select();
-                    } else {
-                        Toast.makeText(getContext(), "Không tìm thấy thông tin Tour.", Toast.LENGTH_SHORT).show();
-                        dismiss();
+    private void loadTourDetails() {
+        if (tourId == null) return;
+        db.collection(COLLECTION_TOURS).document(tourId).get()
+                .addOnSuccessListener(doc -> {
+                    Tour tour = doc.toObject(Tour.class);
+                    if (tour != null) {
+                        String dateStr = tour.getNgayKhoiHanh() != null ? dateFormatter.format(tour.getNgayKhoiHanh()) : "Chưa xác định";
+                        tvTourSummary.setText(String.format("%s (%s)\nNgày: %s",
+                                tour.getTenTour(), tour.getMaTour(), dateStr));
+                        loadResources("GUIDE"); // Mặc định load HDV trước
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Lỗi tải thông tin Tour", e);
-                    Toast.makeText(getContext(), "Lỗi kết nối khi tải Tour.", Toast.LENGTH_SHORT).show();
-                    dismiss();
                 });
     }
 
-    /**
-     * Tải danh sách HDV hoặc Phương tiện.
-     */
     private void loadResources(String type) {
-        String collectionPath = type.equals("GUIDE") ? GUIDES_COLLECTION_PATH : VEHICLES_COLLECTION_PATH;
+        String path = type.equals("GUIDE") ? COLLECTION_GUIDES : COLLECTION_VEHICLES;
 
-        // Reset list và hiển thị loading/empty state (Tùy chọn)
-        suggestedList.clear();
-        conflictingList.clear();
-        adapterSuggested.notifyDataSetChanged();
-        adapterConflicting.notifyDataSetChanged();
+        db.collection(path).get().addOnSuccessListener(querySnapshot -> {
+            List<Object> tempSuggested = new ArrayList<>();
+            List<Object> tempConflicting = new ArrayList<>();
 
-        db.collection(collectionPath)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        try {
-                            // **GIẢ ĐỊNH LOGIC LỌC LỊCH TRÌNH** (Thực tế phức tạp hơn)
-                            boolean isConflict = Math.random() < 0.3; // 30% vướng lịch ngẫu nhiên
-
-                            if (type.equals("GUIDE")) {
-                                Guide guide = document.toObject(Guide.class);
-                                guide.setId(document.getId());
-                                guide.setAvailable(!isConflict);
-                                guide.setRating(3.5 + Math.random() * 1.5); // Giả định rating ngẫu nhiên
-                                guide.setLanguages(Arrays.asList("Tiếng Anh", "Tiếng Việt")); // Giả định ngôn ngữ
-                                guide.setExperienceYears((int) (Math.random() * 10) + 1);
-
-                                if (!isConflict) {
-                                    suggestedList.add(guide);
-                                } else {
-                                    conflictingList.add(guide);
-                                }
-                            } else {
-                                Vehicle vehicle = document.toObject(Vehicle.class);
-                                vehicle.setId(document.getId());
-                                vehicle.setAvailable(!isConflict);
-                                vehicle.setDriverName(vehicle.getDriverName() != null ? vehicle.getDriverName() : "Tài xế Mặc Định");
-
-                                if (!isConflict) {
-                                    suggestedList.add(vehicle);
-                                } else {
-                                    conflictingList.add(vehicle);
-                                }
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Lỗi mapping resource: " + document.getId(), e);
+            for (QueryDocumentSnapshot doc : querySnapshot) {
+                if (type.equals("GUIDE")) {
+                    Guide guide = doc.toObject(Guide.class);
+                    if (guide != null) {
+                        guide.setId(doc.getId());
+                        if (guide.isApproved()) {
+                            tempSuggested.add(guide);
+                        } else {
+                            tempConflicting.add(guide);
                         }
                     }
+                } else {
+                    Vehicle vehicle = doc.toObject(Vehicle.class);
+                    if (vehicle != null) {
+                        vehicle.setId(doc.getId());
+                        if ("Hoạt động tốt".equalsIgnoreCase(vehicle.getTinhTrangBaoDuong())) {
+                            tempSuggested.add(vehicle);
+                        } else {
+                            tempConflicting.add(vehicle);
+                        }
+                    }
+                }
+            }
 
-                    adapterSuggested.updateList(suggestedList);
-                    adapterConflicting.updateList(conflictingList);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Lỗi tải tài nguyên " + type, e);
-                    Toast.makeText(getContext(), "Lỗi tải danh sách.", Toast.LENGTH_SHORT).show();
-                });
+            // Cập nhật vào list chính và notify adapter
+            suggestedList = tempSuggested;
+            conflictingList = tempConflicting;
+
+            adapterSuggested.updateList(suggestedList);
+            adapterConflicting.updateList(conflictingList);
+
+            Log.d(TAG, "Loaded " + type + ": " + suggestedList.size() + " items");
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error loading resources", e);
+            Toast.makeText(getContext(), "Không thể tải danh sách dữ liệu", Toast.LENGTH_SHORT).show();
+        });
     }
 
-    // --- Xử lý sự kiện từ Adapter (Chọn Item) ---
     @Override
     public void onResourceSelected(Object resource) {
         selectedResource = resource;
-        String selectedName;
-
+        String displayName = "";
         if (resource instanceof Guide) {
-            selectedName = ((Guide) resource).getFullName();
+            displayName = ((Guide) resource).getFullName();
         } else if (resource instanceof Vehicle) {
-            selectedName = ((Vehicle) resource).getBienSoXe();
-        } else {
-            selectedName = "Không xác định";
+            displayName = ((Vehicle) resource).getBienSoXe();
         }
-
-        tvSelectedResource.setText(String.format("Đã chọn: %s", selectedName));
+        tvSelectedResource.setText(String.format("Đã chọn: %s", displayName));
     }
 
-    // --- Xử lý nút Lưu & Tiếp tục/Hoàn tất ---
     private void handleSaveAndContinue() {
         if (selectedResource == null) {
-            Toast.makeText(getContext(), "Vui lòng chọn một tài nguyên để gán.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Vui lòng chọn một mục!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 1. Chuẩn bị dữ liệu cập nhật
-        String resourceId;
-        String resourceName;
-        String updateKeyId;
-        String updateKeyName;
-
-        if (currentAssignmentType.equals("GUIDE")) {
-            Guide guide = (Guide) selectedResource;
-            resourceId = guide.getId();
-            resourceName = guide.getFullName();
-            updateKeyId = "assignedGuideId";
-            updateKeyName = "assignedGuideName";
-        } else { // VEHICLE
-            Vehicle vehicle = (Vehicle) selectedResource;
-            resourceId = vehicle.getId();
-            resourceName = vehicle.getBienSoXe();
-            updateKeyId = "assignedVehicleId";
-            updateKeyName = "assignedVehicleLicensePlate";
-        }
-
-        // 2. Gọi hàm lưu
-        saveAssignmentToFirestore(updateKeyId, updateKeyName, resourceId, resourceName);
-    }
-
-    /**
-     * Cập nhật thông tin phân công lên Firestore.
-     */
-    private void saveAssignmentToFirestore(String keyId, String keyName, String resourceId, String resourceName) {
         Map<String, Object> updates = new HashMap<>();
-        updates.put(keyId, resourceId);
-        updates.put(keyName, resourceName);
-
-        // Nếu là bước cuối (Gán Xe), cập nhật trạng thái Tour
-        boolean isFinalStep = currentAssignmentType.equals("VEHICLE");
-        if (isFinalStep) {
+        if (currentAssignmentType.equals("GUIDE")) {
+            Guide g = (Guide) selectedResource;
+            updates.put("assignedGuideId", g.getId());
+            updates.put("assignedGuideName", g.getFullName());
+        } else {
+            Vehicle v = (Vehicle) selectedResource;
+            updates.put("assignedVehicleId", v.getId());
+            updates.put("assignedVehicleLicensePlate", v.getBienSoXe());
+            // Chỉ khi gán xe xong mới coi là hoàn tất bước gán nhân sự/phương tiện
             updates.put("status", "DA_GAN_NHAN_VIEN");
         }
 
-        DocumentReference tourRef = db.collection(TOURS_COLLECTION_PATH).document(tourId);
-
-        tourRef.update(updates)
+        db.collection(COLLECTION_TOURS).document(tourId)
+                .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Gán " + currentAssignmentType + " thành công.", Toast.LENGTH_SHORT).show();
-
-                    if (isFinalStep) {
-                        dismiss();
-                        // ⭐ OPTIONAL: Gợi ý refresh danh sách Tour (Nếu TourAssignmentListFragment implement interface)
+                    if (currentAssignmentType.equals("GUIDE")) {
+                        Toast.makeText(getContext(), "Đã lưu HDV. Vui lòng chọn Xe.", Toast.LENGTH_SHORT).show();
+                        // Chuyển sang tab Xe tự động
+                        TabLayout.Tab vehicleTab = tabLayout.getTabAt(1);
+                        if (vehicleTab != null) vehicleTab.select();
                     } else {
-                        // Chuyển sang tab Phương tiện
-                        tabLayout.getTabAt(1).select();
+                        Toast.makeText(getContext(), "Hoàn tất phân công!", Toast.LENGTH_SHORT).show();
+                        dismiss();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Lỗi cập nhật gán tài nguyên", e);
-                    Toast.makeText(getContext(), "Lỗi lưu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Update failed", e);
+                    Toast.makeText(getContext(), "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }

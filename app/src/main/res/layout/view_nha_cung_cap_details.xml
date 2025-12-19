@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -17,14 +16,9 @@
         android:layout_marginBottom="8dp"/>
 
     <include layout="@layout/item_detail_row" android:id="@+id/row_ma_ncc"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_ten_ncc"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_loai_dich_vu"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_dia_chi"/>
-
-    <include layout="@layout/item_detail_row" android:id="@+id/row_nguoi_lien_he"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -36,14 +30,14 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"/>
 
+    <include layout="@layout/item_detail_row" android:id="@+id/row_nguoi_lien_he"/>
     <include layout="@layout/item_detail_row" android:id="@+id/row_sdt"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_email"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Thông tin Hợp đồng"
+        android:text="Thông tin Quản lý &amp; Hợp đồng"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/black"
@@ -51,11 +45,22 @@
         android:layout_marginBottom="8dp"/>
 
     <include layout="@layout/item_detail_row" android:id="@+id/row_trang_thai_hd"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_ma_hd_active"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_ma_hd_gan_nhat"/>
-
     <include layout="@layout/item_detail_row" android:id="@+id/row_nguoi_dung_tao"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Đánh giá Hiệu suất"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"/>
+
+    <include layout="@layout/item_detail_row" android:id="@+id/row_diem_hieu_suat"/>
+    <include layout="@layout/item_detail_row" android:id="@+id/row_nhan_xet_hieu_suat"/>
+    <include layout="@layout/item_detail_row" android:id="@+id/row_ngay_danh_gia"/>
 
 </LinearLayout>

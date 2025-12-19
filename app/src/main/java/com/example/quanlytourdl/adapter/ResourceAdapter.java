@@ -14,26 +14,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.quanlytourdl.R;
 import com.example.quanlytourdl.model.Guide;
 import com.example.quanlytourdl.model.Vehicle;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResourceAdapter extends RecyclerView.Adapter<ResourceAdapter.ResourceViewHolder> {
 
     private final Context context;
-    private final List<Object> resourceList; // Dùng Object để chứa cả Guide và Vehicle
+    private List<Object> resourceList; // Bỏ final để linh hoạt hơn trong việc cập nhật
     private final OnResourceSelectedListener listener;
     private int selectedPosition = RecyclerView.NO_POSITION;
 
     public interface OnResourceSelectedListener {
-        /**
-         * Được gọi khi người dùng chọn một tài nguyên (HDV hoặc Xe).
-         * @param resource Đối tượng Guide hoặc Vehicle đã được chọn.
-         */
         void onResourceSelected(Object resource);
     }
 
     public ResourceAdapter(Context context, List<Object> resourceList, OnResourceSelectedListener listener) {
         this.context = context;
-        this.resourceList = resourceList;
+        this.resourceList = (resourceList != null) ? new ArrayList<>(resourceList) : new ArrayList<>();
         this.listener = listener;
     }
 
@@ -48,87 +45,73 @@ public class ResourceAdapter extends RecyclerView.Adapter<ResourceAdapter.Resour
     public void onBindViewHolder(@NonNull ResourceViewHolder holder, int position) {
         Object resource = resourceList.get(position);
 
-        // --- 1. Cấu hình nội dung dựa trên loại đối tượng ---
         if (resource instanceof Guide) {
             Guide guide = (Guide) resource;
-
-            // Tên và chi tiết
             holder.tvName.setText(guide.getFullName());
-            // Hiển thị Ngôn ngữ và Kinh nghiệm
-            String lang = guide.getLanguages() != null && !guide.getLanguages().isEmpty()
-                    ? String.join(", ", guide.getLanguages()) : "Không rõ";
+
+            String lang = (guide.getLanguages() != null && !guide.getLanguages().isEmpty())
+                    ? String.join(", ", guide.getLanguages()) : "Chưa cập nhật ngôn ngữ";
+
             holder.tvDetails.setText(String.format("%s • %d năm KN", lang, guide.getExperienceYears()));
-
-            // Rating
-            holder.tvRating.setText(String.valueOf(guide.getRating()));
+            holder.tvRating.setText(String.format("%.1f", guide.getRating()));
             holder.tvRating.setVisibility(View.VISIBLE);
+            holder.imgAvatar.setImageResource(R.drawable.ic_hdv_placeholder);
 
-            // Ảnh/Icon
-            holder.imgAvatar.setImageResource(R.drawable.ic_hdv_placeholder); // Thay bằng logic load ảnh thực tế
-
-            // Trạng thái Lịch
-            updateStatusUI(holder, guide.isAvailable(), "GUIDE");
+            boolean isReady = guide.isApproved();
+            String statusText = isReady ? "Sẵn sàng" : "Chờ phê duyệt";
+            updateStatusUI(holder, isReady, statusText);
 
         } else if (resource instanceof Vehicle) {
             Vehicle vehicle = (Vehicle) resource;
-
-            // Tên và chi tiết (Biển số và Tên tài xế/Số chỗ)
             holder.tvName.setText(vehicle.getBienSoXe());
-            holder.tvDetails.setText(String.format("%s - %d chỗ (%s)",
-                    vehicle.getLoaiPhuongTien(),
-                    vehicle.getSoChoNgoi(),
-                    vehicle.getDriverName() != null ? vehicle.getDriverName() : "Chưa gán tài xế"));
-
-            // Rating (Ẩn đi cho xe)
+            holder.tvDetails.setText(String.format("%s - %d chỗ", vehicle.getLoaiPhuongTien(), vehicle.getSoChoNgoi()));
             holder.tvRating.setVisibility(View.GONE);
+            holder.imgAvatar.setImageResource(R.drawable.ic_bus);
 
-            // Ảnh/Icon
-            holder.imgAvatar.setImageResource(R.drawable.ic_bus); // Giả định có ic_car trong drawable
-
-            // Trạng thái Lịch
-            updateStatusUI(holder, vehicle.isAvailable(), "VEHICLE");
+            boolean isReady = "Hoạt động tốt".equalsIgnoreCase(vehicle.getTinhTrangBaoDuong());
+            updateStatusUI(holder, isReady, vehicle.getTinhTrangBaoDuong());
         }
 
-        // --- 2. Cấu hình Radio Button và Sự kiện click ---
+        // Cập nhật trạng thái RadioButton
         holder.radioButton.setChecked(position == selectedPosition);
 
-        // Cả ItemView đều có thể click
-        holder.itemView.setOnClickListener(v -> {
-            int oldSelectedPosition = selectedPosition;
+        // Xử lý sự kiện click
+        View.OnClickListener clickListener = v -> {
+            int oldPos = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
-
-            // Cập nhật trạng thái cho mục cũ và mục mới
-            notifyItemChanged(oldSelectedPosition);
+            if (oldPos != RecyclerView.NO_POSITION) notifyItemChanged(oldPos);
             notifyItemChanged(selectedPosition);
+            if (listener != null) listener.onResourceSelected(resource);
+        };
 
-            listener.onResourceSelected(resource);
-        });
+        holder.itemView.setOnClickListener(clickListener);
+        holder.radioButton.setOnClickListener(clickListener);
     }
 
-    /**
-     * Cập nhật UI Trạng thái (Trống lịch/Vướng lịch).
-     * @param holder ViewHolder
-     * @param isAvailable true nếu trống lịch
-     * @param type "GUIDE" hoặc "VEHICLE"
-     */
-    private void updateStatusUI(ResourceViewHolder holder, boolean isAvailable, String type) {
-        GradientDrawable background = (GradientDrawable) holder.tvStatus.getBackground();
+    private void updateStatusUI(ResourceViewHolder holder, boolean isReady, String statusText) {
+        // LUÔN set text trước để đảm bảo chữ hiện ra
+        holder.tvStatus.setText(statusText != null ? statusText : "N/A");
+        holder.tvStatus.setVisibility(View.VISIBLE);
 
-        if (isAvailable) {
-            holder.tvStatus.setText("Trống lịch");
-            holder.tvStatus.setTextColor(Color.parseColor("#1B5E20")); // Màu xanh đậm
-            background.setColor(Color.parseColor("#E8F5E9")); // Màu xanh nhạt (bg_status_green)
-            holder.imgStatusIcon.setImageResource(R.drawable.ic_check_circle);
-            holder.imgStatusIcon.setColorFilter(Color.parseColor("#1B5E20"));
-        } else {
-            holder.tvStatus.setText("Vướng lịch");
-            holder.tvStatus.setTextColor(Color.parseColor("#B71C1C")); // Màu đỏ đậm
-            background.setColor(Color.parseColor("#FFEBEE")); // Màu đỏ nhạt (bg_status_red)
-            holder.imgStatusIcon.setImageResource(R.drawable.ic_warning);
-            holder.imgStatusIcon.setColorFilter(Color.parseColor("#B71C1C"));
+        // Kiểm tra background có hợp lệ để đổi màu không
+        if (holder.tvStatus.getBackground() instanceof GradientDrawable) {
+            GradientDrawable background = (GradientDrawable) holder.tvStatus.getBackground();
+
+            if (isReady) {
+                int colorGreen = Color.parseColor("#1B5E20");
+                holder.tvStatus.setTextColor(colorGreen);
+                background.setColor(Color.parseColor("#E8F5E9"));
+                holder.imgStatusIcon.setImageResource(R.drawable.ic_check_circle);
+                holder.imgStatusIcon.setColorFilter(colorGreen);
+            } else {
+                int colorRed = Color.parseColor("#B71C1C");
+                holder.tvStatus.setTextColor(colorRed);
+                background.setColor(Color.parseColor("#FFEBEE"));
+                holder.imgStatusIcon.setImageResource(R.drawable.ic_warning);
+                holder.imgStatusIcon.setColorFilter(colorRed);
+            }
         }
     }
-
 
     @Override
     public int getItemCount() {
@@ -136,19 +119,17 @@ public class ResourceAdapter extends RecyclerView.Adapter<ResourceAdapter.Resour
     }
 
     public void updateList(List<Object> newList) {
-        resourceList.clear();
-        resourceList.addAll(newList);
-        selectedPosition = RecyclerView.NO_POSITION; // Reset lựa chọn khi đổi danh sách
+        this.resourceList.clear();
+        if (newList != null) {
+            this.resourceList.addAll(newList);
+        }
+        this.selectedPosition = RecyclerView.NO_POSITION;
         notifyDataSetChanged();
     }
 
     public static class ResourceViewHolder extends RecyclerView.ViewHolder {
-        final ImageView imgAvatar;
-        final ImageView imgStatusIcon;
-        final TextView tvName;
-        final TextView tvDetails;
-        final TextView tvRating;
-        final TextView tvStatus;
+        final ImageView imgAvatar, imgStatusIcon;
+        final TextView tvName, tvDetails, tvRating, tvStatus;
         final RadioButton radioButton;
 
         public ResourceViewHolder(@NonNull View itemView) {

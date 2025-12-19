@@ -4,24 +4,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/bottom_sheet_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="match_parent"
         android:background="@drawable/bg_rounded_top_white"
-        app:layout_behavior="@string/bottom_sheet_behavior">
+        android:orientation="vertical"
+        app:behavior_peekHeight="600dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:background="#D1D1D1" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="8dp">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tv_title"
@@ -35,192 +40,161 @@
 
             <ImageButton
                 android:id="@+id/btn_close_sheet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Đóng"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
                 android:src="@drawable/ic_close"
+                app:layout_constraintBottom_toBottomOf="@id/tv_title"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="@id/tv_title" />
 
             <View
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#EDEDED"
-                android:layout_marginTop="8dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title"/>
+                android:layout_marginTop="12dp"
+                android:background="#F0F0F0"
+                app:layout_constraintTop_toBottomOf="@id/tv_title" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:paddingHorizontal="16dp">
+            android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:background="@drawable/bg_tour_info_rounded"
                     android:gravity="center_vertical"
-                    android:paddingVertical="8dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_tour_info_rounded">
+                    android:orientation="horizontal"
+                    android:padding="12dp">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:src="@drawable/ic_flag"
-                        android:layout_marginStart="8dp"
-                        app:tint="@color/design_default_color_primary"/>
+                        app:tint="@color/design_default_color_primary" />
 
                     <TextView
                         android:id="@+id/tv_tour_summary"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:text="Khám phá Đà Nẵng 3N2D (#TO8821)\n12/10/2023 - 15/10/2023 (3 ngày)"
+                        android:layout_marginStart="12dp"
+                        android:text="Tên tour (#Mã) \nThời gian: dd/mm/yyyy"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textStyle="bold"
-                        android:textColor="@color/design_default_color_primary" />
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/tab_layout_assignment_type"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="16dp"
+                    app:tabBackground="@drawable/tab_selector_assignment"
                     app:tabIndicatorHeight="0dp"
-                    app:tabMode="fixed"
-                    app:tabGravity="fill"
-                    app:tabRippleColor="@android:color/transparent"
-                    app:tabBackground="@drawable/tab_selector_assignment">
+                    app:tabSelectedTextColor="@color/white"
+                    app:tabTextColor="@color/design_default_color_primary">
 
                     <com.google.android.material.tabs.TabItem
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:icon="@drawable/ic_person"
-                        android:text="Hướng dẫn viên"/>
+                        android:text="Hướng dẫn viên" />
 
                     <com.google.android.material.tabs.TabItem
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:icon="@drawable/ic_bus"
-                        android:text="Phương tiện"/>
+                        android:text="Phương tiện" />
                 </com.google.android.material.tabs.TabLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    app:hintEnabled="false"
                     app:boxStrokeWidth="0dp"
                     app:boxStrokeWidthFocused="0dp"
-                    android:background="@drawable/bg_search_rounded">
+                    app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_search_hdv_vehicle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Tìm tên HDV, ngôn ngữ, kỹ năng..."
+                        android:background="@drawable/bg_search_rounded"
                         android:drawableStart="@drawable/ic_search"
-                        android:drawablePadding="8dp"
-                        android:paddingVertical="12dp"
-                        android:paddingHorizontal="12dp"
-                        android:textSize="14sp"
-                        android:background="@android:color/transparent"
-                        android:maxLines="1"
-                        android:inputType="text"/>
+                        android:drawablePadding="12dp"
+                        android:hint="Tìm kiếm..."
+                        android:padding="12dp"
+                        android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none"
                     android:layout_marginTop="8dp"
-                    android:paddingVertical="4dp">
+                    android:scrollbars="none">
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/chip_group_filters"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:singleSelection="false">
+                        app:singleSelection="true">
 
                         <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Tất cả"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
-                            android:checked="true"/>
-                        <com.google.android.material.chip.Chip
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Trống lịch"
-                            style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                            android:checked="true"
+                            android:text="Tất cả" />
+
                         <com.google.android.material.chip.Chip
+                            style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Đánh giá cao"
-                            style="@style/Widget.MaterialComponents.Chip.Filter"/>
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Tiếng Anh"
-                            style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                            android:text="Trống lịch" />
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:text="ĐỀ XUẤT"
-                    android:paddingTop="8dp"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/darker_gray"/>
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="@android:color/darker_gray"
+                    android:textStyle="bold" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_resource_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingVertical="8dp"
-                    tools:itemCount="3"
-                    tools:layoutManager="LinearLayoutManager"
-                    tools:listitem="@layout/item_resource_assignment"
-                    android:nestedScrollingEnabled="false"/>
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_resource_assignment" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:text="CÓ THỂ TRÙNG LỊCH"
-                    android:paddingTop="8dp"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/darker_gray"/>
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="@android:color/darker_gray"
+                    android:textStyle="bold" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_conflicting_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingVertical="8dp"
-                    tools:itemCount="1"
-                    tools:layoutManager="LinearLayoutManager"
-                    tools:listitem="@layout/item_resource_assignment"
-                    android:nestedScrollingEnabled="false"/>
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_resource_assignment" />
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"/>
+                    android:layout_height="100dp" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
@@ -229,21 +203,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
-            android:elevation="8dp"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="24dp">
+            android:elevation="16dp"
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tv_selected_resource"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="12dp"
                 android:text="Đã chọn: Chưa chọn"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@id/tv_view_detail"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/tv_view_detail"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tv_view_detail"
@@ -252,34 +225,31 @@
                 android:text="CHI TIẾT"
                 android:textColor="@color/design_default_color_primary"
                 android:textStyle="bold"
-                android:clickable="true"
-                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="@id/tv_selected_resource"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
-
+                app:layout_constraintTop_toTopOf="@id/tv_selected_resource" />
 
             <Button
                 android:id="@+id/btn_cancel_assignment"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginEnd="8dp"
                 android:text="Hủy bỏ"
                 app:layout_constraintEnd_toStartOf="@+id/btn_save_and_continue"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_selected_resource" />
+                app:layout_constraintTop_toBottomOf="@id/tv_selected_resource" />
 
             <Button
                 android:id="@+id/btn_save_and_continue"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Lưu &amp; Tiếp tục (Xe)"
+                android:layout_marginTop="16dp"
+                android:text="Lưu &amp; Tiếp tục"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/btn_cancel_assignment"
-                app:layout_constraintTop_toBottomOf="@+id/tv_selected_resource" />
-
+                app:layout_constraintStart_toEndOf="@id/btn_cancel_assignment"
+                app:layout_constraintTop_toBottomOf="@id/tv_selected_resource" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>

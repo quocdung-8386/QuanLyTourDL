@@ -27,15 +27,12 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import com.example.quanlytourdl.R;
 import com.example.quanlytourdl.model.Tour;
-// Các fragment con (TourServiceFragment, TourReviewFragment, TourItineraryFragment)
 import com.example.quanlytourdl.TourServiceFragment;
 import com.example.quanlytourdl.TourReviewFragment;
 import com.example.quanlytourdl.TourItineraryFragment;
 
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class TourDetailFragment extends Fragment {
@@ -44,8 +41,8 @@ public class TourDetailFragment extends Fragment {
     private static final String ARG_TOUR_ID = "tour_id";
     private String tourId;
 
-    // SỬA ID NÀY CHO PHÙ HỢP VỚI CONTAINER TRONG ACTIVITY CHÍNH
-    private static final int FRAGMENT_CONTAINER_ID = R.id.main_content_frame;
+    // QUAN TRỌNG: ID này dùng để chuyển sang màn hình Edit (nằm ở Activity chứa Fragment này)
+    private static final int MAIN_ACTIVITY_CONTAINER_ID = R.id.main_content_frame;
 
     // UI Components
     private Toolbar toolbar;
@@ -53,19 +50,14 @@ public class TourDetailFragment extends Fragment {
     private ImageView imgTourHeader;
     private TextView tvTourTitle, tvTourSubtitle, tvTourLocation, tvTourRating;
     private TabLayout tabLayout;
-    private Button btnEditTour;
-    private Button btnDeleteTour;
-    private FrameLayout fragmentContainer;
+    private Button btnEditTour, btnDeleteTour;
+    private FrameLayout tabContentContainer; // FrameLayout chứa nội dung của Tab
     private LinearLayout keyMetricsContainer;
-    private View loadingOverlay; // Giữ nguyên, giả định ID R.id.loading_overlay tồn tại
 
     // Data & Firebase
     private Tour currentTour;
     private FirebaseFirestore db;
-
-    private final SimpleDateFormat durationFormat = new SimpleDateFormat("d 'Ngày' d 'Đêm'", new Locale("vi", "VN"));
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
-
 
     public static TourDetailFragment newInstance(String tourId) {
         TourDetailFragment fragment = new TourDetailFragment();
@@ -89,7 +81,7 @@ public class TourDetailFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tour_detail, container, false);
 
-        // 1. Ánh xạ View
+        // 1. Ánh xạ View (Đã sửa ID để khớp với XML của bạn)
         toolbar = view.findViewById(R.id.toolbar);
         collapsingToolbar = view.findViewById(R.id.collapsing_toolbar);
         imgTourHeader = view.findViewById(R.id.img_tour_header);
@@ -100,32 +92,31 @@ public class TourDetailFragment extends Fragment {
         tabLayout = view.findViewById(R.id.tab_layout);
         btnEditTour = view.findViewById(R.id.btn_edit_tour);
         btnDeleteTour = view.findViewById(R.id.btn_delete_tour);
-        fragmentContainer = view.findViewById(R.id.main_content_frame);
         keyMetricsContainer = view.findViewById(R.id.key_metrics_container);
-        //loadingOverlay = view.findViewById(R.id.loading_overlay); // Khôi phục lại việc ánh xạ
+
+        // SỬA LỖI CRASH: Tìm đúng ID fragment_container từ file XML của bạn
+        tabContentContainer = view.findViewById(R.id.fragment_container);
 
         // 2. Thiết lập Toolbar
         setupToolbar();
 
-        // 3. Ẩn TabLayout và container cho đến khi dữ liệu được tải
-        tabLayout.setVisibility(View.GONE);
-        fragmentContainer.setVisibility(View.GONE);
+        // 3. Kiểm tra an toàn và ẩn UI cho đến khi nạp xong dữ liệu
+        if (tabLayout != null) tabLayout.setVisibility(View.GONE);
+        if (tabContentContainer != null) {
+            tabContentContainer.setVisibility(View.GONE);
+        } else {
+            Log.e(TAG, "LỖI: Không tìm thấy R.id.fragment_container trong layout XML");
+        }
 
-        // 4. Tải dữ liệu Tour từ Firebase
+        // 4. Tải dữ liệu
         if (tourId != null && !tourId.isEmpty()) {
             loadTourData(tourId, view);
         } else {
             Toast.makeText(getContext(), "Lỗi: Không có ID Tour.", Toast.LENGTH_LONG).show();
-            // ⭐ GIẢI PHÁP SỬA LỖI FATAL EXCEPTION ⭐
-            // Hoãn việc gọi onBackPressed() để FragmentManager hoàn tất giao dịch tạo Fragment hiện tại.
-            new Handler(Looper.getMainLooper()).post(() -> {
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
-            });
+            goBack();
         }
 
-        // 5. Xử lý sự kiện click
+        // 5. Click listeners
         btnEditTour.setOnClickListener(v -> handleEditTour());
         btnDeleteTour.setOnClickListener(v -> handleDeleteTour());
 
@@ -133,143 +124,53 @@ public class TourDetailFragment extends Fragment {
     }
 
     private void loadTourData(String id, View view) {
-        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
-
         db.collection("Tours").document(id)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-
-                    if (task.isSuccessful()) {
+                    if (task.isSuccessful() && task.getResult() != null) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            try {
-                                currentTour = document.toObject(Tour.class);
-                                if (currentTour != null) {
-                                    currentTour.setMaTour(document.getId());
-                                    bindTourData(currentTour, view);
+                            currentTour = document.toObject(Tour.class);
+                            if (currentTour != null) {
+                                currentTour.setMaTour(document.getId());
+                                bindTourData(currentTour);
 
-                                    tabLayout.setVisibility(View.VISIBLE);
-                                    fragmentContainer.setVisibility(View.VISIBLE);
-                                    setupTabLayout();
-                                } else {
-                                    Toast.makeText(getContext(), "Lỗi mapping dữ liệu Tour.", Toast.LENGTH_LONG).show();
-                                    // Sửa lỗi: Gọi onBackPressed an toàn
-                                    new Handler(Looper.getMainLooper()).post(() -> {
-                                        if (getActivity() != null) getActivity().onBackPressed();
-                                    });
-                                }
-                            } catch (Exception e) {
-                                Log.e(TAG, "Lỗi khi chuyển đổi đối tượng Tour", e);
-                                Toast.makeText(getContext(), "Lỗi cấu trúc dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                // Sửa lỗi: Gọi onBackPressed an toàn
-                                new Handler(Looper.getMainLooper()).post(() -> {
-                                    if (getActivity() != null) getActivity().onBackPressed();
-                                });
+                                if (tabLayout != null) tabLayout.setVisibility(View.VISIBLE);
+                                if (tabContentContainer != null) tabContentContainer.setVisibility(View.VISIBLE);
+                                setupTabLayout();
                             }
                         } else {
-                            Log.d(TAG, "Không tìm thấy document Tour ID: " + id);
-                            Toast.makeText(getContext(), "Không tìm thấy Tour: " + id, Toast.LENGTH_LONG).show();
-                            // Sửa lỗi: Gọi onBackPressed an toàn
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                if (getActivity() != null) getActivity().onBackPressed();
-                            });
+                            Toast.makeText(getContext(), "Không tìm thấy Tour", Toast.LENGTH_SHORT).show();
+                            goBack();
                         }
                     } else {
-                        Log.e(TAG, "Lỗi kết nối Firebase.", task.getException());
-                        Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                        // Sửa lỗi: Gọi onBackPressed an toàn
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            if (getActivity() != null) getActivity().onBackPressed();
-                        });
+                        Toast.makeText(getContext(), "Lỗi kết nối Firebase", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    private void setupToolbar() {
-        if (getActivity() instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) getActivity();
-            activity.setSupportActionBar(toolbar);
-            if (activity.getSupportActionBar() != null) {
-                activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                activity.getSupportActionBar().setTitle("");
-            }
-        }
-        toolbar.setNavigationOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
-    }
-
-    private void bindTourData(Tour tour, View view) {
-        if (tour == null) return;
-
+    private void bindTourData(Tour tour) {
         collapsingToolbar.setTitle(tour.getTenTour());
-
-        // Load ảnh (Placeholder)
-        // Bạn nên thay thế R.drawable.tour_placeholder_danang bằng thư viện load ảnh (Glide/Picasso) và link URL của tour.
-        imgTourHeader.setImageResource(R.drawable.tour_placeholder_danang);
-
-        // Thông tin cơ bản
         tvTourTitle.setText(tour.getTenTour());
         tvTourSubtitle.setText(String.format("%d Ngày %d Đêm", tour.getSoNgay(), tour.getSoDem()));
         tvTourLocation.setText(tour.getDiemDen());
         tvTourRating.setText(String.format(Locale.getDefault(), "%.1f", tour.getRating()));
-
-        // Xử lý hiển thị Metrics
         displayKeyMetrics(tour);
     }
 
-    private void displayKeyMetrics(Tour tour) {
-        if (keyMetricsContainer == null) return;
-
-        String[] metricValues = {
-                tour.getMaTour(),
-                String.format(Locale.getDefault(), "%d/%d", tour.getSoNgay(), tour.getSoDem()),
-                currencyFormat.format(tour.getGiaNguoiLon()),
-                tour.getStatus()
-        };
-
-        String[] metricLabels = {
-                "Mã Tour",
-                "Ngày/Đêm",
-                "Giá NL",
-                "Trạng thái"
-        };
-
-        int childCount = keyMetricsContainer.getChildCount();
-
-        for (int i = 0; i < childCount && i < metricValues.length; i++) {
-            View metricItemView = keyMetricsContainer.getChildAt(i);
-
-            TextView tvValue = metricItemView.findViewById(R.id.tv_metric_value);
-            TextView tvLabel = metricItemView.findViewById(R.id.tv_metric_label);
-
-            if (tvValue != null) {
-                tvValue.setText(metricValues[i]);
-            }
-            if (tvLabel != null) {
-                tvLabel.setText(metricLabels[i]);
-            }
-        }
-    }
-
     private void setupTabLayout() {
-        if (tabLayout.getTabCount() == 0) {
-            tabLayout.addTab(tabLayout.newTab().setText("Lịch trình"));
-            tabLayout.addTab(tabLayout.newTab().setText("Dịch vụ"));
-            tabLayout.addTab(tabLayout.newTab().setText("Đánh giá"));
+        if (tabLayout == null || tabLayout.getTabCount() > 0) return;
 
-            loadTabFragment(tabLayout.getTabAt(0).getText().toString());
-        }
+        tabLayout.addTab(tabLayout.newTab().setText("Lịch trình"));
+        tabLayout.addTab(tabLayout.newTab().setText("Dịch vụ"));
+        tabLayout.addTab(tabLayout.newTab().setText("Đánh giá"));
+
+        loadTabFragment("Lịch trình");
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                if (tab.getText() != null) {
-                    loadTabFragment(tab.getText().toString());
-                }
+                loadTabFragment(tab.getText().toString());
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {}
@@ -284,95 +185,75 @@ public class TourDetailFragment extends Fragment {
 
         switch (tabTitle) {
             case "Dịch vụ":
-                fragment = TourServiceFragment.newInstance(
-                        currentTour.getDichVuBaoGom(),
-                        currentTour.getDichVuKhongBaoGom()
-                );
+                fragment = TourServiceFragment.newInstance(currentTour.getDichVuBaoGom(), currentTour.getDichVuKhongBaoGom());
                 break;
             case "Đánh giá":
                 fragment = TourReviewFragment.newInstance(currentTour.getMaTour());
                 break;
-            case "Lịch trình":
             default:
                 fragment = TourItineraryFragment.newInstance(currentTour.getLichTrinhChiTiet());
                 break;
         }
 
-        FragmentManager childFragmentManager = getChildFragmentManager();
-        FragmentTransaction transaction = childFragmentManager.beginTransaction();
-
-        transaction.replace(R.id.main_content_frame, fragment);
-        transaction.commitAllowingStateLoss();
+        // SỬA LỖI: Sử dụng R.id.fragment_container thay vì main_content_frame
+        getChildFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commitAllowingStateLoss();
     }
 
-    /**
-     * ⭐ TRIỂN KHAI MỚI: Xử lý sự kiện click nút Chỉnh sửa Tour.
-     */
     private void handleEditTour() {
-        if (tourId == null) {
-            Toast.makeText(getContext(), "Lỗi: Không có ID Tour để chỉnh sửa.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // 1. Tạo EditTourFragment và truyền tourId
+        if (tourId == null) return;
         Fragment editFragment = EditTourFragment.newInstance(tourId);
-
-        // 2. Thực hiện giao dịch Fragment
         if (getParentFragmentManager() != null) {
             getParentFragmentManager().beginTransaction()
-                    .replace(FRAGMENT_CONTAINER_ID, editFragment)
-                    .addToBackStack("TourDetailToEdit")
+                    .replace(MAIN_ACTIVITY_CONTAINER_ID, editFragment)
+                    .addToBackStack(null)
                     .commit();
-
-            Log.d(TAG, "Đã chuyển sang EditTourFragment cho Tour ID: " + tourId);
-        } else {
-            Toast.makeText(getContext(), "Lỗi hệ thống: Không thể mở màn hình chỉnh sửa Tour.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    /**
-     * Hàm xử lý logic xóa Tour.
-     */
     private void handleDeleteTour() {
-        if (getContext() == null || currentTour == null) return;
-
-        new MaterialAlertDialogBuilder(getContext())
-                .setTitle("Xác nhận Xóa Tour")
-                .setMessage("Bạn có chắc chắn muốn xóa Tour '" + currentTour.getTenTour() + "' (ID: " + tourId + ") không? Hành động này không thể hoàn tác.")
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Xác nhận Xóa")
+                .setMessage("Bạn có chắc muốn xóa tour này?")
                 .setNegativeButton("Hủy", null)
-                .setPositiveButton("Xóa Tour", (dialog, which) -> {
-                    // Thực hiện logic xóa Tour
-                    performTourDeletion();
-                })
-                .show();
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    db.collection("Tours").document(tourId).delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(getContext(), "Đã xóa tour", Toast.LENGTH_SHORT).show();
+                                goBack();
+                            });
+                }).show();
     }
 
-    /**
-     * Thực hiện xóa Tour khỏi Firestore.
-     */
-    private void performTourDeletion() {
-        if (tourId == null || getContext() == null) return;
+    private void setupToolbar() {
+        if (getActivity() instanceof AppCompatActivity) {
+            ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+            if (((AppCompatActivity) getActivity()).getSupportActionBar() != null) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            }
+        }
+        toolbar.setNavigationOnClickListener(v -> goBack());
+    }
 
-        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+    private void goBack() {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (isAdded() && getActivity() != null) getActivity().onBackPressed();
+        });
+    }
 
-        db.collection("Tours").document(tourId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Tour " + tourId + " đã được xóa thành công.", Toast.LENGTH_LONG).show();
+    private void displayKeyMetrics(Tour tour) {
+        if (keyMetricsContainer == null) return;
+        String[] values = {tour.getMaTour(), tour.getSoNgay() + "/" + tour.getSoDem(),
+                currencyFormat.format(tour.getGiaNguoiLon()), tour.getStatus()};
+        String[] labels = {"Mã Tour", "Ngày/Đêm", "Giá NL", "Trạng thái"};
 
-                    // Quay lại màn hình trước đó (Danh sách Tour)
-                    // ⭐ Sửa lỗi: Gọi onBackPressed an toàn
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        if (getActivity() != null) {
-                            getActivity().onBackPressed();
-                        }
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
-                    Log.e(TAG, "Lỗi xóa Tour " + tourId, e);
-                    Toast.makeText(getContext(), "Lỗi xóa Tour: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+        for (int i = 0; i < keyMetricsContainer.getChildCount() && i < values.length; i++) {
+            View item = keyMetricsContainer.getChildAt(i);
+            TextView v = item.findViewById(R.id.tv_metric_value);
+            TextView l = item.findViewById(R.id.tv_metric_label);
+            if (v != null) v.setText(values[i]);
+            if (l != null) l.setText(labels[i]);
+        }
     }
 }

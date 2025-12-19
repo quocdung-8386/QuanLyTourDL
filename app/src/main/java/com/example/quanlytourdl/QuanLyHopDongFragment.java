@@ -20,7 +20,6 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// Imports Firebase Firestore
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -29,17 +28,10 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import com.example.quanlytourdl.adapter.HopDongAdapter;
-import com.example.quanlytourdl.model.HopDong; // Import model HopDong
-// ⭐ Import các Fragment và Model giả định cần thiết cho DetailFragment
+import com.example.quanlytourdl.model.HopDong;
 import com.example.quanlytourdl.DetailFragment;
-import com.example.quanlytourdl.TaoHopDongFragment;
-import com.example.quanlytourdl.SuaHopDongFragment;
-import com.example.quanlytourdl.ChamDutHopDongFragment;
-import com.example.quanlytourdl.model.Guide;
-import com.example.quanlytourdl.model.Vehicle;
-import com.example.quanlytourdl.model.NhaCungCap;
 
-
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,485 +40,217 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors; // Import cần thiết cho lọc Stream
+import java.util.stream.Collectors;
 
-/**
- * Fragment Quản lý Hợp đồng, hiển thị danh sách hợp đồng NCC.
- */
 public class QuanLyHopDongFragment extends Fragment implements HopDongAdapter.OnItemActionListener {
 
     private static final String TAG = "QuanLyHopDongFragment";
-    // Đảm bảo định dạng ngày tháng này khớp với dữ liệu trong Firestore
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     private static final long THIRTY_DAYS_IN_MILLIS = TimeUnit.DAYS.toMillis(30);
 
     private RecyclerView recyclerView;
     private HopDongAdapter adapter;
-    private List<HopDong> fullHopDongList; // Danh sách gốc TỪ FIRESTORE (sau khi lọc NCC đã xóa)
-    private List<HopDong> filteredHopDongList; // Danh sách đang hiển thị (sau khi lọc Trạng thái và Tìm kiếm)
+    private List<HopDong> fullHopDongList = new ArrayList<>();
+    private List<HopDong> filteredHopDongList = new ArrayList<>();
 
     private FirebaseFirestore db;
     private CollectionReference hopDongRef;
     private ListenerRegistration listenerRegistration;
 
-    // UI elements
     private EditText etSearch;
-    private ImageButton btnBack;
     private Button btnFilterAll, btnFilterActive, btnFilterUpcoming, btnFilterExpired;
-    private String currentFilter = "Tất cả"; // Biến lưu trạng thái lọc hiện tại
+    private String currentFilter = "Tất cả";
 
-    // Khai báo các hằng số trạng thái (Sử dụng tên hiển thị trên nút để đồng bộ)
+    // Constants cho trạng thái
     private static final String TRANG_THAI_TAT_CA = "Tất cả";
-    private static final String TRANG_THAI_DANG_HIEU_LUC = "Đang hiệu lực"; // Trùng với tên nút Active
-    private static final String TRANG_THAI_SAP_HET_HAN = "Sắp hết hạn"; // Trùng với tên nút Upcoming
-    private static final String TRANG_THAI_DA_HET_HAN = "Đã hết hạn"; // Trùng với tên nút Expired
-
-    // Trạng thái LƯU trong DB
+    private static final String TRANG_THAI_DANG_HIEU_LUC = "Đang hiệu lực";
+    private static final String TRANG_THAI_SAP_HET_HAN = "Sắp hết hạn";
+    private static final String TRANG_THAI_DA_HET_HAN = "Đã hết hạn";
     private static final String TRANG_THAI_DA_CHAM_DUT_DB = "Đã Chấm dứt";
-
-    // Hằng số trạng thái cho Hợp đồng có NCC đã bị xóa (được set từ KinhDoanhFragment)
     private static final String TRANG_THAI_NCC_DA_XOA = "Nhà Cung Cấp Đã Xóa";
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // KHỞI TẠO FIRESTORE
         db = FirebaseFirestore.getInstance();
         hopDongRef = db.collection("HopDong");
-
-        fullHopDongList = new ArrayList<>();
-        filteredHopDongList = new ArrayList<>();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Sử dụng layout fragment_quanlyhopdong (Giả định ID tồn tại)
-        int layoutId = getResources().getIdentifier("fragment_quanlyhopdong", "layout", requireContext().getPackageName());
-        if (layoutId == 0) {
-            Log.e(TAG, "Không tìm thấy layout ID 'fragment_quanlyhopdong'.");
-            // Có thể return một View trống để tránh crash nếu layout không tìm thấy
-            return new View(requireContext());
-        }
-
-        View view = inflater.inflate(layoutId, container, false);
-
-        // Ánh xạ View và Thiết lập RecyclerView
+        View view = inflater.inflate(R.layout.fragment_quanlyhopdong, container, false);
         setupViews(view);
         setupRecyclerView(view);
         setupFilterButtons(view);
-
-        // Tải dữ liệu ban đầu
-        loadHopDongData(currentFilter);
-
+        loadHopDongData();
         return view;
     }
 
     private void setupViews(View view) {
-        // Nút Quay lại
-        btnBack = view.findViewById(R.id.btn_back);
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> {
-                if (getParentFragmentManager() != null && getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack();
-                } else {
-                    requireActivity().onBackPressed();
-                }
-            });
-        }
+        ImageButton btnBack = view.findViewById(R.id.btn_back);
+        if (btnBack != null) btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
-        // Thanh tìm kiếm
         etSearch = view.findViewById(R.id.et_search);
-        // Thiết lập lắng nghe thay đổi nội dung tìm kiếm
         if (etSearch != null) {
             etSearch.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Áp dụng lọc ngay khi người dùng gõ
-                    String searchQuery = s.toString().trim();
-                    filterDataList(searchQuery); // <-- GỌI HÀM LỌC TÌM KIẾM
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    filterDataList(s.toString().trim());
                 }
-
-                @Override
-                public void afterTextChanged(Editable s) {}
+                @Override public void afterTextChanged(Editable s) {}
             });
         }
 
-
-        // Nút Thêm mới Hợp đồng (FAB)
-        View fabAddContract = view.findViewById(R.id.fab_add_contract);
-        if (fabAddContract != null) {
-            fabAddContract.setOnClickListener(v -> {
-                openCreateContractFragment();
-            });
-        }
-
-        // Nút Thông báo
-        ImageButton btnNotification = view.findViewById(R.id.btn_notification);
-        if (btnNotification != null) {
-            btnNotification.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "Mở thông báo", Toast.LENGTH_SHORT).show();
-            });
-        }
+        View fabAdd = view.findViewById(R.id.fab_add_contract);
+        if (fabAdd != null) fabAdd.setOnClickListener(v -> openFragment(new TaoHopDongFragment(), "Thêm HĐ"));
     }
 
     private void setupRecyclerView(View view) {
         recyclerView = view.findViewById(R.id.recycler_contracts);
-        if (recyclerView != null) {
-            recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-            // Sử dụng filteredHopDongList cho adapter
-            adapter = new HopDongAdapter(requireContext(), filteredHopDongList, this);
-            recyclerView.setAdapter(adapter);
-        } else {
-            Log.e(TAG, "Không tìm thấy RecyclerView với ID: recycler_contracts");
-        }
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new HopDongAdapter(requireContext(), filteredHopDongList, this);
+        recyclerView.setAdapter(adapter);
     }
 
     private void setupFilterButtons(View view) {
-        // Giả định các ID nút lọc tồn tại
         btnFilterAll = view.findViewById(R.id.btn_filter_all);
         btnFilterActive = view.findViewById(R.id.btn_filter_active);
         btnFilterUpcoming = view.findViewById(R.id.btn_filter_upcoming);
         btnFilterExpired = view.findViewById(R.id.btn_filter_expired);
 
-        // Lấy ID tài nguyên màu và drawable
-        int selectedBgId = getResources().getIdentifier("bg_filter_button_selected", "drawable", requireContext().getPackageName());
-        int defaultBg = getResources().getIdentifier("bg_filter_button", "drawable", requireContext().getPackageName());
-        int whiteColorId = getResources().getIdentifier("white", "color", requireContext().getPackageName());
-        int defaultTextColor = getResources().getIdentifier("grey_text", "color", requireContext().getPackageName());
-
-        if (selectedBgId == 0 || defaultBg == 0 || whiteColorId == 0 || defaultTextColor == 0) {
-            Log.e(TAG, "Thiếu tài nguyên màu hoặc drawable cho nút lọc.");
-            return;
-        }
-
-        int whiteColor = ContextCompat.getColor(requireContext(), whiteColorId);
-        int defaultColor = ContextCompat.getColor(requireContext(), defaultTextColor);
-
-        View.OnClickListener filterClickListener = v -> {
-            // Đặt lại màu sắc cho tất cả các nút
-            resetFilterButtonStyles(defaultBg, defaultColor);
-
-            Button clickedButton = (Button) v;
-            // Đổi màu sắc cho nút được chọn
-            clickedButton.setBackgroundResource(selectedBgId);
-            clickedButton.setTextColor(whiteColor);
-
-            currentFilter = clickedButton.getText().toString();
-            // Áp dụng lọc ngay trên danh sách đã tải
-            String searchQuery = etSearch != null ? etSearch.getText().toString().trim() : "";
-            filterDataList(searchQuery);
+        View.OnClickListener filterClick = v -> {
+            resetStyles();
+            Button b = (Button) v;
+            b.setBackgroundResource(R.drawable.bg_filter_button_selected);
+            b.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+            currentFilter = b.getText().toString();
+            filterDataList(etSearch.getText().toString().trim());
         };
 
-        if (btnFilterAll != null) btnFilterAll.setOnClickListener(filterClickListener);
-        if (btnFilterActive != null) btnFilterActive.setOnClickListener(filterClickListener);
-        if (btnFilterUpcoming != null) btnFilterUpcoming.setOnClickListener(filterClickListener);
-        if (btnFilterExpired != null) btnFilterExpired.setOnClickListener(filterClickListener);
+        btnFilterAll.setOnClickListener(filterClick);
+        btnFilterActive.setOnClickListener(filterClick);
+        btnFilterUpcoming.setOnClickListener(filterClick);
+        btnFilterExpired.setOnClickListener(filterClick);
+    }
 
-        // Thiết lập trạng thái ban đầu cho nút "Tất cả"
-        if (btnFilterAll != null) {
-            btnFilterAll.setBackgroundResource(selectedBgId);
-            btnFilterAll.setTextColor(whiteColor);
+    private void resetStyles() {
+        int bg = R.drawable.bg_filter_button;
+        int color = ContextCompat.getColor(requireContext(), R.color.grey_text);
+        for (Button b : new Button[]{btnFilterAll, btnFilterActive, btnFilterUpcoming, btnFilterExpired}) {
+            b.setBackgroundResource(bg);
+            b.setTextColor(color);
         }
     }
 
-    private void resetFilterButtonStyles(int defaultBg, int defaultColor) {
-        if (btnFilterAll != null) {
-            btnFilterAll.setBackgroundResource(defaultBg);
-            btnFilterAll.setTextColor(defaultColor);
-        }
-        if (btnFilterActive != null) {
-            btnFilterActive.setBackgroundResource(defaultBg);
-            btnFilterActive.setTextColor(defaultColor);
-        }
-        if (btnFilterUpcoming != null) {
-            btnFilterUpcoming.setBackgroundResource(defaultBg);
-            btnFilterUpcoming.setTextColor(defaultColor);
-        }
-        if (btnFilterExpired != null) {
-            btnFilterExpired.setBackgroundResource(defaultBg);
-            btnFilterExpired.setTextColor(defaultColor);
-        }
-    }
+    private void loadHopDongData() {
+        if (listenerRegistration != null) listenerRegistration.remove();
 
-    // --- HÀM TIỆN ÍCH XỬ LÝ NGÀY THÁNG VÀ TRẠNG THÁI ---
+        listenerRegistration = hopDongRef.addSnapshotListener((snapshots, e) -> {
+            if (e != null || snapshots == null) return;
 
-    @Nullable
-    private Date parseDate(String dateString) {
-        if (dateString == null || dateString.isEmpty()) {
-            return null;
-        }
-        try {
-            // Chú ý: Định dạng mặc định là dd/MM/yyyy
-            return DATE_FORMAT.parse(dateString);
-        } catch (ParseException e) {
-            Log.e(TAG, "Lỗi parse ngày: " + dateString, e);
-            return null;
-        }
-    }
+            fullHopDongList.clear();
+            Date today = getZeroTimeDate(new Date());
+            long thirtyDaysFromNow = today.getTime() + THIRTY_DAYS_IN_MILLIS;
 
-    // ⭐ Hàm Tối Ưu Hóa: Thay thế hàm cũ và nhận các giá trị ngày tháng đã tính toán trước
-    private String getCalculatedContractStatus(HopDong hopDong, Date today, long thirtyDaysFromNow) {
-        // Ưu tiên trạng thái Đã Chấm dứt nếu đã được lưu trong DB
-        if (TRANG_THAI_DA_CHAM_DUT_DB.equals(hopDong.getTrangThai())) {
-            return TRANG_THAI_DA_CHAM_DUT_DB;
-        }
+            for (QueryDocumentSnapshot doc : snapshots) {
+                HopDong hd = doc.toObject(HopDong.class);
+                hd.setDocumentId(doc.getId());
 
-        Date ngayHetHan = parseDate(hopDong.getNgayHetHan());
+                if (TRANG_THAI_NCC_DA_XOA.equals(hd.getTrangThai())) continue;
 
-        if (ngayHetHan == null) {
-            // Nếu không có ngày hết hạn, mặc định là đang hiệu lực
-            return TRANG_THAI_DANG_HIEU_LUC;
-        }
-
-        // 1. Đã hết hạn
-        if (ngayHetHan.before(today)) {
-            return TRANG_THAI_DA_HET_HAN;
-        }
-
-        // 2. Sắp hết hạn (expires within 30 days)
-        long expiryTime = ngayHetHan.getTime();
-
-        if (expiryTime <= thirtyDaysFromNow) {
-            return TRANG_THAI_SAP_HET_HAN;
-        }
-
-        // 3. Đang hiệu lực
-        return TRANG_THAI_DANG_HIEU_LUC;
-    }
-
-
-    // --- HÀM TẢI DỮ LIỆU TỪ FIRESTORE (REAL-TIME) ---
-    private void loadHopDongData(String filterStatus) {
-        if (listenerRegistration != null) {
-            listenerRegistration.remove();
-        }
-
-        Query query = hopDongRef;
-
-        listenerRegistration = query.addSnapshotListener(new com.google.firebase.firestore.EventListener<com.google.firebase.firestore.QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable com.google.firebase.firestore.QuerySnapshot snapshots,
-                                @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Log.w(TAG, "Lỗi lắng nghe Firestore: ", e);
-                    Toast.makeText(requireContext(), "Lỗi tải dữ liệu real-time: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                if (snapshots != null) {
-                    fullHopDongList.clear(); // Xóa danh sách gốc để nạp lại
-                    int totalCount = 0;
-
-                    // ⭐ TỐI ƯU HÓA: Tính toán ngày hiện tại VÀ 30 ngày từ hiện tại MỘT LẦN
-                    Calendar cal = Calendar.getInstance();
-                    cal.set(Calendar.HOUR_OF_DAY, 0);
-                    cal.set(Calendar.MINUTE, 0);
-                    cal.set(Calendar.SECOND, 0);
-                    cal.set(Calendar.MILLISECOND, 0);
-                    final Date today = cal.getTime();
-                    final long thirtyDaysFromNow = today.getTime() + THIRTY_DAYS_IN_MILLIS;
-
-                    for (QueryDocumentSnapshot document : snapshots) {
-                        try {
-                            HopDong hd = document.toObject(HopDong.class);
-                            hd.setDocumentId(document.getId());
-
-                            // Bỏ qua Hợp đồng của NCC đã bị xóa (soft-delete)
-                            if (TRANG_THAI_NCC_DA_XOA.equals(hd.getTrangThai())) {
-                                continue;
-                            }
-
-                            // Gán trạng thái đã tính toán (hoặc Đã Chấm dứt) vào trường 'trangThai'
-                            // ⭐ GỌI HÀM ĐÃ TỐI ƯU VỚI THAM SỐ NGÀY THÁNG ĐÃ TÍNH TOÁN
-                            hd.setTrangThai(getCalculatedContractStatus(hd, today, thirtyDaysFromNow));
-
-                            // Thêm vào danh sách GỐC (full list)
-                            fullHopDongList.add(hd);
-                            totalCount++;
-
-                        } catch (Exception ex) {
-                            Log.e(TAG, "Lỗi chuyển đổi dữ liệu document ID " + document.getId() + ": " + ex.getMessage());
-                        }
-                    }
-
-                    // ⭐ SAU KHI NẠP DỮ LIỆU GỐC, ÁP DỤNG LỌC TRẠNG THÁI VÀ TÌM KIẾM ⭐
-                    String searchQuery = etSearch != null ? etSearch.getText().toString().trim() : "";
-                    filterDataList(searchQuery);
-
-                    Log.d(TAG, "Đã tải thành công " + totalCount + " Hợp Đồng. Áp dụng filter: " + filterStatus);
-                }
+                hd.setTrangThai(calculateStatus(hd, today, thirtyDaysFromNow));
+                fullHopDongList.add(hd);
             }
+            filterDataList(etSearch.getText().toString().trim());
         });
     }
 
-    private void filterDataList(String searchQuery) {
-        String lowerCaseQuery = searchQuery.toLowerCase(Locale.getDefault());
+    private String calculateStatus(HopDong hd, Date today, long limit) {
+        if (TRANG_THAI_DA_CHAM_DUT_DB.equals(hd.getTrangThai())) return TRANG_THAI_DA_CHAM_DUT_DB;
 
-        // 1. Lọc theo Trạng thái (currentFilter)
-        List<HopDong> statusFilteredList = fullHopDongList.stream()
+        try {
+            Date expiry = DATE_FORMAT.parse(hd.getNgayHetHan());
+            if (expiry == null) return TRANG_THAI_DANG_HIEU_LUC;
+            if (expiry.before(today)) return TRANG_THAI_DA_HET_HAN;
+            if (expiry.getTime() <= limit) return TRANG_THAI_SAP_HET_HAN;
+        } catch (Exception e) { return TRANG_THAI_DANG_HIEU_LUC; }
+
+        return TRANG_THAI_DANG_HIEU_LUC;
+    }
+
+    private void filterDataList(String query) {
+        String lowerQuery = query.toLowerCase(Locale.getDefault());
+
+        List<HopDong> statusFiltered = fullHopDongList.stream()
                 .filter(hd -> {
-                    if (TRANG_THAI_TAT_CA.equals(currentFilter)) {
-                        return true;
+                    if (currentFilter.equals(TRANG_THAI_TAT_CA)) return true;
+                    if (currentFilter.equals(TRANG_THAI_DA_HET_HAN)) {
+                        return hd.getTrangThai().equals(TRANG_THAI_DA_HET_HAN) || hd.getTrangThai().equals(TRANG_THAI_DA_CHAM_DUT_DB);
                     }
+                    return hd.getTrangThai().equals(currentFilter);
+                }).collect(Collectors.toList());
 
-                    String hdStatus = hd.getTrangThai();
-
-                    // Nếu người dùng chọn lọc "Đã hết hạn", chúng ta bao gồm cả trạng thái "Đã Chấm dứt"
-                    if (TRANG_THAI_DA_HET_HAN.equals(currentFilter)) {
-                        return TRANG_THAI_DA_HET_HAN.equals(hdStatus) || TRANG_THAI_DA_CHAM_DUT_DB.equals(hdStatus);
-                    }
-
-                    return currentFilter.equals(hdStatus);
-                })
-                .collect(Collectors.toList());
-
-        // 2. Lọc tiếp theo Chuỗi tìm kiếm (Search)
         filteredHopDongList.clear();
-
-        if (lowerCaseQuery.isEmpty()) {
-            filteredHopDongList.addAll(statusFilteredList);
+        if (lowerQuery.isEmpty()) {
+            filteredHopDongList.addAll(statusFiltered);
         } else {
-            statusFilteredList.stream()
-                    .filter(hd -> {
-                        // Tìm kiếm theo Mã Hợp đồng hoặc Tên Nhà Cung Cấp
-                        return (hd.getMaHopDong() != null && hd.getMaHopDong().toLowerCase(Locale.getDefault()).contains(lowerCaseQuery)) ||
-                                (hd.getNhaCungCap() != null && hd.getNhaCungCap().toLowerCase(Locale.getDefault()).contains(lowerCaseQuery));
-                    })
+            statusFiltered.stream()
+                    .filter(hd -> (hd.getMaHopDong() != null && hd.getMaHopDong().toLowerCase().contains(lowerQuery)) ||
+                            (hd.getNhaCungCap() != null && hd.getNhaCungCap().toLowerCase().contains(lowerQuery)))
                     .forEach(filteredHopDongList::add);
         }
-
-        // 3. Cập nhật RecyclerView
         adapter.notifyDataSetChanged();
     }
 
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (listenerRegistration != null) {
-            listenerRegistration.remove();
-        }
-    }
-
-    // --- TRIỂN KHAI PHƯƠNG THỨC CỦA INTERFACE HopDongAdapter.OnItemActionListener ---
-
-    /**
-     * ⭐ CẬP NHẬT: Xử lý sự kiện xem chi tiết bằng DetailFragment.
-     * Sử dụng phương thức newInstance với 4 tham số (Guide, Vehicle, NhaCungCap, HopDong).
-     * Chỉ truyền đối tượng HopDong (tham số thứ tư), các tham số khác là null.
-     */
     @Override
     public void onViewClick(HopDong hopDong) {
-        Toast.makeText(requireContext(), "Mở chi tiết Hợp đồng: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
-
-        // Khai báo các đối tượng null để đảm bảo đủ 4 tham số (Guide, Vehicle, NhaCungCap)
-        final Guide nullGuide = null;
-        final Vehicle nullVehicle = null;
-        final NhaCungCap nullNcc = null; // Giả định NhaCungCap đã được import
-
-        if (getParentFragmentManager() != null) {
-            // Giả định DetailFragment tồn tại và có phương thức newInstance 4 tham số
-            // DetailFragment.newInstance(Guide, Vehicle, NhaCungCap, HopDong)
-            Fragment detailFragment = DetailFragment.newInstance(nullGuide, nullVehicle, nullNcc, hopDong);
-
-            // Sử dụng hàm chuyển Fragment chung
-            openFragment(detailFragment, "Mở màn hình Chi tiết Hợp đồng: " + hopDong.getMaHopDong());
-        } else {
-            Toast.makeText(requireContext(), "Lỗi: Không thể mở màn hình chi tiết (Fragment Manager null).", Toast.LENGTH_SHORT).show();
-        }
+        // ⭐ Sử dụng Factory Method mới của DetailFragment
+        Fragment detailFragment = DetailFragment.newInstance((Serializable) hopDong);
+        openFragment(detailFragment, "Chi tiết: " + hopDong.getMaHopDong());
     }
 
     @Override
     public void onEditClick(HopDong hopDong) {
-        Toast.makeText(requireContext(), "Mở màn hình Sửa Hợp đồng: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
-        openEditContractFragment(hopDong.getDocumentId()); // Gọi hàm mới
+        Bundle b = new Bundle();
+        b.putString("contract_id", hopDong.getDocumentId());
+        SuaHopDongFragment f = new SuaHopDongFragment();
+        f.setArguments(b);
+        openFragment(f, "Sửa HĐ");
     }
 
     @Override
     public void onDeleteClick(HopDong hopDong) {
-        String supplierId = hopDong.getSupplierId();
-        String contractId = hopDong.getDocumentId();
-
-        if (supplierId == null || contractId == null) {
-            Toast.makeText(requireContext(), "Lỗi dữ liệu: Không có đủ ID (NCC hoặc Hợp đồng) để chấm dứt.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        Toast.makeText(requireContext(), "Chuyển sang màn hình Chấm dứt Hợp đồng. Mã HĐ: " + hopDong.getMaHopDong(), Toast.LENGTH_SHORT).show();
-        openTerminateContractFragment(supplierId, contractId);
+        Bundle b = new Bundle();
+        b.putString("supplier_id", hopDong.getSupplierId());
+        b.putString("contract_id", hopDong.getDocumentId());
+        ChamDutHopDongFragment f = new ChamDutHopDongFragment();
+        f.setArguments(b);
+        openFragment(f, "Chấm dứt HĐ");
     }
 
-    // --- HÀM HỖ TRỢ CHUYỂN FRAGMENT ---
-
-    /**
-     * Hàm chuyển Fragment chung.
-     */
-    private void openFragment(Fragment targetFragment, String logMessage) {
-        if (getParentFragmentManager() != null) {
-            FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            int frameId = getResources().getIdentifier("main_content_frame", "id", requireContext().getPackageName());
-
-            if (frameId != 0) {
-                transaction.replace(frameId, targetFragment);
-                transaction.addToBackStack(null);
-                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-                transaction.commit();
-                Log.d(TAG, logMessage);
-            } else {
-                Log.e(TAG, "Không tìm thấy ID 'main_content_frame'. Không thể chuyển Fragment.");
-            }
-        }
+    private void openFragment(Fragment f, String log) {
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left, R.anim.slide_in_left, R.anim.slide_out_right)
+                .replace(R.id.main_content_frame, f)
+                .addToBackStack(null)
+                .commit();
+        Log.d(TAG, log);
     }
 
-    /**
-     * Mở Fragment Tạo Hợp Đồng Mới.
-     */
-    private void openCreateContractFragment() {
-        // Giả định class TaoHopDongFragment tồn tại
-        Fragment createFragment = new TaoHopDongFragment();
-        openFragment(createFragment, "Mở màn hình Tạo Hợp đồng mới");
+    private Date getZeroTimeDate(Date date) {
+        Calendar res = Calendar.getInstance();
+        res.setTime(date);
+        res.set(Calendar.HOUR_OF_DAY, 0);
+        res.set(Calendar.MINUTE, 0);
+        res.set(Calendar.SECOND, 0);
+        res.set(Calendar.MILLISECOND, 0);
+        return res.getTime();
     }
 
-    /**
-     * Mở Fragment Sửa Hợp Đồng và truyền ID Document của Hợp đồng.
-     * @param contractId ID Document Firebase của Hợp Đồng.
-     */
-    private void openEditContractFragment(String contractId) {
-        if (getParentFragmentManager() != null) {
-            Bundle bundle = new Bundle();
-            // Key này phải khớp với key mà SuaHopDongFragment mong đợi
-            bundle.putString("contract_id", contractId);
-
-            // Giả định SuaHopDongFragment tồn tại
-            Fragment editFragment = new SuaHopDongFragment();
-            editFragment.setArguments(bundle);
-
-            openFragment(editFragment, "Chuyển sang màn hình Sửa Hợp đồng. Contract ID (Document ID): " + contractId);
-        }
-    }
-
-
-    /**
-     * Mở Fragment Chấm Dứt Hợp Đồng và truyền ID Nhà cung cấp VÀ ID Hợp đồng.
-     * @param supplierDocumentId ID Document Firebase của Nhà Cung Cấp.
-     * @param contractId ID Document Firebase của Hợp Đồng (Document ID).
-     */
-    private void openTerminateContractFragment(String supplierDocumentId, String contractId) {
-        if (getParentFragmentManager() != null) {
-            Bundle bundle = new Bundle();
-            bundle.putString("supplier_id", supplierDocumentId);
-            bundle.putString("contract_id", contractId);
-
-            // Giả định ChamDutHopDongFragment tồn tại
-            ChamDutHopDongFragment terminateFragment = new ChamDutHopDongFragment();
-            terminateFragment.setArguments(bundle);
-
-            openFragment(terminateFragment, "Chuyển sang màn hình Chấm dứt Hợp đồng. NCC ID: " + supplierDocumentId + ", Contract ID (Document ID): " + contractId);
-        }
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (listenerRegistration != null) listenerRegistration.remove();
     }
 }

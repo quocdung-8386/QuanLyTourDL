@@ -1,67 +1,90 @@
 package com.example.quanlytourdl.model;
 
-import java.io.Serializable; // ⭐ IMPORT MỚI
+import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.PropertyName;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-// ⭐ Guide implements Serializable
 public class Guide implements Serializable {
-
-    // ⭐ Thêm serialVersionUID để đảm bảo tính tương thích khi deserialization
     private static final long serialVersionUID = 1L;
 
-    private String id;
+    private String id; // Document ID trên Firestore
     private String fullName;
     private String guideCode;
-    private String sdt;
+    private String phoneNumber;
     private String email;
-    private String trangThai; // Trạng thái làm việc chung (ACTIVE, INACTIVE)
+    private String address;
+    private String gender;
+    private String birthDate;
 
-    // --- CÁC TRƯỜNG BỔ SUNG CHO PHÂN CÔNG ---
-    private List<String> languages;     // Ngôn ngữ HDV sử dụng
-    private double rating = 0.0;        // Điểm đánh giá trung bình (Mặc định 0.0)
-    private int experienceYears = 0;    // Số năm kinh nghiệm
+    private boolean isApproved; // Khớp với field Boolean trên Firebase
+    private List<String> languages;
+    private int experienceYears = 0;
+    private double rating = 0.0;
 
-    // Thuộc tính Transient (Không cần tuần tự hóa, nhưng không gây lỗi)
-    private boolean isAvailable = false; // Trạng thái sẵn sàng (Trống/Vướng lịch)
-    private boolean isSelected = false;  // Trạng thái được chọn trong RecyclerView
+    // Field này dùng cho logic UI (ví dụ chọn nhiều HDV), không lưu lên Firebase
+    @Exclude
+    private boolean isSelected = false;
 
-    public Guide() {}
+    public Guide() {
+        this.languages = new ArrayList<>();
+    }
 
-    // --- GETTERS & SETTERS CŨ ---
+    // --- Getters & Setters ---
+
+    @Exclude // ID thường được lấy từ document.getId(), không nên lưu trùng trong field
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public String getFullName() { return fullName; }
+
+    public String getFullName() {
+        return fullName != null ? fullName : "Chưa cập nhật";
+    }
     public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getGuideCode() { return guideCode; }
+
+    public String getGuideCode() { return guideCode != null ? guideCode : ""; }
     public void setGuideCode(String guideCode) { this.guideCode = guideCode; }
-    public String getSdt() { return sdt; }
-    public void setSdt(String sdt) { this.sdt = sdt; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-    public String getTrangThai() { return trangThai; }
-    public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
 
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    // --- GETTERS & SETTERS MỚI ---
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+
+    public String getBirthDate() { return birthDate; }
+    public void setBirthDate(String birthDate) { this.birthDate = birthDate; }
+
+    @PropertyName("isApproved")
+    public boolean isApproved() { return isApproved; }
+
+    @PropertyName("isApproved")
+    public void setApproved(boolean approved) { isApproved = approved; }
+
     public List<String> getLanguages() { return languages; }
     public void setLanguages(List<String> languages) { this.languages = languages; }
-
-    public double getRating() { return rating; }
-    public void setRating(double rating) { this.rating = rating; }
 
     public int getExperienceYears() { return experienceYears; }
     public void setExperienceYears(int experienceYears) { this.experienceYears = experienceYears; }
 
-    // --- GETTERS & SETTERS CHO UI/ADAPTER ---
-    public boolean isAvailable() { return isAvailable; }
-    public void setAvailable(boolean available) { isAvailable = available; }
+    public double getRating() { return rating; }
+    public void setRating(double rating) { this.rating = rating; }
 
+    @Exclude
     public boolean isSelected() { return isSelected; }
+    @Exclude
     public void setSelected(boolean selected) { isSelected = selected; }
 
-
-    @Override
-    public String toString() {
-        return "HDV: " + fullName + " - Mã: " + guideCode + " - Trạng thái: " + trangThai;
+    /**
+     * Helper để lấy trạng thái dạng Text hiển thị nhanh lên UI
+     */
+    @Exclude
+    public String getStatusDisplayText() {
+        return isApproved ? "Sẵn sàng" : "Chờ phê duyệt";
     }
 }

@@ -160,7 +160,6 @@
                 android:minHeight="500dp"
                 android:paddingBottom="100dp">
             </FrameLayout>
-
             <include layout="@layout/review_summary_card" />
 
             <include layout="@layout/personnel_vehicle_card" />
