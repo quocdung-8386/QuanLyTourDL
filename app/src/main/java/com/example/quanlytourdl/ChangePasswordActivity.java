@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthCredential;
@@ -24,7 +23,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
     private ImageView btnBack;
     private TextInputEditText etCurrentPass, etNewPass, etConfirmPass;
     private MaterialButton btnSavePassword;
-    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,10 +35,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
         etNewPass = findViewById(R.id.et_new_password);
         etConfirmPass = findViewById(R.id.et_confirm_password);
         btnSavePassword = findViewById(R.id.btn_save_password);
-        bottomNav = findViewById(R.id.bottom_navigation);
 
         // 2. Xử lý sự kiện
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> finish()); // Đóng Activity quay về màn hình trước
 
         btnSavePassword.setOnClickListener(v -> handleChangePasswordFirebase());
     }
@@ -56,8 +53,9 @@ public class ChangePasswordActivity extends AppCompatActivity {
             return;
         }
 
-        if (newPass.length() < 6) { // Firebase yêu cầu tối thiểu 6 ký tự
-            Toast.makeText(this, "Mật khẩu mới phải có ít nhất 6 ký tự", Toast.LENGTH_SHORT).show();
+        // Firebase yêu cầu tối thiểu 6, nhưng UI bạn ghi 8 nên ta check 8 cho chuyên nghiệp
+        if (newPass.length() < 8) {
+            Toast.makeText(this, "Mật khẩu mới phải có ít nhất 8 ký tự", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -66,24 +64,29 @@ public class ChangePasswordActivity extends AppCompatActivity {
             return;
         }
 
-        // --- BẮT ĐẦU LOGIC FIREBASE ---
+        if (currentPass.equals(newPass)) {
+            Toast.makeText(this, "Mật khẩu mới không được trùng với mật khẩu cũ", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        // --- BẮT ĐẦU LOGIC FIREBASE ---
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (user != null && user.getEmail() != null) {
             // Khóa nút bấm để tránh spam
             btnSavePassword.setEnabled(false);
-            btnSavePassword.setText("Đang xử lý...");
+            btnSavePassword.setText("Đang xác thực...");
 
             // BƯỚC 1: Xác thực lại bằng mật khẩu CŨ (Re-authenticate)
-            // Việc này để kiểm tra xem etCurrentPass người dùng nhập vào có đúng không
+            // Đây là bước bắt buộc của Firebase để đảm bảo người dùng chính chủ đang đổi mật khẩu
             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPass);
 
             user.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        // Mật khẩu cũ ĐÚNG -> Tiến hành cập nhật mật khẩu MỚI
+                        // Re-auth thành công -> Mật khẩu cũ ĐÚNG -> Tiến hành cập nhật
+                        btnSavePassword.setText("Đang cập nhật...");
 
                         user.updatePassword(newPass).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
@@ -93,18 +96,19 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
                                 if (task.isSuccessful()) {
                                     Toast.makeText(ChangePasswordActivity.this, "Đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
-                                    finish();
+                                    finish(); // Đóng màn hình này lại
                                 } else {
-                                    Toast.makeText(ChangePasswordActivity.this, "Lỗi khi cập nhật: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(ChangePasswordActivity.this, "Lỗi: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                                 }
                             }
                         });
 
                     } else {
-                        // Mật khẩu cũ SAI
+                        // Re-auth thất bại -> Mật khẩu cũ SAI
                         btnSavePassword.setEnabled(true);
                         btnSavePassword.setText("Lưu thay đổi");
                         Toast.makeText(ChangePasswordActivity.this, "Mật khẩu hiện tại không đúng!", Toast.LENGTH_SHORT).show();
+                        etCurrentPass.requestFocus();
                     }
                 }
             });

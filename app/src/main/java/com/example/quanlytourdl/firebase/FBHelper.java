@@ -1,6 +1,7 @@
 package com.example.quanlytourdl.firebase;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -13,6 +14,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore; // Import Firestore
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage; // Import Storage
+import com.google.firebase.storage.StorageReference; // Import StorageReference
 
 public class FBHelper {
 
@@ -20,6 +23,7 @@ public class FBHelper {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db; // Khai báo Firestore
     private Context context;
+    private FirebaseStorage storage;
 
     // 1. Interface để gửi kết quả thao tác (Thành công/Thất bại)
     public interface AuthListener {
@@ -40,6 +44,7 @@ public class FBHelper {
         mAuth = FirebaseAuth.getInstance();
         // Khởi tạo Firestore (MỚI)
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance(); // Khởi tạo Storage
     }
 
     // ----------------------------------------------------------------
@@ -148,5 +153,41 @@ public class FBHelper {
                 .update("fullName", fullName, "phone", phone)
                 .addOnSuccessListener(aVoid -> listener.onSuccess("Cập nhật thành công"))
                 .addOnFailureListener(e -> listener.onFailure("Lỗi cập nhật: " + e.getMessage()));
+    }
+    // ----------------------------------------------------------------
+    // PHẦN 3: CÁC HÀM UPLOAD ẢNH (MỚI)
+    // ----------------------------------------------------------------
+
+    public void uploadUserAvatar(Uri imageUri, AuthListener listener) {
+        String uid = getCurrentUserID();
+        if (uid == null) {
+            listener.onFailure("Chưa đăng nhập");
+            return;
+        }
+
+        // 1. Tạo tham chiếu đến nơi lưu ảnh (VD: avatars/user_id.jpg)
+        StorageReference storageRef = storage.getReference().child("avatars/" + uid + ".jpg");
+
+        // 2. Upload file lên Firebase Storage
+        storageRef.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    // 3. Upload thành công -> Lấy đường dẫn tải về (Download URL)
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        String downloadUrl = uri.toString();
+
+                        // 4. Cập nhật đường dẫn này vào Firestore
+                        updateAvatarInFirestore(uid, downloadUrl, listener);
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    listener.onFailure("Lỗi upload ảnh: " + e.getMessage());
+                });
+    }
+
+    private void updateAvatarInFirestore(String uid, String avatarUrl, AuthListener listener) {
+        db.collection("users").document(uid)
+                .update("avatar", avatarUrl)
+                .addOnSuccessListener(aVoid -> listener.onSuccess("Cập nhật ảnh đại diện thành công!")) // Trả về URL để hiển thị nếu cần
+                .addOnFailureListener(e -> listener.onFailure("Lỗi lưu URL ảnh: " + e.getMessage()));
     }
 }

@@ -106,9 +106,8 @@ public class RegisterActivity extends AppCompatActivity {
                 // Lấy UID vừa được tạo
                 String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                // Tạo đối tượng UserModel (bao gồm cả phone vừa nhập)
-                // "Khách hàng" là vai trò mặc định
-                UserModel newUser = new UserModel(uid, name, email, phone, "Nhân viên");
+                // Tạo đối tượng UserModel (bao gồm cả phone vừa nhập
+                UserModel newUser = new UserModel(uid, name, email, phone, "Nhân viên","");
 
                 // Gọi hàm lưu vào Firestore
                 fbHelper.addUserToFirestore(newUser, new FBHelper.AuthListener() {

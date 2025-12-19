@@ -6,15 +6,17 @@ public class UserModel {
     private String email;
     private String phone;
     private String role;
+    private String avatar;
 
     public UserModel() { } // Constructor rỗng bắt buộc cho Firebase
 
-    public UserModel(String uid, String fullName, String email, String phone, String role) {
+    public UserModel(String uid, String fullName, String email, String phone, String role, String avatar) {
         this.uid = uid;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.role = role;
+        this.avatar = avatar;
     }
 
     // Getter và Setter
@@ -28,4 +30,11 @@ public class UserModel {
     public void setPhone(String phone) { this.phone = phone; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 }
