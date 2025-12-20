@@ -67,7 +67,7 @@ public class TaoKhieuNaiFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
 
         initViews(view);
-        loadDataForAutocomplete(); // Tải danh sách gợi ý
+        loadDataForAutocomplete(); // Tải danh sách gợi ý từ Firebase
         setupSpinners();
 
         return view;
@@ -88,42 +88,34 @@ public class TaoKhieuNaiFragment extends Fragment {
         Button btnCreate = view.findViewById(R.id.btn_create_ticket);
         Button btnCancel = view.findViewById(R.id.btn_cancel);
 
-        // Nút Lưu ở góc trên Toolbar
         TextView tvSaveTop = view.findViewById(R.id.tv_save_top);
 
-        // 1. Xử lý nút Back
         toolbar.setNavigationOnClickListener(v -> {
             if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack();
         });
 
-        // 2. Xử lý chọn ngày
         etDate.setOnClickListener(v -> showDatePicker());
 
-        // 3. Xử lý chọn ảnh
         btnUpload.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             imagePickerLauncher.launch(intent);
         });
 
-        // 4. [QUAN TRỌNG] Gán hành động Lưu cho cả 2 nút
         View.OnClickListener saveAction = v -> saveComplaint();
-        btnCreate.setOnClickListener(saveAction); // Nút dưới
-        tvSaveTop.setOnClickListener(saveAction); // Nút trên
+        btnCreate.setOnClickListener(saveAction);
+        tvSaveTop.setOnClickListener(saveAction);
 
-        // 5. Nút Hủy
         btnCancel.setOnClickListener(v -> {
             if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack();
         });
     }
 
     private void setupSpinners() {
-        // Spinner Ưu tiên
         String[] priorities = {"Thấp", "Trung bình", "Cao"};
         ArrayAdapter<String> adapterPriority = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, priorities);
         spPriority.setAdapter(adapterPriority);
-        spPriority.setSelection(1); // Mặc định Trung bình
+        spPriority.setSelection(1);
 
-        // Spinner Trạng thái
         String[] statuses = {"Mới", "Đang xử lý", "Đã giải quyết", "Hủy"};
         ArrayAdapter<String> adapterStatus = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, statuses);
         spStatus.setAdapter(adapterStatus);
@@ -137,24 +129,38 @@ public class TaoKhieuNaiFragment extends Fragment {
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
+    // [CẬP NHẬT] Hàm tải dữ liệu đã sửa để lấy từ collection "Tours"
     private void loadDataForAutocomplete() {
-        // Load danh sách KH từ Firebase "Users"
+        // 1. Load danh sách KH từ Firebase "Users"
         db.collection("Users").get().addOnSuccessListener(snapshots -> {
             listCustomerNames.clear();
             for (DocumentSnapshot doc : snapshots) {
                 String name = doc.getString("fullName");
                 if (name != null) listCustomerNames.add(name);
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, listCustomerNames);
-            actvCustomer.setAdapter(adapter);
+            if (getContext() != null) {
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, listCustomerNames);
+                actvCustomer.setAdapter(adapter);
+            }
         });
 
-        // Load danh sách Tour (Dữ liệu mẫu)
-        listTourIds.add("TOUR-DL-001");
-        listTourIds.add("TOUR-VT-002");
-        listTourIds.add("TOUR-PQ-003");
-        ArrayAdapter<String> adapterTour = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, listTourIds);
-        actvTour.setAdapter(adapterTour);
+        // 2. Load danh sách Tour từ Firebase "Tours"
+        db.collection("Tours").get().addOnSuccessListener(snapshots -> {
+            listTourIds.clear();
+            for (DocumentSnapshot doc : snapshots) {
+                // Lấy ID của Document (Ví dụ: TOUR001)
+                // Nếu bạn lưu ID trong một trường cụ thể (ví dụ "maTour"), hãy dùng doc.getString("maTour")
+                String tourId = doc.getId();
+                listTourIds.add(tourId);
+            }
+            if (getContext() != null) {
+                ArrayAdapter<String> adapterTour = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, listTourIds);
+                actvTour.setAdapter(adapterTour);
+            }
+        }).addOnFailureListener(e -> {
+            // Xử lý nếu không tải được tour (tùy chọn)
+            Toast.makeText(getContext(), "Không tải được danh sách Tour", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void saveComplaint() {
@@ -170,16 +176,11 @@ public class TaoKhieuNaiFragment extends Fragment {
             return;
         }
 
-        // Tạo ID ngẫu nhiên cho phiếu (#KN-xxxx)
         String id = "#KN-" + (1000 + new Random().nextInt(9000));
-
-        // Nếu có ảnh, lấy đường dẫn (Trong thực tế cần upload lên Storage, ở đây lưu URI tạm)
         String uriString = selectedImageUri != null ? selectedImageUri.toString() : "";
 
-        // Tạo Object
         KhieuNai khieuNai = new KhieuNai(id, customer, tour, date, content, uriString, priority, status);
 
-        // Lưu lên Firestore
         db.collection("Complaints").document(id).set(khieuNai)
                 .addOnSuccessListener(v -> {
                     Toast.makeText(getContext(), "Tạo phiếu khiếu nại thành công!", Toast.LENGTH_SHORT).show();

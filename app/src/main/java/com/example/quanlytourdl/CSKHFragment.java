@@ -48,6 +48,10 @@ public class CSKHFragment extends Fragment {
     private MaterialButton btnMoPhieuHoTro;
     private Button btnGuiCanhBao;
     private TextView tvViewHistory;
+
+    // [QUAN TRỌNG] Khai báo biến cho thẻ Phân tích cảm xúc
+    private View cardSentiment;
+
     private RecyclerView recyclerView;
     private SupportTicketAdapter adapter;
     private List<SupportTicket> mListTicket;
@@ -87,6 +91,10 @@ public class CSKHFragment extends Fragment {
         btnGuiCanhBao = view.findViewById(R.id.btn_gui_canh_bao);
         tvViewHistory = view.findViewById(R.id.tv_view_history);
         recyclerView = view.findViewById(R.id.recycler_support_tickets);
+
+        // [CẬP NHẬT] Ánh xạ thẻ Card Sentiment Analysis tại đây
+        // ID này phải khớp với ID trong file XML (card_sentiment_analysis)
+        cardSentiment = view.findViewById(R.id.card_sentiment_analysis);
     }
 
     private void setupListeners() {
@@ -106,11 +114,10 @@ public class CSKHFragment extends Fragment {
             tvViewHistory.setOnClickListener(v -> showHistoryDialog());
         }
 
-        // 5. [CẬP NHẬT] Thẻ Phân tích Cảm xúc -> Chuyển sang màn hình Phân tích
-        View card = getView() != null ? getView().findViewById(R.id.card_sentiment_analysis) : null;
-        if (card != null) {
-            card.setOnClickListener(v -> {
-                // Mở Fragment Phân Tích Cảm Xúc
+        // 5. [ĐÃ SỬA LỖI] Sự kiện click mở màn hình Phân Tích
+        if (cardSentiment != null) {
+            cardSentiment.setOnClickListener(v -> {
+                // Chuyển sang Fragment Phân Tích Cảm Xúc
                 openFragment(new PhanTichCamXucFragment());
             });
         }
@@ -121,7 +128,7 @@ public class CSKHFragment extends Fragment {
     // ==========================================
     private void showWarningDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = getLayoutInflater().inflate(R.layout.fragment_gui_canh_bao, null); // Hoặc dialog_gui_canh_bao tùy tên file bạn đặt
+        View view = getLayoutInflater().inflate(R.layout.fragment_gui_canh_bao, null);
         builder.setView(view);
 
         AlertDialog dialog = builder.create();
@@ -177,7 +184,7 @@ public class CSKHFragment extends Fragment {
     // ==========================================
     private void showHistoryDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = getLayoutInflater().inflate(R.layout.fragment_lich_su_canh_bao, null); // Hoặc dialog_lich_su_canh_bao
+        View view = getLayoutInflater().inflate(R.layout.fragment_lich_su_canh_bao, null);
         builder.setView(view);
         AlertDialog dialog = builder.create();
 
@@ -287,7 +294,7 @@ public class CSKHFragment extends Fragment {
     // ==========================================
     private void showCreateTicketDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = getLayoutInflater().inflate(R.layout.fragment_tao_phieu_ho_tro, null); // Hoặc dialog_tao_phieu_ho_tro
+        View view = getLayoutInflater().inflate(R.layout.fragment_tao_phieu_ho_tro, null);
         builder.setView(view);
 
         AlertDialog dialog = builder.create();
