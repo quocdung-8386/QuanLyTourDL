@@ -133,11 +133,14 @@ public class DashboardFragment extends Fragment {
         cardTours = view.findViewById(R.id.cardTours);
         gridCustomersDebt = view.findViewById(R.id.gridCustomersDebt);
         cardPerformance = view.findViewById(R.id.cardPerformance);
-        // --- ÁNH XẠ CHATBOT MỚI ---
+        // --- ÁNH XẠ CHATBOT ---
         fabChatbot = view.findViewById(R.id.fabChatbot);
         chatBubble = view.findViewById(R.id.chatBubble);
-        chatBubble.setOnClickListener(v -> openChatbotScreen());
 
+        fabChatbot.setOnClickListener(v -> openChatbotScreen());
+
+        // Sự kiện click cho bong bóng chat (giữ nguyên)
+        chatBubble.setOnClickListener(v -> openChatbotScreen());
         // Hiệu ứng: Ẩn bong bóng chat sau 5 giây để đỡ rối mắt (Tùy chọn)
         view.postDelayed(() -> {
             if (chatBubble != null) {
@@ -164,9 +167,11 @@ public class DashboardFragment extends Fragment {
     }
     private void openChatbotScreen() {
         Toast.makeText(getContext(), "Đang mở Chatbot AI...", Toast.LENGTH_SHORT).show();
-        // TODO: Chuyển sang Activity/Fragment Chatbot của bạn tại đây
-        // Intent intent = new Intent(getActivity(), ChatbotActivity.class);
-        // startActivity(intent);
+        android.content.Intent intent = new android.content.Intent(getActivity(), ChatbotActivity.class);
+        startActivity(intent);
+
+        // Nếu muốn có hiệu ứng chuyển cảnh mượt mà (tuỳ chọn)
+        requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
     }
     private void loadAllDataRealtime() {
         for (ListenerRegistration lr : activeListeners) lr.remove();

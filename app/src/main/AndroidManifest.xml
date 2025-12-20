@@ -36,6 +36,9 @@
             android:name=".RegisterActivity"
             android:exported="false" />
 
+        <activity android:name=".ChatbotActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <activity
             android:name=".MainActivity"
             android:exported="false" />
