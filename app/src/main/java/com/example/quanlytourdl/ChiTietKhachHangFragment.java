@@ -19,54 +19,53 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChiTietKhachHangFragment extends Fragment {
 
-    // --- KHAI BÁO VIEW ---
+    // Views cơ bản
     private ImageView btnBack, btnCopyCode, imgAvatar;
-    private TextView tvCode, tvNationality;
-
-    // Các trường cho phép chỉnh sửa (EditText)
+    private TextView tvCode, btnViewAllHistory;
     private EditText edtName, edtDob, edtGender, edtCitizenId, edtPhone, edtEmail, edtAddress;
-
     private MaterialButton btnEditProfile;
     private LinearLayout btnActionCall, btnActionMessage, btnActionEmail;
 
-    // --- BIẾN LOGIC ---
-    private String fullCustomerId; // ID gốc dùng để query Firebase
-    private boolean isEditing = false; // Trạng thái: false = Xem, true = Sửa
+    // RecyclerView Lịch sử Tour
+    private RecyclerView rvTourHistory;
+    private List<Map<String, Object>> tourHistoryList;
+    private TourHistoryAdapter historyAdapter;
+
+    private String fullCustomerId;
+    private boolean isEditing = false;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Đảm bảo tên layout đúng với file XML bạn đã sửa
         View view = inflater.inflate(R.layout.fragment_chi_tiet_khach_hang, container, false);
-
         initViews(view);
         loadData();
         setupEvents();
-
         return view;
     }
 
     private void initViews(View view) {
-        // Nút điều hướng & Header
         btnBack = view.findViewById(R.id.btnBack);
-
-        // Avatar & Info cơ bản
         imgAvatar = view.findViewById(R.id.imgAvatar);
         tvCode = view.findViewById(R.id.tvCode);
         btnCopyCode = view.findViewById(R.id.btnCopyCode);
-
-        // Các trường nhập liệu (Ánh xạ đúng với ID trong XML)
         edtName = view.findViewById(R.id.edtName);
         edtDob = view.findViewById(R.id.edtDob);
         edtGender = view.findViewById(R.id.edtGender);
@@ -74,43 +73,28 @@ public class ChiTietKhachHangFragment extends Fragment {
         edtPhone = view.findViewById(R.id.edtPhone);
         edtEmail = view.findViewById(R.id.edtEmail);
         edtAddress = view.findViewById(R.id.edtAddress);
-
-        // Trường này chỉ hiển thị, không sửa
-        tvNationality = view.findViewById(R.id.tvNationality);
-
-        // Các nút hành động
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnActionCall = view.findViewById(R.id.btnActionCall);
         btnActionMessage = view.findViewById(R.id.btnActionMessage);
         btnActionEmail = view.findViewById(R.id.btnActionEmail);
+        btnViewAllHistory = view.findViewById(R.id.btnViewAllHistory);
+
+        // Khởi tạo RecyclerView Lịch sử
+        rvTourHistory = view.findViewById(R.id.rvTourHistory);
+        rvTourHistory.setLayoutManager(new LinearLayoutManager(getContext()));
+        tourHistoryList = new ArrayList<>();
     }
 
     private void loadData() {
         Bundle args = getArguments();
         if (args != null) {
             String rawId = args.getString("id");
+            fullCustomerId = (rawId != null) ? rawId.replaceAll("\\s+", "") : "";
 
-            // --- BƯỚC 1: LÀM SẠCH ID TUYỆT ĐỐI ---
-            // replaceAll("\\s+", "") sẽ xóa mọi dấu cách, dấu xuống dòng (\n), tab...
-            if (rawId != null) {
-                fullCustomerId = rawId.replaceAll("\\s+", "");
-            } else {
-                fullCustomerId = "";
-            }
+            // Hiển thị mã KH rút gọn
+            String displayId = fullCustomerId.length() > 8 ? fullCustomerId.substring(0, 8) : fullCustomerId;
+            tvCode.setText("#" + displayId.toUpperCase());
 
-            // --- BƯỚC 2: HIỂN THỊ MÃ KH (Style Ticket) ---
-            if (!fullCustomerId.isEmpty()) {
-                String displayId = fullCustomerId;
-                // Nếu dài quá 8 ký tự thì cắt bớt cho đẹp (VD: #L1ALJQ...)
-                if (fullCustomerId.length() > 8) {
-                    displayId = fullCustomerId.substring(0, 7) + "...";
-                }
-                tvCode.setText("#" + displayId.toUpperCase());
-            } else {
-                tvCode.setText("#UNKNOWN");
-            }
-
-            // --- BƯỚC 3: ĐỔ DỮ LIỆU VÀO VIEW ---
             edtName.setText(args.getString("name", ""));
             edtDob.setText(args.getString("dob", ""));
             edtGender.setText(args.getString("gender", ""));
@@ -119,161 +103,183 @@ public class ChiTietKhachHangFragment extends Fragment {
             edtEmail.setText(args.getString("email", ""));
             edtAddress.setText(args.getString("address", ""));
 
-            // Xử lý Avatar theo giới tính
+            // Avatar theo giới tính
             String gender = args.getString("gender", "");
-            if (gender != null && gender.trim().equalsIgnoreCase("Nam")) {
-                imgAvatar.setImageResource(R.drawable.ic_avatar_male);
-            } else if (gender != null && gender.trim().equalsIgnoreCase("Nữ")) {
-                imgAvatar.setImageResource(R.drawable.ic_avatar_female);
-            } else {
-                imgAvatar.setImageResource(R.drawable.ic_launcher_background);
-            }
+            if ("Nam".equalsIgnoreCase(gender)) imgAvatar.setImageResource(R.drawable.ic_avatar_male);
+            else if ("Nữ".equalsIgnoreCase(gender)) imgAvatar.setImageResource(R.drawable.ic_avatar_female);
+
+            // TẢI LỊCH SỬ TỪ FIREBASE
+            fetchTourHistoryFromFirebase(fullCustomerId);
         }
+    }
+
+    private void fetchTourHistoryFromFirebase(String customerId) {
+        if (customerId.isEmpty()) return;
+
+        FirebaseFirestore.getInstance().collection("dattour")
+                .whereEqualTo("maKhachHang", customerId)
+                .limit(5)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    tourHistoryList.clear();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Map<String, Object> data = doc.getData();
+                        if (data != null) {
+                            data.put("idDatTour", doc.getId());
+                            tourHistoryList.add(data);
+                        }
+                    }
+                    historyAdapter = new TourHistoryAdapter(tourHistoryList, this::openTourDetail);
+                    rvTourHistory.setAdapter(historyAdapter);
+                })
+                .addOnFailureListener(e -> Log.e("FirebaseHistory", "Lỗi: " + e.getMessage()));
     }
 
     private void setupEvents() {
-        // Nút Back
-        btnBack.setOnClickListener(v -> {
-            if (getParentFragmentManager() != null) getParentFragmentManager().popBackStack();
-        });
+        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
 
-        // Nút Copy Mã KH đầy đủ
         btnCopyCode.setOnClickListener(v -> {
-            if (fullCustomerId != null && !fullCustomerId.isEmpty()) {
-                ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("ID Khách hàng", fullCustomerId);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(getContext(), "Đã sao chép mã: " + fullCustomerId, Toast.LENGTH_SHORT).show();
-            }
+            ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("ID Khách hàng", fullCustomerId);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), "Đã sao chép mã KH", Toast.LENGTH_SHORT).show();
         });
 
-        // Nút Chỉnh sửa / Lưu thay đổi
         btnEditProfile.setOnClickListener(v -> {
-            if (!isEditing) {
-                // ĐANG XEM -> Chuyển sang SỬA
-                toggleEditMode(true);
-            } else {
-                // ĐANG SỬA -> Thực hiện LƯU
-                saveDataToFirebase();
+            if (!isEditing) toggleEditMode(true);
+            else saveDataToFirebase();
+        });
+
+        btnActionCall.setOnClickListener(v -> {
+            String phone = edtPhone.getText().toString().trim();
+            if(!phone.isEmpty()){
+                startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone)));
+            }
+        });
+// Trong setupEvents()
+        btnActionMessage.setOnClickListener(v -> {
+            String phone = edtPhone.getText().toString().trim();
+            if(!phone.isEmpty()){
+                Intent intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setData(Uri.parse("smsto:" + phone));
+                startActivity(intent);
             }
         });
 
-        // Nút Gọi nhanh
-        btnActionCall.setOnClickListener(v -> {
-            String phone = edtPhone.getText().toString().replaceAll("\\s+", "");
-            if (!phone.isEmpty()) {
-                try {
-                    Intent intent = new Intent(Intent.ACTION_DIAL);
-                    intent.setData(Uri.parse("tel:" + phone));
-                    startActivity(intent);
-                } catch (Exception e) {
-                    Toast.makeText(getContext(), "Lỗi cuộc gọi", Toast.LENGTH_SHORT).show();
-                }
+        btnActionEmail.setOnClickListener(v -> {
+            String email = edtEmail.getText().toString().trim();
+            if(!email.isEmpty()){
+                Intent intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setData(Uri.parse("mailto:" + email));
+                startActivity(intent);
             }
+        });
+        btnViewAllHistory.setOnClickListener(v -> {
+            LichSuTourFragment fragment = new LichSuTourFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString("customerId", fullCustomerId);
+            fragment.setArguments(bundle);
+
+
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.main_content_frame, fragment)
+                    .addToBackStack(null)
+                    .commit();
         });
     }
 
-    /**
-     * Hàm bật/tắt chế độ chỉnh sửa (Ẩn hiện khung nhập liệu)
-     */
     private void toggleEditMode(boolean enable) {
         isEditing = enable;
-
-        // Danh sách các trường cần mở khóa
         EditText[] fields = {edtName, edtDob, edtGender, edtCitizenId, edtPhone, edtEmail, edtAddress};
-
-        for (EditText field : fields) {
-            if (field == null) continue;
-
-            field.setEnabled(enable); // Mở khóa hoặc khóa
-
-            if (enable) {
-                // CHẾ ĐỘ SỬA: Thêm nền xanh nhạt, padding
-                field.setBackgroundColor(Color.parseColor("#E3F2FD"));
-                field.setPadding(16, 16, 16, 16);
-            } else {
-                // CHẾ ĐỘ XEM: Xóa nền
-                field.setBackground(null);
-                field.setPadding(0, 0, 0, 0);
-            }
+        for (EditText f : fields) {
+            f.setEnabled(enable);
+            f.setBackgroundColor(enable ? Color.parseColor("#E3F2FD") : Color.TRANSPARENT);
         }
-
-        // Cập nhật giao diện nút bấm
-        if (enable) {
-            btnEditProfile.setText("Lưu thay đổi");
-            // Lưu ý: Đảm bảo bạn có icon ic_save hoặc ic_check, nếu không có thể dùng tạm ic_edit
-            btnEditProfile.setIconResource(R.drawable.ic_edit);
-            btnEditProfile.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_700)); // Màu xanh lá
-
-            // Focus vào tên
-            edtName.requestFocus();
-        } else {
-            btnEditProfile.setText("Chỉnh sửa hồ sơ");
-            btnEditProfile.setIconResource(R.drawable.ic_edit);
-            btnEditProfile.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.blue_700)); // Màu xanh dương
-        }
+        btnEditProfile.setText(enable ? "Lưu thay đổi" : "Chỉnh sửa hồ sơ");
+        btnEditProfile.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), enable ? R.color.green_700 : R.color.blue_700));
     }
 
-    /**
-     * Hàm lưu dữ liệu lên Firebase (Đã sửa lỗi NOT_FOUND)
-     */
     private void saveDataToFirebase() {
-        if (fullCustomerId == null || fullCustomerId.isEmpty()) {
-            Toast.makeText(getContext(), "Lỗi: Không tìm thấy ID khách hàng", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        Map<String, Object> update = new HashMap<>();
+        update.put("ten", edtName.getText().toString().trim());
+        update.put("sdt", edtPhone.getText().toString().trim());
+        update.put("email", edtEmail.getText().toString().trim());
+        update.put("diaChi", edtAddress.getText().toString().trim());
 
-        // Làm sạch ID
-        String cleanId = fullCustomerId.replaceAll("\\s+", "");
-
-        // --- SỬA QUAN TRỌNG: ĐỒNG BỘ TÊN FIELD VỚI MODEL ---
-        // Kiểm tra kỹ file KhachHang.java của bạn xem biến tên là gì.
-        // Thông thường Model đặt là 'ten', 'sdt' thì trên Firebase cũng phải là 'ten', 'sdt'.
-        // Nếu bạn dùng 'tenKhachHang' ở đây mà Model lại get("ten") thì nó sẽ không khớp.
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("ten", edtName.getText().toString().trim());       // Sửa "tenKhachHang" -> "ten" (hoặc tên field chính xác trên Firebase)
-        updates.put("sdt", edtPhone.getText().toString().trim());
-        updates.put("email", edtEmail.getText().toString().trim());
-        updates.put("diaChi", edtAddress.getText().toString().trim());
-        updates.put("ngaySinh", edtDob.getText().toString().trim());
-        updates.put("gioiTinh", edtGender.getText().toString().trim());
-        updates.put("cccd", edtCitizenId.getText().toString().trim());
-        // updates.put("quocTich", ...); // Nếu có sửa quốc tịch
-
-        btnEditProfile.setText("Đang lưu...");
-        btnEditProfile.setEnabled(false);
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // --- SỬA QUAN TRỌNG: CHỈ DÙNG 1 TÊN COLLECTION DUY NHẤT ---
-        // Bên danh sách dùng "khachhang" (thường) thì ở đây BẮT BUỘC phải dùng "khachhang".
-        // Bỏ logic try/catch lung tung để tránh lưu nhầm nơi.
-
-        db.collection("khachhang").document(cleanId).update(updates)
+        FirebaseFirestore.getInstance().collection("khachhang").document(fullCustomerId)
+                .update(update)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
-
-                    // Tắt chế độ sửa
                     toggleEditMode(false);
-                    btnEditProfile.setEnabled(true);
-
-                    // Cập nhật lại giao diện UI hiện tại luôn để người dùng thấy ngay
-                    // (Dù List bên ngoài tự cập nhật, nhưng màn hình này cũng cần hiển thị cái mới)
-                    // Các EditText đã hiển thị cái mới rồi nên không cần set lại text.
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("UpdateError", "Lỗi update: " + e.getMessage());
-                    Toast.makeText(getContext(), "Lỗi cập nhật: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    btnEditProfile.setText("Lưu thay đổi");
-                    btnEditProfile.setEnabled(true);
                 });
     }
 
-    // Hàm phụ xử lý khi thành công
-    private void handleUpdateSuccess() {
-        Toast.makeText(getContext(), "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
-        toggleEditMode(false);
-        btnEditProfile.setEnabled(true);
+    private void openTourDetail(Map<String, Object> tour) {
+        Toast.makeText(getContext(), "Xem chi tiết: " + tour.get("tenTour"), Toast.LENGTH_SHORT).show();
     }
+
+    // --- INNER ADAPTER CẬP NHẬT THEO LAYOUT MỚI ---
+    private class TourHistoryAdapter extends RecyclerView.Adapter<TourHistoryAdapter.ViewHolder> {
+        private List<Map<String, Object>> list;
+        private OnItemClickListener listener;
+
+        public TourHistoryAdapter(List<Map<String, Object>> list, OnItemClickListener listener) {
+            this.list = list;
+            this.listener = listener;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tour_history, parent, false);
+            return new ViewHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Map<String, Object> item = list.get(position);
+
+            // Đổ dữ liệu theo ID mới trong XML của bạn
+            holder.tvTourName.setText(String.valueOf(item.get("tenTour")));
+            holder.tvDateRange.setText(String.valueOf(item.get("thoiGian")));
+            holder.tvTourCode.setText("Mã tour: " + item.get("maTour"));
+            holder.tvGuestCount.setText("Số khách: " + item.get("soLuongKhach"));
+
+            String status = String.valueOf(item.get("trangThai"));
+            holder.tvStatus.setText(status);
+
+            // Logic đổi màu CardStatus và TextStatus
+            if ("Hoàn thành".equalsIgnoreCase(status)) {
+                holder.cardStatus.setCardBackgroundColor(Color.parseColor("#E8F5E9"));
+                holder.tvStatus.setTextColor(Color.parseColor("#2E7D32"));
+            } else if ("Đã hủy".equalsIgnoreCase(status)) {
+                holder.cardStatus.setCardBackgroundColor(Color.parseColor("#FFEBEE"));
+                holder.tvStatus.setTextColor(Color.parseColor("#C62828"));
+            } else {
+                holder.cardStatus.setCardBackgroundColor(Color.parseColor("#E3F2FD"));
+                holder.tvStatus.setTextColor(Color.parseColor("#1565C0"));
+            }
+
+            holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
+        }
+
+        @Override
+        public int getItemCount() { return list.size(); }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView tvTourName, tvDateRange, tvTourCode, tvGuestCount, tvStatus;
+            CardView cardStatus;
+            public ViewHolder(View v) {
+                super(v);
+                tvTourName = v.findViewById(R.id.tvTourName);
+                tvDateRange = v.findViewById(R.id.tvDateRange);
+                tvTourCode = v.findViewById(R.id.tvTourCode);
+                tvGuestCount = v.findViewById(R.id.tvGuestCount);
+                tvStatus = v.findViewById(R.id.tvStatus);
+                cardStatus = v.findViewById(R.id.cardStatus);
+            }
+        }
+    }
+
+    interface OnItemClickListener { void onItemClick(Map<String, Object> data); }
 }

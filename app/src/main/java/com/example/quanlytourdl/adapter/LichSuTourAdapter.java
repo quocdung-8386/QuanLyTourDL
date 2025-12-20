@@ -17,7 +17,7 @@ import java.util.List;
 public class LichSuTourAdapter extends RecyclerView.Adapter<LichSuTourAdapter.ViewHolder> {
 
     private List<DonDatTour> listDonDat;
-
+    private OnItemClickListener listener;
     public LichSuTourAdapter(List<DonDatTour> listDonDat) {
         this.listDonDat = listDonDat;
     }
@@ -29,7 +29,13 @@ public class LichSuTourAdapter extends RecyclerView.Adapter<LichSuTourAdapter.Vi
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tour_history, parent, false);
         return new ViewHolder(view);
     }
-
+    public interface OnItemClickListener {
+        void onItemClick(DonDatTour donDatTour);
+    }
+    public LichSuTourAdapter(List<DonDatTour> listDonDat, OnItemClickListener listener) {
+        this.listDonDat = listDonDat;
+        this.listener = listener; // Gán listener
+    }
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         DonDatTour item = listDonDat.get(position);
@@ -39,6 +45,7 @@ public class LichSuTourAdapter extends RecyclerView.Adapter<LichSuTourAdapter.Vi
         holder.tvTourCode.setText("Mã tour: " + item.getMaTourCode());
         holder.tvGuestCount.setText("Số khách: " + item.getSoLuongKhach());
         holder.tvStatus.setText(item.getTrangThai());
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(item));
 
         // Logic đổi màu trạng thái
         String status = item.getTrangThai();
