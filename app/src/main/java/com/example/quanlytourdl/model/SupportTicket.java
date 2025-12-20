@@ -2,23 +2,33 @@ package com.example.quanlytourdl.model;
 
 public class SupportTicket {
     private String id;
-    private String title;
-    private String customerInfo;
+    private String description;
+    private String customerName;
     private String status;
     private String time;
 
-    public SupportTicket(String id, String title, String customerInfo, String status, String time) {
+    // [BẮT BUỘC] Constructor rỗng cho Firebase
+    public SupportTicket() { }
+
+    public SupportTicket(String id, String description, String customerName, String status, String time) {
         this.id = id;
-        this.title = title;
-        this.customerInfo = customerInfo;
+        this.description = description;
+        this.customerName = customerName;
         this.status = status;
         this.time = time;
     }
 
-    // Getters (Bạn có thể tự thêm Setters nếu cần)
+    // Getters
     public String getId() { return id; }
-    public String getTitle() { return title; }
-    public String getCustomerInfo() { return customerInfo; }
+    public String getDescription() { return description; }
+    public String getCustomerName() { return customerName; }
     public String getStatus() { return status; }
     public String getTime() { return time; }
+
+    // [BẮT BUỘC] Setters cho Firebase
+    public void setId(String id) { this.id = id; }
+    public void setDescription(String description) { this.description = description; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public void setStatus(String status) { this.status = status; }
+    public void setTime(String time) { this.time = time; }
 }

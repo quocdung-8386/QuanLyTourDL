@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -63,6 +64,10 @@ public class LuongThuongPhatFragment extends Fragment {
     private EditText etSearch;
     private static final int PERMISSION_REQUEST_CODE = 200;
 
+    // --- [TỐI ƯU] BIẾN TOÀN CỤC ĐỂ LƯU DATA NHÂN VIÊN ---
+    private List<String> mEmployeeNames = new ArrayList<>();
+    private Map<String, String> mEmployeeDeptMap = new HashMap<>();
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -74,7 +79,7 @@ public class LuongThuongPhatFragment extends Fragment {
 
         initViews(view);
 
-        // Khởi tạo Adapter với Interface lắng nghe sự kiện click
+        // Khởi tạo Adapter
         adapter = new LuongThuongPhatAdapter(getContext(), mListHienThi, new LuongThuongPhatAdapter.OnActionClickListener() {
             @Override
             public void onApprove(LuongThuongPhat item) {
@@ -90,7 +95,8 @@ public class LuongThuongPhatFragment extends Fragment {
         rvList.setLayoutManager(new LinearLayoutManager(getContext()));
         rvList.setAdapter(adapter);
 
-        loadData();
+        loadData();          // Tải danh sách Thưởng/Phạt
+        loadEmployeeData();  // [TỐI ƯU] Tải trước danh sách Nhân viên (để dùng cho Dialog)
 
         return view;
     }
@@ -103,14 +109,14 @@ public class LuongThuongPhatFragment extends Fragment {
         ImageView ivExport = view.findViewById(R.id.iv_export_pdf);
         FloatingActionButton fabAdd = view.findViewById(R.id.fab_add);
 
-        // 1. Nút Back quay về màn hình trước (CSKH)
+        // 1. Back
         toolbar.setNavigationOnClickListener(v -> {
             if (isAdded() && getParentFragmentManager() != null) {
                 getParentFragmentManager().popBackStack();
             }
         });
 
-        // 2. Setup Spinner Lọc Phòng Ban
+        // 2. Spinner Lọc
         String[] departments = {"Tất cả", "Kinh doanh", "Nhân sự", "Kế toán", "IT", "Hướng dẫn viên"};
         ArrayAdapter<String> spAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, departments);
         spDepartmentFilter.setAdapter(spAdapter);
@@ -122,7 +128,7 @@ public class LuongThuongPhatFragment extends Fragment {
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // 3. Setup Tìm kiếm theo tên
+        // 3. Tìm kiếm
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
@@ -132,16 +138,33 @@ public class LuongThuongPhatFragment extends Fragment {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // 4. Sự kiện Thêm mới
+        // 4. Thêm mới
         fabAdd.setOnClickListener(v -> showAddDialog());
 
-        // 5. Sự kiện Xuất PDF (kèm kiểm tra quyền)
+        // 5. Xuất PDF
         ivExport.setOnClickListener(v -> checkPermissionAndCreatePdf());
     }
 
-    // --- TẢI DỮ LIỆU TỪ FIREBASE ---
+    // --- [TỐI ƯU] HÀM TẢI DATA NHÂN VIÊN MỘT LẦN DUY NHẤT ---
+    private void loadEmployeeData() {
+        db.collection("Users").get().addOnSuccessListener(snapshots -> {
+            if (snapshots != null) {
+                mEmployeeNames.clear();
+                mEmployeeDeptMap.clear();
+                for (DocumentSnapshot doc : snapshots) {
+                    String name = doc.getString("fullName");
+                    String dept = doc.getString("department");
+                    if (name != null && !name.isEmpty()) {
+                        mEmployeeNames.add(name);
+                        if (dept != null) mEmployeeDeptMap.put(name, dept);
+                    }
+                }
+            }
+        });
+    }
+
+    // --- TẢI DANH SÁCH THƯỞNG PHẠT TỪ FIREBASE ---
     private void loadData() {
-        // Lấy dữ liệu từ collection "RewardPunishment", sắp xếp theo ngày mới nhất
         db.collection("RewardPunishment").orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
@@ -150,15 +173,14 @@ public class LuongThuongPhatFragment extends Fragment {
                     for (DocumentSnapshot doc : value.getDocuments()) {
                         LuongThuongPhat item = doc.toObject(LuongThuongPhat.class);
                         if (item != null) {
-                            item.setId(doc.getId()); // Gán ID document để update sau này
+                            item.setId(doc.getId());
                             mListGoc.add(item);
                         }
                     }
-                    filterData(); // Gọi lọc lại dữ liệu mỗi khi có thay đổi
+                    filterData();
                 });
     }
 
-    // --- LOGIC LỌC DỮ LIỆU (SEARCH + SPINNER) ---
     private void filterData() {
         String keyword = etSearch.getText().toString().toLowerCase().trim();
         String selectedDept = spDepartmentFilter.getSelectedItem() != null ? spDepartmentFilter.getSelectedItem().toString() : "Tất cả";
@@ -166,10 +188,7 @@ public class LuongThuongPhatFragment extends Fragment {
         mListHienThi.clear();
 
         for (LuongThuongPhat item : mListGoc) {
-            // Kiểm tra tên nhân viên
             boolean matchName = item.getEmployeeName() != null && item.getEmployeeName().toLowerCase().contains(keyword);
-
-            // Kiểm tra phòng ban
             boolean matchDept = selectedDept.equals("Tất cả") || (item.getDepartment() != null && item.getDepartment().equals(selectedDept));
 
             if (matchName && matchDept) {
@@ -179,49 +198,66 @@ public class LuongThuongPhatFragment extends Fragment {
         adapter.notifyDataSetChanged();
     }
 
-    // --- LOGIC CẬP NHẬT TRẠNG THÁI (DUYỆT/TỪ CHỐI) ---
     private void updateStatus(LuongThuongPhat item, String newStatus) {
         if (item.getId() == null) return;
-
         db.collection("RewardPunishment").document(item.getId())
                 .update("status", newStatus)
-                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Cập nhật thành công: " + newStatus, Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Cập nhật: " + newStatus, Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Lỗi cập nhật!", Toast.LENGTH_SHORT).show());
     }
 
+    // --- [TỐI ƯU] DIALOG HIỂN THỊ NHANH HƠN DO DÙNG DATA CÓ SẴN ---
     private void showAddDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-
-        // --- CẬP NHẬT TÊN FILE TẠI ĐÂY ---
         View v = getLayoutInflater().inflate(R.layout.fragment_tao_thuong_phat, null);
-
         builder.setView(v);
 
-        // Ánh xạ View
-        EditText etName = v.findViewById(R.id.et_name);
+        // Ánh xạ
+        AutoCompleteTextView actvName = v.findViewById(R.id.actv_name);
         EditText etAmount = v.findViewById(R.id.et_amount);
         EditText etReason = v.findViewById(R.id.et_reason);
         Spinner spType = v.findViewById(R.id.sp_type);
         Spinner spDept = v.findViewById(R.id.sp_dept_dialog);
 
-        // Nạp dữ liệu cho Spinner
+        // Setup Spinner
         String[] types = {"Thưởng", "Phạt"};
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, types);
         spType.setAdapter(typeAdapter);
 
-        String[] departments = {"Kinh doanh", "Nhân sự", "CSKH", "IT", "Hướng dẫn viên"};
+        final String[] departments = {"Kinh doanh", "Nhân sự", "Kế toán", "IT", "Hướng dẫn viên"};
         ArrayAdapter<String> deptAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, departments);
         spDept.setAdapter(deptAdapter);
 
+        // --- SỬ DỤNG LIST ĐÃ TẢI SẴN (KHÔNG GỌI FIREBASE NỮA) ---
+        ArrayAdapter<String> nameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, mEmployeeNames);
+        actvName.setAdapter(nameAdapter);
+
+        // Sự kiện chọn tên -> Tự điền phòng ban
+        actvName.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedName = (String) parent.getItemAtPosition(position);
+            String department = mEmployeeDeptMap.get(selectedName);
+
+            if (department != null) {
+                for (int i = 0; i < deptAdapter.getCount(); i++) {
+                    // Dùng equalsIgnoreCase để so sánh không phân biệt hoa thường cho chắc chắn
+                    if (deptAdapter.getItem(i).equalsIgnoreCase(department)) {
+                        spDept.setSelection(i);
+                        break;
+                    }
+                }
+            }
+        });
+
+        // Xử lý nút LƯU
         builder.setTitle("Tạo quyết định mới")
                 .setPositiveButton("Lưu", (dialog, which) -> {
                     try {
-                        String name = etName.getText().toString().trim();
+                        String name = actvName.getText().toString().trim();
                         String amountStr = etAmount.getText().toString().trim();
                         String reason = etReason.getText().toString().trim();
 
                         if (name.isEmpty() || amountStr.isEmpty()) {
-                            Toast.makeText(getContext(), "Vui lòng nhập tên và số tiền!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Vui lòng nhập đủ thông tin!", Toast.LENGTH_SHORT).show();
                             return;
                         }
 
@@ -240,7 +276,7 @@ public class LuongThuongPhatFragment extends Fragment {
                                 .addOnSuccessListener(d -> Toast.makeText(getContext(), "Đã thêm thành công!", Toast.LENGTH_SHORT).show());
 
                     } catch (Exception e) {
-                        Toast.makeText(getContext(), "Lỗi nhập liệu! Số tiền phải là số.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Hủy", null)
@@ -271,7 +307,7 @@ public class LuongThuongPhatFragment extends Fragment {
 
     private void createPdfReport() {
         if (mListHienThi.isEmpty()) {
-            Toast.makeText(getContext(), "Không có dữ liệu để xuất!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không có dữ liệu!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -283,7 +319,6 @@ public class LuongThuongPhatFragment extends Fragment {
         PdfDocument.Page myPage = pdfDocument.startPage(myPageInfo);
         Canvas canvas = myPage.getCanvas();
 
-        // Vẽ tiêu đề
         titlePaint.setTextSize(20);
         titlePaint.setColor(Color.BLUE);
         titlePaint.setTextAlign(Paint.Align.CENTER);
@@ -309,21 +344,18 @@ public class LuongThuongPhatFragment extends Fragment {
             canvas.drawText(line3, 50, y, paint);
             y += 20;
 
-            // Đổi màu chữ cho dòng trạng thái
             Paint statusPaint = new Paint(paint);
             if(item.getStatus().contains("duyệt")) statusPaint.setColor(Color.GREEN);
             else if(item.getStatus().contains("từ chối")) statusPaint.setColor(Color.RED);
-            else statusPaint.setColor(Color.parseColor("#FFC107")); // Vàng
+            else statusPaint.setColor(Color.parseColor("#FFC107"));
 
             canvas.drawText(line4, 50, y, statusPaint);
 
-            // Vẽ đường kẻ ngăn cách
             y += 10;
             paint.setStrokeWidth(1);
             paint.setColor(Color.LTGRAY);
             canvas.drawLine(50, y, 545, y, paint);
-            paint.setColor(Color.BLACK); // Reset màu đen
-
+            paint.setColor(Color.BLACK);
             y += 30;
 
             if (y > 800) {
@@ -334,10 +366,7 @@ public class LuongThuongPhatFragment extends Fragment {
             }
         }
         pdfDocument.finishPage(myPage);
-
-        // Lưu file
-        String fileName = "BaoCao_ThuongPhat_" + System.currentTimeMillis() + ".pdf";
-        savePdfToStorage(pdfDocument, fileName);
+        savePdfToStorage(pdfDocument, "BaoCao_ThuongPhat_" + System.currentTimeMillis() + ".pdf");
     }
 
     private void savePdfToStorage(PdfDocument pdfDocument, String fileName) {
@@ -354,17 +383,13 @@ public class LuongThuongPhatFragment extends Fragment {
                 File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
                 outputStream = new FileOutputStream(file);
             }
-
             if (outputStream != null) {
                 pdfDocument.writeTo(outputStream);
                 outputStream.close();
                 Toast.makeText(getContext(), "Đã xuất PDF thành công!", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getContext(), "Lỗi tạo file PDF", Toast.LENGTH_SHORT).show();
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         } finally {
             pdfDocument.close();
         }

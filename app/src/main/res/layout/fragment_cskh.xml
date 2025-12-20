@@ -165,6 +165,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:textAllCaps="false"
+                android:backgroundTint="#6200EE"
                 app:cornerRadius="8dp"
                 app:icon="@drawable/ic_add_circle"
                 app:iconTint="@android:color/white"
@@ -188,9 +189,24 @@
                 app:iconGravity="textStart" />
 
             <TextView
+                android:id="@+id/tv_view_history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Xem lịch sử cảnh báo đã gửi"
+                android:gravity="center"
+                android:textColor="#757575"
+                android:padding="8dp"
+                android:layout_marginTop="-4dp"
+                android:layout_marginBottom="12dp"
+                android:textStyle="italic"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"/>
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="20dp"
                 android:text="Danh sách phiếu hỗ trợ"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"

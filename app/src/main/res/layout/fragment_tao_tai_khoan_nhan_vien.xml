@@ -6,200 +6,214 @@
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="8dp">
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@android:color/white">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-        <TextView
-            android:id="@+id/tv_title"
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tạo Tài khoản Nhân viên"
-            android:textColor="@android:color/black"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/iv_close"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:padding="16dp">
 
-        <ImageView
-            android:id="@+id/iv_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_close"
-            android:contentDescription="Đóng"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/tv_title"
-            app:layout_constraintBottom_toBottomOf="@+id/tv_title"/>
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Tạo Tài khoản Nhân viên"
+                android:textColor="@android:color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/iv_close"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/tv_name_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Họ và Tên"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_title" />
+            <ImageView
+                android:id="@+id/iv_close"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Đóng"
+                android:padding="8dp"
+                android:src="@drawable/ic_close"
+                app:layout_constraintBottom_toBottomOf="@+id/tv_title"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tv_title" />
 
-        <EditText
-            android:id="@+id/et_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_bg"
-            android:hint="Nhập họ tên đầy đủ"
-            android:inputType="textPersonName"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_name_label" />
+            <TextView
+                android:id="@+id/tv_name_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Họ và Tên"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_title" />
 
-        <TextView
-            android:id="@+id/tv_email_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Email Công ty"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/et_name" />
+            <EditText
+                android:id="@+id/et_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/spinner_bg"
+                android:hint="Nhập họ tên đầy đủ"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_name_label" />
 
-        <EditText
-            android:id="@+id/et_email"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_bg"
-            android:hint="ten.nhanvien@dicungtoitravel.com"
-            android:inputType="textEmailAddress"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_email_label" />
+            <TextView
+                android:id="@+id/tv_email_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Email Công ty"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/et_name" />
 
-        <TextView
-            android:id="@+id/tv_check_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Kiểm tra tồn tại"
-            android:textColor="#1976D2"
-            android:textStyle="bold"
-            android:textSize="14sp"
-            android:padding="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground"
-            app:layout_constraintEnd_toEndOf="@+id/et_email"
-            app:layout_constraintTop_toBottomOf="@+id/et_email" />
+            <EditText
+                android:id="@+id/et_email"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/spinner_bg"
+                android:hint="ten.nv@dicungtoitravel.com"
+                android:inputType="textEmailAddress"
+                android:padding="12dp"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_email_label" />
 
-        <TextView
-            android:id="@+id/tv_password_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Mật khẩu khởi tạo"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_check_email" />
+            <TextView
+                android:id="@+id/tv_check_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="8dp"
+                android:text="Kiểm tra tồn tại"
+                android:textColor="#1976D2"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@+id/et_email"
+                app:layout_constraintTop_toBottomOf="@+id/et_email" />
 
-        <EditText
-            android:id="@+id/et_password"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_bg"
-            android:hint="●●●●●●"
-            android:inputType="textPassword"
-            android:drawableEnd="@drawable/ic_password_visibility_off"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_password_label" />
+            <TextView
+                android:id="@+id/tv_password_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Mật khẩu khởi tạo"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_check_email" />
 
-        <TextView
-            android:id="@+id/tv_department_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Phòng ban"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/et_password" />
+            <EditText
+                android:id="@+id/et_password"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/spinner_bg"
+                android:drawableEnd="@drawable/ic_password_visibility_off"
+                android:hint="●●●●●●"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_password_label" />
 
-        <Spinner
-            android:id="@+id/spinner_department"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_bg"
-            android:padding="12dp"
-            android:minHeight="48dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_department_label" />
+            <TextView
+                android:id="@+id/tv_department_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Phòng ban"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/et_password" />
 
-        <TextView
-            android:id="@+id/tv_role_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Vai trò"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_department" />
+            <Spinner
+                android:id="@+id/spinner_department"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/spinner_bg"
+                android:minHeight="48dp"
+                android:padding="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_department_label" />
 
-        <Spinner
-            android:id="@+id/spinner_role"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_bg"
-            android:padding="12dp"
-            android:minHeight="48dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_role_label" />
+            <TextView
+                android:id="@+id/tv_role_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Vai trò"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinner_department" />
 
-        <Button
-            android:id="@+id/btn_cancel"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_secondary_button"
-            android:text="Hủy"
-            android:textAllCaps="false"
-            android:textColor="@android:color/black"
-            app:layout_constraintEnd_toStartOf="@+id/btn_create_account"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_role" />
+            <Spinner
+                android:id="@+id/spinner_role"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/spinner_bg"
+                android:minHeight="48dp"
+                android:padding="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_role_label" />
 
-        <Button
-            android:id="@+id/btn_create_account"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/bg_primary_button"
-            android:text="Lưu lại"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/btn_cancel"
-            app:layout_constraintTop_toTopOf="@+id/btn_cancel" />
+            <Button
+                android:id="@+id/btn_cancel"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_secondary_button"
+                android:minHeight="48dp"
+                android:text="Hủy"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btn_create_account"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinner_role" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <Button
+                android:id="@+id/btn_create_account"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_primary_button"
+                android:minHeight="48dp"
+                android:text="Lưu lại"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/btn_cancel"
+                app:layout_constraintTop_toTopOf="@+id/btn_cancel" />
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 </androidx.cardview.widget.CardView>

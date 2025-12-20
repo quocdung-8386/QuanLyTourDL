@@ -1,72 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="1dp">
+    android:layout_marginHorizontal="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@android:color/white">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="16dp">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/text_ticket_id_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@id/text_status"
-                android:layout_marginEnd="8dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                tools:text="#1205 - Vấn đề thanh toán" />
-
-            <TextView
-                android:id="@+id/text_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:background="@drawable/bg_status_solved"
-                android:paddingStart="8dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="4dp"
-                android:text="Đã giải quyết"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                tools:backgroundTint="#2ECC71" />
-        </RelativeLayout>
+        <TextView
+            android:id="@+id/tv_ticket_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="#1205 - Vấn đề thanh toán"
+            android:textStyle="bold"
+            android:textColor="#000"
+            android:textSize="16sp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tv_ticket_status"/>
 
         <TextView
-            android:id="@+id/text_customer_info"
+            android:id="@+id/tv_ticket_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            tools:text="KHT: Nguyễn Văn A - Tour Đà Lạt" />
-
-        <TextView
-            android:id="@+id/text_updated_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:text="Đã giải quyết"
             android:textSize="12sp"
-            android:drawableStart="@drawable/ic_clock"
-            android:drawablePadding="4dp"
-            android:textColor="@android:color/darker_gray"
-            tools:text="Cập nhật 2 giờ trước" />
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:textColor="#4CAF50"
+            android:background="@drawable/bg_status_green"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/tv_ticket_customer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="KHT: Nguyễn Văn A - Tour Đà Lạt"
+            android:textColor="#757575"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_ticket_title"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_ticket_customer">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_clock_outline"
+                app:tint="#9E9E9E"/> <TextView
+            android:id="@+id/tv_ticket_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cập nhật 2 giờ trước"
+            android:textColor="#9E9E9E"
+            android:textSize="12sp"
+            android:layout_marginStart="4dp"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

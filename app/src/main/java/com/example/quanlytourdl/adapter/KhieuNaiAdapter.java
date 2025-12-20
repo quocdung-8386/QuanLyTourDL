@@ -10,30 +10,24 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.quanlytourdl.R;
-import com.example.quanlytourdl.model.SupportTicket;
+import com.example.quanlytourdl.model.KhieuNai;
 
 import java.util.List;
 
-public class SupportTicketAdapter extends RecyclerView.Adapter<SupportTicketAdapter.ViewHolder> {
+public class KhieuNaiAdapter extends RecyclerView.Adapter<KhieuNaiAdapter.ViewHolder> {
 
-    private List<SupportTicket> mList;
-    private OnTicketClickListener mListener;
-    private OnTicketLongClickListener mLongListener; // [MỚI]
+    private List<KhieuNai> mList;
+    private OnItemClickListener mListener; // [MỚI] Khai báo listener
 
-    // Interface click thường (Xem chi tiết)
-    public interface OnTicketClickListener {
-        void onTicketClick(SupportTicket ticket);
+    // [MỚI] Interface để bắn sự kiện click ra ngoài
+    public interface OnItemClickListener {
+        void onItemClick(KhieuNai item);
     }
 
-    // [MỚI] Interface click giữ (Xử lý duyệt/từ chối)
-    public interface OnTicketLongClickListener {
-        void onTicketLongClick(SupportTicket ticket, int position);
-    }
-
-    public SupportTicketAdapter(List<SupportTicket> list, OnTicketClickListener listener, OnTicketLongClickListener longListener) {
+    // [MỚI] Cập nhật Constructor nhận thêm listener
+    public KhieuNaiAdapter(List<KhieuNai> list, OnItemClickListener listener) {
         this.mList = list;
         this.mListener = listener;
-        this.mLongListener = longListener;
     }
 
     @NonNull
@@ -45,39 +39,32 @@ public class SupportTicketAdapter extends RecyclerView.Adapter<SupportTicketAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SupportTicket item = mList.get(position);
+        KhieuNai item = mList.get(position);
         if (item == null) return;
 
-        holder.tvId.setText(item.getId() + " - " + item.getDescription());
-        holder.tvInfo.setText("KHT: " + item.getCustomerName());
-        holder.tvTime.setText(item.getTime());
+        holder.tvId.setText(item.getId() + " - " + item.getPriority());
+        holder.tvInfo.setText("KH: " + item.getCustomerName());
+        holder.tvTime.setText("Ngày: " + item.getDateIncident());
         holder.tvStatus.setText(item.getStatus());
 
-        // Xử lý màu sắc trạng thái
+        // Màu sắc trạng thái
         String status = item.getStatus();
         if ("Đã giải quyết".equals(status)) {
-            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_green);
             holder.tvStatus.setTextColor(Color.parseColor("#4CAF50"));
-        } else if ("Đã từ chối".equals(status)) {
-            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_red);
+            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_green);
+        } else if ("Hủy".equals(status)) {
             holder.tvStatus.setTextColor(Color.parseColor("#F44336"));
+            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_red);
         } else {
-            // Chờ xử lý
-            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_orange);
             holder.tvStatus.setTextColor(Color.parseColor("#FF9800"));
+            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_orange);
         }
 
-        // Click xem chi tiết
+        // [MỚI] Bắt sự kiện click vào toàn bộ item
         holder.itemView.setOnClickListener(v -> {
-            if (mListener != null) mListener.onTicketClick(item);
-        });
-
-        // [MỚI] Nhấn giữ để xử lý phiếu
-        holder.itemView.setOnLongClickListener(v -> {
-            if (mLongListener != null) {
-                mLongListener.onTicketLongClick(item, position);
+            if (mListener != null) {
+                mListener.onItemClick(item);
             }
-            return true;
         });
     }
 

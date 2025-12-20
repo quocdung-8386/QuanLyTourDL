@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:layout_marginHorizontal="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#FFF3E0"> <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_warning_white"
+            app:tint="#D84315"/> <TextView
+        android:id="@+id/tv_warn_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:text="Bão khẩn cấp"
+        android:textStyle="bold"
+        android:textColor="#D84315"
+        android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/tv_warn_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KHẨN CẤP"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:background="#D84315"
+            android:textColor="#FFF"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_warn_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Nội dung cảnh báo chi tiết..."
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="#5D4037"
+        android:textSize="13sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_warn_target"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Gửi đến: Tất cả"
+            android:textSize="11sp"
+            android:textColor="#757575"/>
+
+        <TextView
+            android:id="@+id/tv_warn_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12:30 20/12/2025"
+            android:textSize="11sp"
+            android:textStyle="italic"
+            android:textColor="#757575"/>
+    </LinearLayout>
+</LinearLayout>
+</androidx.cardview.widget.CardView>
