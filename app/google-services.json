@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "767438278534",
+    "firebase_url": "https://quanlytour-972ed-default-rtdb.firebaseio.com",
     "project_id": "quanlytour-972ed",
     "storage_bucket": "quanlytour-972ed.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.quanlytourdl"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "767438278534-0abhr388g2utm51i1og3599ud70ct4ci.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quanlytourdl",
+            "certificate_hash": "4f4f82d95408a91d1b0c7fb58e1563417794e4c0"
+          }
+        },
+        {
+          "client_id": "767438278534-m4a05mi74m7g5ahhlt44r3mf0m0c7j9r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyClWjFMaL1Zr7r61uo2ERk6sWKsXT21y0U"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "767438278534-m4a05mi74m7g5ahhlt44r3mf0m0c7j9r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
